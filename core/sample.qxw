@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Workspace>
+<Workspace xmlns="http://www.qlcplus.org/Workspace" CurrentWindow="VC">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>5.0.0 GIT</Version>
+  <Author></Author>
+ </Creator>
+ <Engine>
+  <InputOutputMap>
+   <BeatGenerator BeatType="Internal" BPM="178"></BeatGenerator>
+   <Universe Name="Universe 1" ID="0" Passthrough="True">
+    <Output Plugin="DMX USB" UID="FT232R USB UART (S/N: A10OE18V)" Line="0">
+     <PluginParameters UniverseChannels="174"></PluginParameters>
+    </Output>
+    <Output Plugin="DMX USB" UID="FT232R USB UART (S/N: A10OE18V)" Line="0">
+     <PluginParameters UniverseChannels="102"></PluginParameters>
+    </Output>
+   </Universe>
+   <Universe Name="Universe 2" ID="1"></Universe>
+   <Universe Name="Universe 3" ID="2"></Universe>
+   <Universe Name="Universe 4" ID="3"></Universe>
+  </InputOutputMap>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (4in1/RGBW)</Model>
+   <Mode>8ch A***</Mode>
+   <ID>0</ID>
+   <Name>GlintRGB_手前L[1]</Name>
+   <Universe>0</Universe>
+   <Address>55</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>1</ID>
+   <Name>LED par-light (standard) [2]</Name>
+   <Universe>0</Universe>
+   <Address>34</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>IMRelax</Manufacturer>
+   <Model>IM-MH90S</Model>
+   <Mode>15ch</Mode>
+   <ID>3</ID>
+   <Name>IMRelax_L[4]</Name>
+   <Universe>0</Universe>
+   <Address>38</Address>
+   <Channels>15</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>IMRelax</Manufacturer>
+   <Model>IM-MH90S</Model>
+   <Mode>15ch</Mode>
+   <ID>4</ID>
+   <Name>IMRelax_R[5]</Name>
+   <Universe>0</Universe>
+   <Address>81</Address>
+   <Channels>15</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (4in1/RGBW)</Model>
+   <Mode>8ch A***</Mode>
+   <ID>5</ID>
+   <Name>GlintRGB_手前R[6]</Name>
+   <Universe>0</Universe>
+   <Address>63</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>6</ID>
+   <Name>GlintStd_サイドL[7]</Name>
+   <Universe>0</Universe>
+   <Address>53</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>7</ID>
+   <Name>GlintStd_2階L[8]</Name>
+   <Universe>0</Universe>
+   <Address>15</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>StageEvolution</Manufacturer>
+   <Model>HPAR64-9</Model>
+   <Mode>13ch</Mode>
+   <ID>8</ID>
+   <Name>HPAR_2階L[9]</Name>
+   <Universe>0</Universe>
+   <Address>17</Address>
+   <Channels>13</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>StageEvolution</Manufacturer>
+   <Model>HPAR64-9</Model>
+   <Mode>13ch</Mode>
+   <ID>9</ID>
+   <Name>HPAR_2階R[10]</Name>
+   <Universe>0</Universe>
+   <Address>0</Address>
+   <Channels>13</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>10</ID>
+   <Name>GlintStd_サイドR[11]</Name>
+   <Universe>0</Universe>
+   <Address>71</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>11</ID>
+   <Name>GlintStd_2階R[12]</Name>
+   <Universe>0</Universe>
+   <Address>13</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>12</ID>
+   <Name>GlintStd_バック[13]</Name>
+   <Universe>0</Universe>
+   <Address>96</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>13</ID>
+   <Name>GlintStd_手前L[14]</Name>
+   <Universe>0</Universe>
+   <Address>170</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Glint</Manufacturer>
+   <Model>LED par-light (standard)</Model>
+   <Mode>2ch d***</Mode>
+   <ID>14</ID>
+   <Name>GlintStd_手前R[15]</Name>
+   <Universe>0</Universe>
+   <Address>172</Address>
+   <Channels>2</Channels>
+  </Fixture>
+  <FixtureGroup ID="0">
+   <Name>Standards</Name>
+   <Size X="3" Y="3"></Size>
+   <Head X="0" Y="0" Fixture="7">0</Head>
+   <Head X="1" Y="0" Fixture="6">0</Head>
+   <Head X="2" Y="0" Fixture="13">0</Head>
+   <Head X="0" Y="1" Fixture="14">0</Head>
+   <Head X="1" Y="1" Fixture="10">0</Head>
+   <Head X="2" Y="1" Fixture="11">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="1">
+   <Name>upperleft</Name>
+   <Size X="2" Y="2"></Size>
+   <Head X="0" Y="0" Fixture="8">0</Head>
+   <Head X="1" Y="0" Fixture="7">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="2">
+   <Name>Colors</Name>
+   <Size X="2" Y="2"></Size>
+   <Head X="0" Y="0" Fixture="8">0</Head>
+   <Head X="1" Y="0" Fixture="0">0</Head>
+   <Head X="0" Y="1" Fixture="9">0</Head>
+   <Head X="1" Y="1" Fixture="5">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="4">
+   <Name>upperright</Name>
+   <Size X="2" Y="2"></Size>
+   <Head X="1" Y="0" Fixture="11">0</Head>
+   <Head X="0" Y="1" Fixture="9">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="5">
+   <Name>back</Name>
+   <Size X="2" Y="2"></Size>
+  </FixtureGroup>
+  <FixtureGroup ID="7">
+   <Name>lowerleft</Name>
+   <Size X="2" Y="2"></Size>
+   <Head X="0" Y="0" Fixture="13">0</Head>
+   <Head X="1" Y="0" Fixture="0">0</Head>
+   <Head X="0" Y="1" Fixture="6">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="8">
+   <Name>lowerright</Name>
+   <Size X="2" Y="2"></Size>
+   <Head X="0" Y="0" Fixture="5">0</Head>
+   <Head X="1" Y="0" Fixture="14">0</Head>
+   <Head X="0" Y="1" Fixture="10">0</Head>
+  </FixtureGroup>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <Function ID="31" Type="Scene" Name="hr_s7" >
+   <Speed FadeIn="0" FadeOut="0" Duration="0"></Speed>
+   <FixtureVal ID="3">0,255,4,30,7,70</FixtureVal>
+   <FixtureVal ID="4">0,255,4,30,7,70</FixtureVal>
+   <FixtureVal ID="8">0,255,4,255,12,255</FixtureVal>
+   <FixtureVal ID="0">0,255,6,255</FixtureVal>
+   <FixtureVal ID="9">0,255,4,255,12,255</FixtureVal>
+   <FixtureVal ID="5">0,255,6,255</FixtureVal>
+   <FixtureVal ID="7">0,255</FixtureVal>
+   <FixtureVal ID="6">0,255</FixtureVal>
+   <FixtureVal ID="13">0,255</FixtureVal>
+   <FixtureVal ID="14">0,255</FixtureVal>
+   <FixtureVal ID="10">0,255</FixtureVal>
+   <FixtureVal ID="11">0,255</FixtureVal>
+   <FixtureGroup ID="0"></FixtureGroup>
+  </Function>
+  
+  
+  
+  <Function ID="35" Type="Sequence" Name="hr_s1" BoundScene="34" ><Speed FadeIn="0" FadeOut="0" Duration="337"></Speed><Direction>Forward</Direction><RunOrder>Loop</RunOrder><SpeedModes FadeIn="Default" FadeOut="Default" Duration="Common"></SpeedModes><Step Number="0" FadeIn="0" Hold="337" FadeOut="0" Values="40">0:0,200,4,255,5,255,6,255:5:0,200,4,255,5,255,6,255:6:0,200:7:0,200:8:0,200,2,255,3,255,4,255,12,200:9:0,200,2,255,3,255,4,255,12,200:10:0,200:11:0,200:13:0,200:14:0,200</Step><Step Number="1" FadeIn="0" Hold="337" FadeOut="0" Values="40"></Step></Function>
+  
+  <Function ID="37" Type="Sequence" Name="hr_s2" BoundScene="36"><Speed FadeIn="0" FadeOut="0" Duration="1000"></Speed><Direction>Forward</Direction><RunOrder>SingleShot</RunOrder><SpeedModes FadeIn="Default" FadeOut="Default" Duration="Common"></SpeedModes><Step Number="0" FadeIn="0" Hold="1000" FadeOut="0" Values="38">0:0,255,4,255,5,255,6,255:5:0,255,4,255,5,255,6,255:6:0,255:8:2,255,3,255,4,255,12,255:10:0,255:12:0,255:13:0,255:14:0,255</Step><Step Number="1" FadeIn="0" Hold="1000" FadeOut="0" Values="38">0:4,255,5,255,6,255,7,255:5:4,255,5,255,6,255,7,255:6:0,255:7:0,255:8:0,255,2,255,3,255,4,255,5,255,12,255:9:0,255,2,255,3,255,4,255,5,255,12,255:10:0,255:11:0,255:12:0,255:13:0,255</Step><Step Number="2" FadeIn="0" Hold="1000" FadeOut="0" Values="38">0:0,255,4,255,5,255,6,255:5:0,255,4,255,5,255,6,255:6:0,255:8:2,255,3,255,4,255:10:0,255:12:0,255:13:0,255:14:0,255</Step><Step Number="3" FadeIn="0" Hold="1000" FadeOut="0" Values="38">0:0,255,4,255,5,255,6,255:5:0,255,4,255,5,255,6,255:6:0,255:7:0,255:8:0,255,2,255,3,255,4,255,12,255:9:0,255,2,255,3,255,4,255,12,255:10:0,255:11:0,255:12:0,255:13:0,255:14:0,255</Step></Function>
+  
+  <Function ID="39" Type="RGBMatrix" Name="hr_s3_rgb" ><Speed FadeIn="0" FadeOut="0" Duration="674"></Speed><FixtureGroup ID="0"></FixtureGroup><Direction>Forward</Direction><RunOrder>Loop</RunOrder></Function>
+  <Function ID="40" Type="Chaser" Name="hr_main" ><Speed FadeIn="0" FadeOut="0" Duration="1348"></Speed><Direction>Forward</Direction><RunOrder>SingleShot</RunOrder><SpeedModes FadeIn="Default" FadeOut="Default" Duration="PerStep"></SpeedModes><Step Number="0" FadeIn="0" Hold="1348" FadeOut="0">35</Step><Step Number="1" FadeIn="0" Hold="1348" FadeOut="0">37</Step><Step Number="2" FadeIn="0" Hold="20000" FadeOut="0">42</Step><Step Number="3" FadeIn="0" Hold="19000" FadeOut="0">45</Step><Step Number="4" FadeIn="0" Hold="11000" FadeOut="0">52</Step><Step Number="5" FadeIn="0" Hold="22000" FadeOut="0">59</Step><Step Number="6" FadeIn="0" Hold="11000" FadeOut="0">31</Step><Step Number="7" FadeIn="0" Hold="40000" FadeOut="0">64</Step><Step Number="8" FadeIn="0" Hold="10000" FadeOut="0">43</Step><Step Number="9" FadeIn="0" Hold="25000" FadeOut="0">59</Step><Step Number="10" FadeIn="0" Hold="2000" FadeOut="0">54</Step><Step Number="11" FadeIn="0" Hold="41000" FadeOut="0">64</Step><Step Number="12" FadeIn="0" Hold="12000" FadeOut="0">42</Step><Step Number="13" FadeIn="0" Hold="10000" FadeOut="0">69</Step></Function>
+  <Function ID="41" Type="Scene" Name="hr_s3_dimmer" ><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="8">0,200,12,200</FixtureVal><FixtureVal ID="7">0,200</FixtureVal><FixtureVal ID="11">0,200</FixtureVal><FixtureVal ID="9">0,200,12,200</FixtureVal><FixtureVal ID="13">0,200</FixtureVal><FixtureVal ID="0">0,200</FixtureVal><FixtureVal ID="6">0,200</FixtureVal><FixtureVal ID="5">0,200</FixtureVal><FixtureVal ID="14">0,200</FixtureVal><FixtureVal ID="10">0,200</FixtureVal><FixtureGroup ID="8"></FixtureGroup></Function>
+  <Function ID="42" Type="Collection" Name="hr_s3" ><Step Number="0" FadeIn="0" Hold="0" FadeOut="0">39</Step><Step Number="1" FadeIn="0" Hold="0" FadeOut="0">41</Step></Function>
+  <Function ID="43" Type="Scene" Name="hr_s9" ><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="3">0,200,4,30,7,110</FixtureVal><FixtureVal ID="4">0,200,4,30,7,110</FixtureVal><FixtureVal ID="8">0,200,2,204,3,0,4,255,8,255,12,200</FixtureVal><FixtureVal ID="0">0,200,4,204,5,0,6,255</FixtureVal><FixtureVal ID="9">0,200,2,204,3,0,4,255,8,255,12,200</FixtureVal><FixtureVal ID="5">0,200,4,204,5,0,6,255</FixtureVal><FixtureVal ID="7">0,200</FixtureVal><FixtureVal ID="6">0,200</FixtureVal><FixtureVal ID="13">0,200</FixtureVal><FixtureVal ID="10">0,200</FixtureVal><FixtureVal ID="14">0,200</FixtureVal><FixtureVal ID="11">0,200</FixtureVal><FixtureGroup ID="0"></FixtureGroup></Function>
+  <Function ID="44" Type="RGBMatrix" Name="hr_s4_rgb" ><Speed FadeIn="0" FadeOut="0" Duration="674"></Speed><FixtureGroup ID="0"></FixtureGroup><Direction>Forward</Direction><RunOrder>Loop</RunOrder></Function>
+  <Function ID="45" Type="Collection" Name="hr_s4" ><Step Number="0" FadeIn="0" Hold="0" FadeOut="0">44</Step><Step Number="1" FadeIn="0" Hold="0" FadeOut="0">47</Step><Step Number="2" FadeIn="0" Hold="0" FadeOut="0">49</Step><Step Number="3" FadeIn="0" Hold="0" FadeOut="0">50</Step></Function>
+  
+  <Function ID="47" Type="Sequence" Name="hr_s4_standard" BoundScene="46" ><Speed FadeIn="0" FadeOut="0" Duration="674"></Speed><Direction>Forward</Direction><RunOrder>Random</RunOrder><SpeedModes FadeIn="Default" FadeOut="Default" Duration="Common"></SpeedModes><Step Number="0" FadeIn="0" Hold="674" FadeOut="0" Values="12">6:0,255:7:0,255:10:0,255:11:0,255:13:1,255:14:1,255</Step><Step Number="1" FadeIn="0" Hold="674" FadeOut="0" Values="12">6:1,255:7:1,255:10:1,255:11:1,255:13:0,255:14:0,255</Step><Step Number="2" FadeIn="0" Hold="674" FadeOut="0" Values="12">6:0,255:7:1,255:10:0,255:11:1,255:13:1,255:14:0,255</Step><Step Number="3" FadeIn="0" Hold="674" FadeOut="0" Values="12">6:1,255:7:0,255:10:1,255:11:0,255:13:0,255:14:1,255</Step></Function>
+  
+  <Function ID="49" Type="Sequence" Name="hr_s4_imrelax" BoundScene="48" ><Speed FadeIn="0" FadeOut="0" Duration="674"></Speed><Direction>Forward</Direction><RunOrder>Random</RunOrder><SpeedModes FadeIn="Default" FadeOut="Default" Duration="Common"></SpeedModes><Step Number="0" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30:4:0,255,4,30</Step><Step Number="1" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30,7,90:4:0,255,4,30</Step><Step Number="2" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30:4:0,255,4,30,7,90</Step><Step Number="3" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30,7,90:4:0,255,4,30,7,90</Step></Function>
+  <Function ID="50" Type="Scene" Name="hr_s4_dimmer" ><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="8">0,255,12,255</FixtureVal><FixtureVal ID="0">0,255</FixtureVal><FixtureVal ID="9">0,255,12,255</FixtureVal><FixtureVal ID="5">0,255</FixtureVal><FixtureGroup ID="2"></FixtureGroup></Function>
+  <Function ID="51" Type="RGBMatrix" Name="hr_s5_rgb" ><Speed FadeIn="0" FadeOut="0" Duration="674"></Speed><FixtureGroup ID="0"></FixtureGroup><Direction>Forward</Direction><RunOrder>Loop</RunOrder></Function>
+  <Function ID="52" Type="Collection" Name="hr_s5" ><Step Number="0" FadeIn="0" Hold="0" FadeOut="0">51</Step><Step Number="1" FadeIn="0" Hold="0" FadeOut="0">56</Step><Step Number="2" FadeIn="0" Hold="0" FadeOut="0">57</Step></Function>
+  <Function ID="53" Type="EFX" Name="hr_s8_efx" ><Speed FadeIn="0" FadeOut="0" Duration="20000"></Speed><Direction>Forward</Direction><RunOrder>Loop</RunOrder></Function>
+  <Function ID="54" Type="Collection" Name="hr_s10" ><Step Number="0" FadeIn="0" Hold="0" FadeOut="0">66</Step><Step Number="1" FadeIn="0" Hold="0" FadeOut="0">68</Step></Function>
+  
+  <Function ID="56" Type="Sequence" Name="hr_s5_imrelax" BoundScene="55" ><Speed FadeIn="0" FadeOut="0" Duration="674"></Speed><Direction>Forward</Direction><RunOrder>Random</RunOrder><SpeedModes FadeIn="Default" FadeOut="Default" Duration="Common"></SpeedModes><Step Number="0" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30:4:0,255,4,30</Step><Step Number="1" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30,7,30:4:0,255,4,30</Step><Step Number="2" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30:4:0,255,4,30,7,30</Step><Step Number="3" FadeIn="0" Hold="674" FadeOut="0" Values="6">3:0,255,4,30,7,30:4:0,255,4,30,7,30</Step></Function>
+  <Function ID="57" Type="Scene" Name="hr_s5_dimmer" ><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="8">0,200,12,200</FixtureVal><FixtureVal ID="0">0,200</FixtureVal><FixtureVal ID="9">0,200,12,200</FixtureVal><FixtureVal ID="5">0,200</FixtureVal><FixtureVal ID="11">0,200</FixtureVal><FixtureVal ID="7">0,200</FixtureVal><FixtureVal ID="6">0,200</FixtureVal><FixtureVal ID="10">0,200</FixtureVal><FixtureVal ID="13">0,200</FixtureVal><FixtureVal ID="14">0,200</FixtureVal><FixtureGroup ID="2"></FixtureGroup></Function>
+  <Function ID="58" Type="RGBMatrix" Name="hr_s6_rgb" ><Speed FadeIn="0" FadeOut="0" Duration="2796"></Speed><FixtureGroup ID="0"></FixtureGroup><Direction>Forward</Direction><RunOrder>Loop</RunOrder></Function>
+  <Function ID="59" Type="Collection" Name="hr_s6" ><Step Number="0" FadeIn="0" Hold="0" FadeOut="0">58</Step><Step Number="1" FadeIn="0" Hold="0" FadeOut="0">61</Step><Step Number="2" FadeIn="0" Hold="0" FadeOut="0">62</Step></Function>
+  
+  <Function ID="61" Type="Sequence" Name="hr_s6_imrelax" BoundScene="60" ><Speed FadeIn="0" FadeOut="0" Duration="2796"></Speed><Direction>Forward</Direction><RunOrder>Random</RunOrder><SpeedModes FadeIn="Default" FadeOut="Default" Duration="Common"></SpeedModes><Step Number="0" FadeIn="0" Hold="2796" FadeOut="0" Values="6">3:0,255,4,30,7,30:4:0,255,4,30,7,30</Step><Step Number="1" FadeIn="0" Hold="2796" FadeOut="0" Values="6">3:0,255,4,30,7,30:4:0,255,4,30,7,90</Step><Step Number="2" FadeIn="0" Hold="2796" FadeOut="0" Values="6">3:0,255,4,30,7,90:4:0,255,4,30,7,30</Step><Step Number="3" FadeIn="0" Hold="2796" FadeOut="0" Values="6">3:0,255,4,30,7,90:4:0,255,4,30,7,90</Step></Function>
+  <Function ID="62" Type="Scene" Name="hr_s6_dimmer" ><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="8">0,200,12,200</FixtureVal><FixtureVal ID="0">0,200</FixtureVal><FixtureVal ID="9">0,200,12,200</FixtureVal><FixtureVal ID="5">0,200</FixtureVal><FixtureVal ID="11">1,200</FixtureVal><FixtureVal ID="7">1,200</FixtureVal><FixtureVal ID="6">1,200</FixtureVal><FixtureVal ID="10">1,200</FixtureVal><FixtureVal ID="13">1,200</FixtureVal><FixtureVal ID="14">1,200</FixtureVal><FixtureGroup ID="2"></FixtureGroup></Function>
+  <Function ID="63" Type="RGBMatrix" Name="hr_s8_rgb" ><Speed FadeIn="0" FadeOut="0" Duration="2796"></Speed><FixtureGroup ID="0"></FixtureGroup><Direction>Forward</Direction><RunOrder>Loop</RunOrder></Function>
+  <Function ID="64" Type="Collection" Name="hr_s8" ><Step Number="0" FadeIn="0" Hold="0" FadeOut="0">63</Step><Step Number="1" FadeIn="0" Hold="0" FadeOut="0">67</Step><Step Number="2" FadeIn="0" Hold="0" FadeOut="0">53</Step></Function>
+  
+  <Function ID="66" Type="RGBMatrix" Name="hr_s10_rgb" ><Speed FadeIn="0" FadeOut="0" Duration="100"></Speed><FixtureGroup ID="0"></FixtureGroup><Direction>Forward</Direction><RunOrder>Loop</RunOrder></Function>
+  <Function ID="67" Type="Scene" Name="hr_s8_dimmer" ><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="8">0,200,12,200</FixtureVal><FixtureVal ID="0">0,200</FixtureVal><FixtureVal ID="9">0,200,12,200</FixtureVal><FixtureVal ID="5">0,200</FixtureVal><FixtureVal ID="11">1,200</FixtureVal><FixtureVal ID="7">1,200</FixtureVal><FixtureVal ID="6">1,200</FixtureVal><FixtureVal ID="10">1,200</FixtureVal><FixtureVal ID="13">1,200</FixtureVal><FixtureVal ID="14">1,200</FixtureVal><FixtureVal ID="3">0,255,7,200</FixtureVal><FixtureVal ID="4">0,255,7,200</FixtureVal><FixtureGroup ID="2"></FixtureGroup></Function>
+  <Function ID="68" Type="Scene" Name="hr_s10_dimmer" ><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="3">0,255,7,255</FixtureVal><FixtureVal ID="4">0,255,7,255</FixtureVal><FixtureVal ID="8">0,255,12,255</FixtureVal><FixtureVal ID="0">0,255</FixtureVal><FixtureVal ID="9">0,255,12,255</FixtureVal><FixtureVal ID="5">0,255</FixtureVal><FixtureVal ID="7">0,255</FixtureVal><FixtureVal ID="6">0,255</FixtureVal><FixtureVal ID="13">0,255</FixtureVal><FixtureVal ID="14">0,255</FixtureVal><FixtureVal ID="10">0,255</FixtureVal><FixtureVal ID="11">0,255</FixtureVal><FixtureGroup ID="0"></FixtureGroup></Function>
+  <Function ID="69" Type="Scene" Name="hr_s11"><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="3">0,255,7,0</FixtureVal><FixtureVal ID="4">0,255,7,0</FixtureVal><FixtureVal ID="8">0,200,2,255,3,255,4,255,12,200</FixtureVal><FixtureVal ID="0">0,200,4,255,5,255,6,255</FixtureVal><FixtureVal ID="9">0,200,2,255,3,255,4,255,12,200</FixtureVal><FixtureVal ID="5">0,200,4,255,5,255,6,255</FixtureVal><FixtureVal ID="7">0,255</FixtureVal><FixtureVal ID="6">0,255</FixtureVal><FixtureVal ID="13">0,255</FixtureVal><FixtureVal ID="14">0,255</FixtureVal><FixtureVal ID="11">0,255</FixtureVal><FixtureVal ID="10">0,255</FixtureVal><FixtureGroup ID="0"></FixtureGroup></Function>
+  <Monitor DisplayMode="0" ShowLabels="0">
+   <Font>Arial,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   <ChannelStyle>0</ChannelStyle>
+   <ValueStyle>0</ValueStyle>
+   <Grid Width="11" Height="3" Depth="6" Units="0" POV="1"></Grid>
+   <StageItem>0</StageItem>
+   <FxItem ID="0" XPos="2663" YPos="0" ZPos="4993" XRot="-120" YRot="40"></FxItem>
+   <FxItem ID="1" XPos="0" YPos="0" ZPos="0"></FxItem>
+   <FxItem ID="3" XPos="2701" YPos="0" ZPos="1489"></FxItem>
+   <FxItem ID="4" XPos="8041" YPos="0" ZPos="1481"></FxItem>
+   <FxItem ID="5" XPos="8011" YPos="0" ZPos="4874" XRot="-120" YRot="-40"></FxItem>
+   <FxItem ID="6" XPos="921" YPos="1000" ZPos="3229" XRot="90" YRot="-90"></FxItem>
+   <FxItem ID="7" XPos="807.882" YPos="0" ZPos="327.121" XRot="120"></FxItem>
+   <FxItem ID="8" XPos="282.88" YPos="2500" ZPos="253.679" XRot="30" YRot="-15"></FxItem>
+   <FxItem ID="9" XPos="10362.4" YPos="2500" ZPos="273.521" XRot="30" YRot="15"></FxItem>
+   <FxItem ID="10" XPos="9713" YPos="1000" ZPos="3093" XRot="90" YRot="90"></FxItem>
+   <FxItem ID="11" XPos="9842.27" YPos="0" ZPos="296.569" XRot="120"></FxItem>
+   <FxItem ID="12" XPos="5115.38" YPos="1000" ZPos="2448.82" XRot="90"></FxItem>
+   <FxItem ID="13" XPos="1692" YPos="0" ZPos="5471" XRot="-100" YRot="70"></FxItem>
+   <FxItem ID="14" XPos="8599" YPos="0" ZPos="5500" XRot="-100" YRot="-70"></FxItem>
+  </Monitor>
+ <Function ID="48" Type="Scene" Name="New Scene" Hidden="True"><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="3">0,0,4,0,7,0</FixtureVal><FixtureVal ID="4">0,0,4,0,7,0</FixtureVal></Function><Function ID="60" Type="Scene" Name="New Scene" Hidden="True"><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="3">0,0,4,0,7,0</FixtureVal><FixtureVal ID="4">0,0,4,0,7,0</FixtureVal></Function><Function ID="36" Type="Scene" Name="New Scene" Hidden="True"><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="8">0,0,2,0,3,0,4,0,5,0,12,0</FixtureVal><FixtureVal ID="7">0,0,1,0</FixtureVal><FixtureVal ID="6">0,0,1,0</FixtureVal><FixtureVal ID="0">0,0,4,0,5,0,6,0,7,0</FixtureVal><FixtureVal ID="5">0,0,4,0,5,0,6,0,7,0</FixtureVal><FixtureVal ID="10">0,0,1,0</FixtureVal><FixtureVal ID="11">0,0,1,0</FixtureVal><FixtureVal ID="9">0,0,2,0,3,0,4,0,5,0,12,0</FixtureVal><FixtureVal ID="13">0,0,1,0</FixtureVal><FixtureVal ID="14">0,0,1,0</FixtureVal><FixtureVal ID="12">0,0,1,0</FixtureVal><FixtureVal ID="3">0,0</FixtureVal><FixtureVal ID="4">0,0</FixtureVal><FixtureGroup ID="4"></FixtureGroup></Function><Function ID="55" Type="Scene" Name="New Scene" Hidden="True"><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="3">0,0,4,0,7,0</FixtureVal><FixtureVal ID="4">0,0,4,0,7,0</FixtureVal></Function><Function ID="34" Type="Scene" Name="New Scene" Hidden="True"><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="8">0,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,12,0</FixtureVal><FixtureVal ID="7">0,0,1,0</FixtureVal><FixtureVal ID="6">0,0,1,0</FixtureVal><FixtureVal ID="0">0,0,4,0,5,0,6,0,7,0</FixtureVal><FixtureVal ID="5">0,0,4,0,5,0,6,0,7,0</FixtureVal><FixtureVal ID="10">0,0,1,0</FixtureVal><FixtureVal ID="11">0,0,1,0</FixtureVal><FixtureVal ID="9">0,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,12,0</FixtureVal><FixtureVal ID="13">0,0,1,0</FixtureVal><FixtureVal ID="14">0,0,1,0</FixtureVal><FixtureGroup ID="8"></FixtureGroup></Function><Function ID="46" Type="Scene" Name="New Scene" Hidden="True"><Speed FadeIn="0" FadeOut="0" Duration="0"></Speed><FixtureVal ID="7">0,0,1,0</FixtureVal><FixtureVal ID="6">0,0,1,0</FixtureVal><FixtureVal ID="13">0,0,1,0</FixtureVal><FixtureVal ID="14">0,0,1,0</FixtureVal><FixtureVal ID="10">0,0,1,0</FixtureVal><FixtureVal ID="11">0,0,1,0</FixtureVal></Function></Engine>
+ <VirtualConsole>
+  <Frame Caption="Page 1" ID="0">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"></WindowState>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+   <Label Caption="hebirote" ID="4">
+    <WindowState Visible="True" X="555" Y="35" Width="98" Height="31"></WindowState>
+   </Label>
+   <CueList Caption="hr_main" ID="1">
+    <WindowState Visible="True" X="555" Y="70" Width="437" Height="377"></WindowState>
+    <Chaser>40</Chaser>
+   </CueList>
+   <CueList Caption="main" ID="0">
+    <WindowState Visible="True" X="23" Y="11" Width="472" Height="496"></WindowState>
+    <Chaser>32</Chaser>
+   </CueList>
+   <CueList Caption="main" ID="0">
+    <WindowState Visible="True" X="23" Y="11" Width="484" Height="389"></WindowState>
+    <Chaser>32</Chaser>
+   </CueList>
+   <Label Caption="hebirote" ID="4">
+    <WindowState Visible="True" X="555" Y="35" Width="98" Height="31"></WindowState>
+   </Label>
+  </Frame>
+  <Frame Caption="Page 2" ID="1">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"></WindowState>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+   <CueList Caption="Cue List 3" ID="2">
+    <WindowState Visible="True" X="318" Y="212" Width="314" Height="196"></WindowState>
+    <Chaser>4294967295</Chaser>
+   </CueList>
+  </Frame>
+  <Frame Caption="Page 3" ID="2">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"></WindowState>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+  </Frame>
+  <Frame Caption="Page 4" ID="3">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"></WindowState>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+  </Frame>
+ </VirtualConsole>
+</Workspace>

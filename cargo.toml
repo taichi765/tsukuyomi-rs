@@ -1,0 +1,6 @@
+[workspace]
+members=[
+    "slint",
+    "core"
+]
+resolber="3"

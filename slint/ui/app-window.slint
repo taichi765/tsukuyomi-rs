@@ -1,0 +1,89 @@
+import { Button, VerticalBox, TabWidget } from "std-widgets.slint";
+import { FixturesTab } from "fixtures-tab.slint";
+import { FunctionsTab } from "functions-tab.slint";
+import { VirtualConsoleTab } from "virtual-console-tab.slint";
+
+export component AppWindow inherits Window {
+    //in-out property <int> counter: 42;
+    //callback request-increase-value();
+
+    MenuBar {
+        Menu {
+            title: @tr("File");
+            MenuItem {
+                title: @tr("New");
+                activated => {};
+            }
+            MenuItem {
+                title: @tr("Open");
+                activated => {};
+            }
+            MenuItem {
+                title: @tr("Open Recentry");
+                activated => {};
+            }
+            MenuSeparator {}
+            MenuItem {
+                title: @tr("Save");
+                activated => {};
+            }
+            MenuItem {
+                title: @tr("Save As");
+                activated => {};
+            }
+        }
+        Menu {
+            title: @tr("Edit");
+            MenuItem {
+                title: @tr("Undo");
+                activated => {};
+            }
+            MenuItem {
+                title: @tr("Redo");
+                activated => {};
+            }
+            MenuItem {
+                title: @tr("Copy");
+                activated => {};
+            }
+            MenuItem {
+                title: @tr("Paste");
+                activated => {};
+            }
+        }
+        Menu {
+            title: @tr("Help");
+            MenuItem {
+                title: @tr("About");
+                activated => {};
+            }
+        }
+    }// MenuBar
+
+    TabWidget {
+        Tab {
+            title: @tr("Fixtures");
+            FixturesTab {}
+        }
+        Tab {
+            title: @tr("Functions");
+            FunctionsTab {}
+        }
+        Tab {
+            title: @tr("Virtual Console");
+            VirtualConsoleTab {}
+        }
+    }
+    /*VerticalBox {
+        Text {
+            text: "Counter: \{root.counter}";
+        }
+
+        Button {
+            text: "Increase value";
+            clicked => {
+                root.request-increase-value();
+            }
+        }
+    }*/
+}
