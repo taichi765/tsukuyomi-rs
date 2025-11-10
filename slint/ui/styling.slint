@@ -1,0 +1,35 @@
+import { Palette } from "std-widgets.slint";
+
+export global TkPalette {
+    out property <brush> foreground:Palette.foreground;//#ffffdf;
+    out property <brush> background:Palette.background;//#211e1c;
+    out property <brush> alternate-background: Palette.alternate-background;
+    out property <brush> alternate-foreground: Palette.alternate-foreground;
+    out property <brush> control-background: Palette.control-background;
+    out property <brush> control-foreground: Palette.control-foreground;
+    out property <brush> accent-background: Palette.accent-background;
+    out property <brush> accent-foreground: Palette.accent-foreground;
+    out property <brush> selection-background: Palette.selection-background;
+    out property <brush> selection-foreground: Palette.selection-foreground;
+    out property <brush> border: #5f5852;
+    in-out property <ColorScheme> color-scheme <=> Palette.color-scheme;
+}
+
+export global TkStyleMetrics {
+    out property <length> layout-spacing: 8px;
+    out property <length> layout-padding: 8px;
+    out property <length> text-cursor-width: 1px;
+    out property <color> window-background: Palette.background;
+    out property <color> default-text-color: Palette.foreground;
+    out property <color> textedit-background: Palette.background;
+    out property <color> textedit-text-color: Palette.foreground;
+    out property <bool> dark-color-scheme: Palette.color-scheme == ColorScheme.dark;
+}
+
+export global FontSettings {
+    out property <relative-font-size> font-size:1.5rem;
+}
+
+export global Icons {
+    out property <image> default:@image-url("../assets/icon.svg");
+}

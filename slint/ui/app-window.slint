@@ -1,11 +1,22 @@
-import { Button, VerticalBox, TabWidget } from "std-widgets.slint";
+import { Button, VerticalBox, TabWidget, HorizontalBox, Palette } from "std-widgets.slint";
 import { FixturesTab } from "fixtures-tab.slint";
 import { FunctionsTab } from "functions-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
+import { Preview2D } from "views/preview-2d.slint";
+import { FunctionView } from "views/function-view.slint";
+import { TkPalette, Icons } from "styling.slint";
+import { TopBar } from "top-bar.slint";
+
+export global MenuBarActions {
+    callback save();
+    callback save-as();
+}
 
 export component AppWindow inherits Window {
-    //in-out property <int> counter: 42;
-    //callback request-increase-value();
+    title: "Tsukuyomi";
+    icon: Icons.default;
+    //background: TkPalette.background;
+    
 
     MenuBar {
         Menu {
@@ -25,7 +36,7 @@ export component AppWindow inherits Window {
             MenuSeparator {}
             MenuItem {
                 title: @tr("Save");
-                activated => {};
+                activated =>MenuBarActions.save();
             }
             MenuItem {
                 title: @tr("Save As");
@@ -60,30 +71,34 @@ export component AppWindow inherits Window {
         }
     }// MenuBar
 
-    TabWidget {
-        Tab {
-            title: @tr("Fixtures");
-            FixturesTab {}
-        }
-        Tab {
-            title: @tr("Functions");
-            FunctionsTab {}
-        }
-        Tab {
-            title: @tr("Virtual Console");
-            VirtualConsoleTab {}
-        }
-    }
-    /*VerticalBox {
-        Text {
-            text: "Counter: \{root.counter}";
-        }
+    
 
-        Button {
-            text: "Increase value";
-            clicked => {
-                root.request-increase-value();
+    VerticalBox{
+        TopBar {
+            toggle-color-scheme => {
+                Palette.color-scheme=Palette.color-scheme==ColorScheme.dark?ColorScheme.light:ColorScheme.dark
             }
         }
-    }*/
+        TabWidget {
+            height: 70%;
+            preferred-width: 10px;
+            Tab {
+                title: @tr("Fixtures");
+                FixturesTab {}
+            }
+            Tab {
+                title: @tr("Functions");
+                FunctionsTab {}
+            }
+            Tab {
+                title: @tr("Virtual Console");
+                VirtualConsoleTab {}
+            }
+        }
+        HorizontalBox {
+            height: 30%;
+            Preview2D {}
+            FunctionView {}
+        }
+    }
 }

@@ -1,0 +1,9 @@
+import { Button } from "std-widgets.slint";
+import { Icons } from "styling.slint";
+export component TopBar inherits Rectangle {
+    callback toggle-color-scheme();
+    Button {
+        icon: Icons.default;
+        clicked => toggle-color-scheme();
+    }
+}

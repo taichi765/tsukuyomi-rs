@@ -1,13 +1,18 @@
-import { HorizontalBox } from "std-widgets.slint";
-export component FixturesTab inherits HorizontalBox {
-    Rectangle {
-        Text {
-            text: "This is fixtures library!";
+import { HorizontalBox} from "std-widgets.slint";
+import { FixtureListView } from "views/fixture-list-view.slint";
+import { UniverseView } from "views/universe-view.slint";
+import { TkPalette } from "styling.slint";
+
+export component FixturesTab inherits Rectangle {
+    border-width: 2px;
+    border-color: TkPalette.border;
+    HorizontalBox {
+        FixtureListView {
+            width: 30%;
         }
-    }
-    Rectangle {
-        Text {
-            text: "This is DMX Patch!";
+        
+        UniverseView {
+            width: 70%;
         }
     }
 }

@@ -1,5 +1,9 @@
+import { TkPalette } from "styling.slint";
+import { TkText } from "parts/tk-text.slint";
 export component FunctionsTab inherits Rectangle{
-    Text {
+    border-width:2px;
+    border-color: TkPalette.border;
+    TkText {
         text: "Hello!";
     }
 }

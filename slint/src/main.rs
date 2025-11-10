@@ -8,6 +8,8 @@ slint::include_modules!();
 fn main() -> Result<(), Box<dyn Error>> {
     let ui = AppWindow::new()?;
 
+    //ui.on_request_save(|| println!("save requested"));
+
     /*ui.on_request_increase_value({
         let ui_handle = ui.as_weak();
         move || {
