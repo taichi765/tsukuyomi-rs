@@ -7,6 +7,7 @@ edition = "2024"
 
 [dependencies]
 slint = "1.14.1"
+tsukuyomi-core={ path="../core" }
 
 [build-dependencies]
 slint-build = "1.14.1"
