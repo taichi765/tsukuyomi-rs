@@ -3,4 +3,4 @@ members=[
     "slint",
     "core"
 ]
-resolber="3"
+resolver="3"
