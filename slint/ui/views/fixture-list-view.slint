@@ -1,9 +1,85 @@
-import { TkPalette } from "../styling.slint";
+import { TkPalette, Icons } from "../styling.slint";
 import { TkText } from "../parts/tk-text.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export struct Fixture {
+    name:string
+}
+
+export struct FixtureListModel {
+    manufacturer:string,
+    fixtures:[Fixture],
+    expanded:bool,  
+}
+
+export global FixtureListViewLogic {
+    in property <[FixtureListModel]> fixtures:[
+        {
+            manufacturer:"Stage Evolution",
+            fixtures:[
+                {name:"HPAR64-9"},
+                {name:"ORION WH"},
+                {name:"IM-MH90S"}
+            ],
+            expanded:false
+        },
+        {
+            manufacturer:"IM-Relax",
+            fixtures:[
+                {name:"IM-MH90S"}
+            ],
+            expanded:false
+        }
+    ];
+}
+
 export component FixtureListView inherits Rectangle{
     border-width: 2px;
     border-color: TkPalette.border;
-    TkText {
-        text: "this is fixture list view";
-    }
+
+    VerticalBox {
+        alignment: LayoutAlignment.start;
+        for map in FixtureListViewLogic.fixtures: Rectangle {        
+            VerticalBox {
+                header:=Rectangle {
+                    HorizontalBox {
+                        Image {
+                            source: map.expanded?Icons.arrow-down:Icons.arrow-right;
+                            width: 1.5rem;
+                            height: 1.5rem;
+                        }
+                        TkText {
+                            text: map.manufacturer;
+                        }
+                    }
+                    TouchArea {
+                        width:parent.width;
+                        height: parent.height;
+                        clicked => {
+                            debug("clicked");
+                            map.expanded=!map.expanded
+                        }
+                    }
+                }
+                
+                if map.expanded:VerticalLayout{
+                    alignment: LayoutAlignment.start;
+                    for fixture in map.fixtures:HorizontalBox{
+                        alignment: LayoutAlignment.start;
+
+                        spacer:=Rectangle {
+                            width: 2rem;
+                        }
+                        TkText {
+                            text: fixture.name;
+                        }
+                        /*DragArea{
+                            mime-type:"text/plain";
+                            data:fixture.name;
+                        }*/
+                    }
+                }
+            }
+        }
+    }   
 }
