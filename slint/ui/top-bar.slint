@@ -1,9 +1,17 @@
-import { Button } from "std-widgets.slint";
+import { Button,Palette } from "std-widgets.slint";
 import { Icons } from "styling.slint";
 export component TopBar inherits Rectangle {
-    callback toggle-color-scheme();
-    Button {
-        icon: Icons.default;
+    function toggle-color-scheme(){
+        if Palette.color-scheme==ColorScheme.dark{
+            Palette.color-scheme=ColorScheme.light;
+            btn.icon=Icons.dark-mode;
+        }else{
+            Palette.color-scheme=ColorScheme.dark;
+            btn.icon=Icons.light-mode;
+        }
+    }
+    btn:=Button {
+        icon: Icons.dark-mode;
         clicked => toggle-color-scheme();
     }
 }

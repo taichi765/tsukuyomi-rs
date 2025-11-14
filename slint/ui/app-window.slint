@@ -74,11 +74,7 @@ export component AppWindow inherits Window {
     
 
     VerticalBox{
-        TopBar {
-            toggle-color-scheme => {
-                Palette.color-scheme=Palette.color-scheme==ColorScheme.dark?ColorScheme.light:ColorScheme.dark
-            }
-        }
+        TopBar {}
         TabWidget {
             height: 70%;
             preferred-width: 10px;
