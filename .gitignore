@@ -12,3 +12,6 @@
 
 # Editor settings
 .vscode/
+
+# personal notes, logs etc
+.local/
