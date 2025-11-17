@@ -1,6 +1,6 @@
-import { TkPalette, Icons } from "../styling.slint";
+import { Icons } from "../styling.slint";
 import { TkText } from "../parts/tk-text.slint";
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { Palette } from "std-widgets.slint";
 
 export struct Fixture {
     name:string
@@ -34,17 +34,15 @@ export global FixtureListViewLogic {
 }
 
 export component FixtureListView inherits Rectangle{
-    border-width: 2px;
-    border-color: TkPalette.border;
 
-    VerticalBox {
+    VerticalLayout {
         alignment: LayoutAlignment.start;
         for map in FixtureListViewLogic.fixtures: Rectangle {        
-            VerticalBox {
+            VerticalLayout {
                 header:=Rectangle {
-                    HorizontalBox {
+                    HorizontalLayout {
                         Image {
-                            source: map.expanded?Icons.arrow-down:Icons.arrow-right;
+                            source: map.expanded?Icons.arrow-drop-down:Icons.arrow-right;
                             width: 1.5rem;
                             height: 1.5rem;
                         }
@@ -64,7 +62,7 @@ export component FixtureListView inherits Rectangle{
                 
                 if map.expanded:VerticalLayout{
                     alignment: LayoutAlignment.start;
-                    for fixture in map.fixtures:HorizontalBox{
+                    for fixture in map.fixtures:HorizontalLayout{
                         alignment: LayoutAlignment.start;
 
                         spacer:=Rectangle {

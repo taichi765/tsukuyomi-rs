@@ -1,5 +1,6 @@
-import { TkPalette, TkStyleMetrics, FontSettings } from "../styling.slint";
+import { TkStyleMetrics, FontSettings } from "../styling.slint";
+import { Palette } from "std-widgets.slint";
 export component TkText inherits Text {
-    color: TkPalette.foreground;
+    color: Palette.foreground;
     font-size: FontSettings.font-size;
 }

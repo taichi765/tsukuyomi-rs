@@ -1,14 +1,17 @@
-import { HorizontalBox} from "std-widgets.slint";
+import {TabWidget,Palette} from "std-widgets.slint";
 import { FixtureListView } from "views/fixture-list-view.slint";
 import { UniverseView } from "views/universe-view.slint";
-import { TkPalette } from "styling.slint";
 
 export component FixturesTab inherits Rectangle {
-    border-width: 2px;
-    border-color: TkPalette.border;
-    HorizontalBox {
+    HorizontalLayout {
         FixtureListView {
             width: 30%;
+        }
+        
+        border:=Rectangle {
+            width: 1px;
+            border-width: 1px;
+            border-color: Palette.border;
         }
         
         UniverseView {

@@ -1,13 +1,28 @@
-import { TkPalette } from "../styling.slint";
-import { StyleMetrics } from "std-widgets.slint";
+import { StyleMetrics, Palette } from "std-widgets.slint";
 import { TkText } from "../parts/tk-text.slint";
 
-export component UniverseView inherits Rectangle {
-    border-width: 2px;
-    border-color: TkPalette.border;
-    
-    
-    TkText {
-        text: "this is universe view";
-    }    
+
+component UniverseCell inherits Rectangle {
+    width:3rem;
+    height:3rem;
+    background: Palette.alternate-foreground;
 }
+
+
+export component UniverseView inherits Rectangle {
+    background: Palette.background;
+
+    for i in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]: Rectangle {
+        for i in[1,2,3,4,5,6,7,8,9,10]:Rectangle{
+            background: Palette.alternate-foreground;
+            border-width: 1px;
+            border-color: Palette.border;
+        }
+    }
+    
+    Text {
+        text: "Universe View";
+    }
+}
+
+

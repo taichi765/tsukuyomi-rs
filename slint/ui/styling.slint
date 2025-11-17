@@ -1,20 +1,5 @@
 import { Palette } from "std-widgets.slint";
 
-export global TkPalette {
-    out property <brush> foreground:Palette.foreground;//#ffffdf;
-    out property <brush> background:Palette.background;//#211e1c;
-    out property <brush> alternate-background: Palette.alternate-background;
-    out property <brush> alternate-foreground: Palette.alternate-foreground;
-    out property <brush> control-background: Palette.control-background;
-    out property <brush> control-foreground: Palette.control-foreground;
-    out property <brush> accent-background: Palette.accent-background;
-    out property <brush> accent-foreground: Palette.accent-foreground;
-    out property <brush> selection-background: Palette.selection-background;
-    out property <brush> selection-foreground: Palette.selection-foreground;
-    out property <brush> border: #5f5852;
-    in-out property <ColorScheme> color-scheme <=> Palette.color-scheme;
-}
-
 export global TkStyleMetrics {
     out property <length> layout-spacing: 8px;
     out property <length> layout-padding: 8px;
@@ -27,7 +12,7 @@ export global TkStyleMetrics {
 }
 
 export global FontSettings {
-    out property <relative-font-size> font-size:1.5rem;
+    out property <relative-font-size> font-size:1.3rem;
 }
 
 export global Icons {
@@ -35,5 +20,5 @@ export global Icons {
     out property <image> dark-mode:@image-url("../assets/dark_mode.png");
     out property <image> light-mode:@image-url("../assets/light_mode.png");
     out property <image> arrow-right:@image-url("../assets/arrow_right_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
-    out property <image> arrow-down:@image-url("../assets/arrow_drop_down_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
+    out property <image> arrow-drop-down:@image-url("../assets/arrow_drop_down_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
 }

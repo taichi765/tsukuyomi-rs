@@ -1,11 +1,12 @@
-import { Button, VerticalBox, TabWidget, HorizontalBox, Palette } from "std-widgets.slint";
+import { Button,TabWidget,  Palette } from "std-widgets.slint";
 import { FixturesTab } from "fixtures-tab.slint";
 import { FunctionsTab } from "functions-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
 import { Preview2D } from "views/preview-2d.slint";
 import { FunctionView } from "views/function-view.slint";
-import { TkPalette, Icons } from "styling.slint";
+import { Icons } from "styling.slint";
 import { TopBar } from "top-bar.slint";
+import { TimeLineView } from "views/timeline-view.slint";
 
 export global MenuBarActions {
     callback save();
@@ -15,7 +16,6 @@ export global MenuBarActions {
 export component AppWindow inherits Window {
     title: "Tsukuyomi";
     icon: Icons.default;
-    //background: TkPalette.background;
     
 
     MenuBar {
@@ -73,11 +73,11 @@ export component AppWindow inherits Window {
 
     
 
-    VerticalBox{
+    VerticalLayout{
         TopBar {}
-        TabWidget {
+        main-pane:=TabWidget {
             height: 70%;
-            preferred-width: 10px;
+            width:100%;
             Tab {
                 title: @tr("Fixtures");
                 FixturesTab {}
@@ -87,14 +87,27 @@ export component AppWindow inherits Window {
                 FunctionsTab {}
             }
             Tab {
+                title: @tr("TimeLine");
+                TimeLineView {}
+            }
+            Tab {
                 title: @tr("Virtual Console");
                 VirtualConsoleTab {}
             }
         }
-        HorizontalBox {
+        
+        Rectangle {
+            drop-shadow-blur: 0.2rem;
+            drop-shadow-color: Palette.background;
             height: 30%;
-            Preview2D {}
-            FunctionView {}
+
+            HorizontalLayout {
+                //height: 30%;
+
+                
+                Preview2D {}
+                FunctionView {}
+            }
         }
     }
 }
