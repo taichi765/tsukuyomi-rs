@@ -2,9 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::engine::EngineCommand;
-use crate::functions::Function;
-use crate::functions::FunctionType;
-use crate::functions::SceneValue;
+use crate::functions::{Function, FunctionType, SceneValue};
 use crate::universe::DmxAddress;
 
 #[derive(Debug)]
@@ -76,10 +74,10 @@ impl Function for Fader {
         &mut self, //可変借用はselfのみ
         _function_infos: &std::collections::HashMap<usize, super::FunctionInfo>,
         fixtures: &std::collections::HashMap<usize, crate::fixture::Fixture>,
-        context: &super::Context,
+        tick_duration: Duration,
     ) -> Vec<EngineCommand> {
         let mut commands = Vec::new();
-        self.elapsed += context.tick_duration;
+        self.elapsed += tick_duration;
         if self.elapsed >= self.amount_duration {
             commands.push(EngineCommand::StopFuntion(self.id()));
 

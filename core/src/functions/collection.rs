@@ -1,11 +1,9 @@
 use crate::engine::EngineCommand;
 use crate::fixture::Fixture;
-use crate::functions::Context;
-use crate::functions::Function;
-use crate::functions::FunctionInfo;
-use crate::functions::FunctionType;
+use crate::functions::{Function, FunctionInfo, FunctionType};
 
 use std::collections::HashMap;
+use std::time::Duration;
 
 pub struct Collection {
     id: usize,
@@ -35,7 +33,7 @@ impl Function for Collection {
         &mut self, //可変借用はselfのみ
         _function_infos: &HashMap<usize, FunctionInfo>,
         _fixtures: &HashMap<usize, Fixture>,
-        _context: &Context,
+        _tick_duration: Duration,
     ) -> Vec<EngineCommand> {
         //TODO: コレクションの終了時中身をストップさせるのはだれ？
         self.functions

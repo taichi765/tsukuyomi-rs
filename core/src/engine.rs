@@ -1,7 +1,5 @@
 use crate::fixture::Fixture;
-use crate::functions::Fader;
-use crate::functions::Scene;
-use crate::functions::{Context, Function, FunctionInfo, FunctionType};
+use crate::functions::{Fader, Function, FunctionInfo, FunctionType, StaticScene};
 use crate::plugins::Plugin;
 use crate::plugins::artnet::ArtNetPlugin;
 use crate::universe::{DmxAddress, Universe};
@@ -50,9 +48,7 @@ impl Engine {
             commands_list.append(&mut function.run(
                 &self.function_infos,
                 &self.fixtures,
-                &Context {
-                    tick_duration: TICK_DURATION,
-                },
+                TICK_DURATION,
             ));
         }
 
@@ -117,13 +113,17 @@ impl Engine {
         let (from_values, to_values) = {
             let from_scene = self.get_function(from_id).as_ref();
             let from_scene = match from_scene.function_type() {
-                FunctionType::Scene => (from_scene as &dyn Any).downcast_ref::<Scene>().unwrap(),
+                FunctionType::Scene => (from_scene as &dyn Any)
+                    .downcast_ref::<StaticScene>()
+                    .unwrap(),
                 _ => panic!("unimplemented type"),
             };
 
             let to_scene = self.get_function(to_id).as_ref();
             let to_scene = match to_scene.function_type() {
-                FunctionType::Scene => (to_scene as &dyn Any).downcast_ref::<Scene>().unwrap(),
+                FunctionType::Scene => (to_scene as &dyn Any)
+                    .downcast_ref::<StaticScene>()
+                    .unwrap(),
                 _ => panic!("unimplemented type"),
             };
             // TODO: 無駄なclone?
@@ -325,7 +325,6 @@ impl IdGenerator {
 
 #[cfg(test)]
 mod tests {
-    use crate::functions::Scene;
 
     use super::*;
     #[test]
@@ -339,10 +338,10 @@ mod tests {
     #[test]
     fn test_engine_push_function_works() {
         let mut engine = Engine::new();
-        let scene = Scene::new(0, "this_should_work");
+        let scene = StaticScene::new(0, "this_should_work");
         assert!(engine.push_function(Box::new(scene)).is_ok());
 
-        let scene_invalid = Scene::new(0, "this should be error");
+        let scene_invalid = StaticScene::new(0, "this should be error");
         assert!(engine.push_function(Box::new(scene_invalid)).is_err());
     }
     #[test]

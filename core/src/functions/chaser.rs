@@ -1,9 +1,6 @@
+use super::{FunctionInfo, FunctionType};
 use crate::fixture::Fixture;
-use crate::functions::{FunctionInfo, FunctionType};
-use crate::{
-    engine::EngineCommand,
-    functions::{Context, Function},
-};
+use crate::{engine::EngineCommand, functions::Function};
 use std::{collections::HashMap, time::Duration};
 
 //TODO: フェードインの実装
@@ -64,10 +61,10 @@ impl Function for Chaser {
         &mut self,
         function_infos: &HashMap<usize, FunctionInfo>,
         _fixtures: &HashMap<usize, Fixture>,
-        context: &Context,
+        tick_duration: Duration,
     ) -> Vec<EngineCommand> {
         let mut commands = Vec::new();
-        self.time_in_current_step += context.tick_duration; //時間を進める
+        self.time_in_current_step += tick_duration; //時間を進める
 
         if self.time_in_current_step < self.current_step().duration() {
             commands.push(EngineCommand::StartFunction(
@@ -134,7 +131,6 @@ impl Function for Chaser {
 mod tests {
 
     use super::*;
-    use crate::functions::{Function, FunctionInfo};
 
     #[test]
     fn test_chaser_advances_step_after_hold_time() {
@@ -159,10 +155,9 @@ mod tests {
         );
 
         let tick_duration = Duration::from_millis(120);
-        let context = &Context { tick_duration };
 
         //1回目: スタートしてるか
-        let commands = chaser.run(&dummy_infos, &HashMap::new(), context);
+        let commands = chaser.run(&dummy_infos, &HashMap::new(), tick_duration);
         commands
             .iter()
             .find(|cmd| cmd.is_start_function_and(1))
@@ -170,7 +165,7 @@ mod tests {
 
         //2回目~4回目: ストップしてないか
         for _ in 0..3 {
-            let commands = chaser.run(&dummy_infos, &HashMap::new(), context);
+            let commands = chaser.run(&dummy_infos, &HashMap::new(), tick_duration);
 
             assert_eq!(chaser.current_step_num, 0);
             commands.iter().for_each(|cmd| {
@@ -184,7 +179,7 @@ mod tests {
         }
 
         // ステップが進む
-        let commands = chaser.run(&dummy_infos, &HashMap::new(), context);
+        let commands = chaser.run(&dummy_infos, &HashMap::new(), tick_duration);
         assert_eq!(chaser.current_step_num, 1);
         let mut found_start = false;
         let mut found_stop = false;

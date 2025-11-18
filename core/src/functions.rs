@@ -7,13 +7,13 @@ use std::time::Duration;
 mod chaser;
 mod collection;
 mod fader;
-mod scene;
+mod static_scene;
 
 pub use chaser::Chaser;
 pub use collection::Collection;
 pub(crate) use fader::Fader;
-pub use scene::Scene;
-pub use scene::SceneValue;
+pub use static_scene::SceneValue;
+pub use static_scene::StaticScene;
 
 pub trait Function: Any {
     //コマンドパターン
@@ -22,7 +22,7 @@ pub trait Function: Any {
         &mut self, //可変借用はselfのみ
         function_infos: &HashMap<usize, FunctionInfo>,
         fixtures: &HashMap<usize, Fixture>,
-        context: &Context,
+        tick_duration: Duration,
     ) -> Vec<EngineCommand>;
     fn function_type(&self) -> FunctionType;
     fn id(&self) -> usize;
@@ -41,8 +41,4 @@ pub enum FunctionType {
 pub struct FunctionInfo {
     pub id: usize,
     pub function_type: FunctionType,
-}
-
-pub struct Context {
-    pub tick_duration: Duration,
 }

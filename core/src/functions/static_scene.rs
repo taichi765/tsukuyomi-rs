@@ -1,12 +1,13 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
 use super::Function;
+use super::{FunctionInfo, FunctionType};
 use crate::engine::EngineCommand;
 use crate::fixture::Fixture;
-use crate::functions::{Context, FunctionInfo, FunctionType};
 use crate::universe::DmxAddress;
 
-pub struct Scene {
+pub struct StaticScene {
     id: usize,
     name: String,
     /// fixture_id->values
@@ -14,7 +15,7 @@ pub struct Scene {
 }
 
 //TODO: 同じfixture_idかつ同じchannelにvalueを設定できちゃう
-impl Scene {
+impl StaticScene {
     pub fn new(id: usize, name: &str) -> Self {
         Self {
             id: id,
@@ -32,7 +33,7 @@ impl Scene {
     }
 }
 
-impl Function for Scene {
+impl Function for StaticScene {
     fn id(&self) -> usize {
         self.id
     }
@@ -44,7 +45,7 @@ impl Function for Scene {
         &mut self,
         _function_infos: &HashMap<usize, FunctionInfo>,
         fixtures: &HashMap<usize, Fixture>,
-        _context: &Context,
+        tick_duration: Duration,
     ) -> Vec<EngineCommand> {
         let mut commands = Vec::new();
         for (fixture_id, scene_value) in &self.values {
