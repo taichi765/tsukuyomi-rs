@@ -28,20 +28,14 @@ impl DmxAddress {
 
 #[derive(Clone, Copy)]
 pub struct Universe {
-    id: usize,
     values: [u8; 512],
 }
 
+// TODO: LTP, HTP
+// TODO: 別スレッドにする
 impl Universe {
-    pub fn new(id: usize) -> Self {
-        Self {
-            id: id,
-            values: [0; 512],
-        }
-    }
-
-    pub fn id(&self) -> usize {
-        self.id
+    pub fn new() -> Self {
+        Self { values: [0; 512] }
     }
 
     pub fn values(&self) -> &[u8] {

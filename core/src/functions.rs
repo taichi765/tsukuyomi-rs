@@ -8,6 +8,7 @@ mod chaser;
 mod collection;
 mod fader;
 mod static_scene;
+mod timeline;
 
 pub use chaser::Chaser;
 pub use collection::Collection;
@@ -35,6 +36,8 @@ pub enum FunctionType {
     Chaser,
     Fader,
     Collection,
+    TimeLine,
+    Other,
 }
 
 #[derive(Clone, Copy)]

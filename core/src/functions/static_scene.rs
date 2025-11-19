@@ -45,7 +45,7 @@ impl Function for StaticScene {
         &mut self,
         _function_infos: &HashMap<usize, FunctionInfo>,
         fixtures: &HashMap<usize, Fixture>,
-        tick_duration: Duration,
+        _tick_duration: Duration,
     ) -> Vec<EngineCommand> {
         let mut commands = Vec::new();
         for (fixture_id, scene_value) in &self.values {

@@ -1,10 +1,11 @@
-use crate::fixture::Fixture;
-use crate::functions::{Fader, Function, FunctionInfo, FunctionType, StaticScene};
+use crate::doc::Doc;
+use crate::functions::{Fader, Function, FunctionType, StaticScene};
 use crate::plugins::Plugin;
 use crate::plugins::artnet::ArtNetPlugin;
-use crate::universe::{DmxAddress, Universe};
+use crate::universe::DmxAddress;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 use std::time::Duration;
 
 //TODO: なんとなくpubにしているものがある pub(crate)とかも活用したい
@@ -14,26 +15,8 @@ const TICK_DURATION: Duration = Duration::from_millis(100);
 /// Engine is the single source of true.
 /// It also manages the timer.
 pub struct Engine {
-    /* ----- doc ----- */
-    ///universe_id-> universe
-    universes: HashMap<usize, Universe>,
-    ///fixture_id-> fixture
-    fixtures: HashMap<usize, Fixture>,
-    ///function_id-> function
-    functions: HashMap<usize, Box<dyn Function>>,
-    function_infos: HashMap<usize, FunctionInfo>,
-
-    /* ----- running ----- */
-    ///function_id(unique)
+    doc: Rc<Doc>,
     running_functions: HashSet<usize>,
-
-    /* ----- id ----- */
-    function_id_gen: IdGenerator,
-    internal_function_id_gen: IdGenerator,
-    fixture_id_gen: IdGenerator,
-    universe_id_gen: IdGenerator,
-
-    /* ----- IO ----- */
     output_plugin: Box<dyn Plugin>,
 }
 
@@ -43,7 +26,8 @@ impl Engine {
     fn tick(&mut self) {
         let mut commands_list = Vec::new();
         for function_id in &self.running_functions {
-            let function: &mut Box<dyn Function> = self.functions.get_mut(function_id).unwrap();
+            let function: &mut dyn Function =
+                self.doc.get_function_mut(*function_id).unwrap().as_mut();
 
             commands_list.append(&mut function.run(
                 &self.function_infos,
@@ -146,92 +130,12 @@ impl Engine {
 
 /* ---------- getter/setter, initialization ----------*/
 impl Engine {
-    pub fn new() -> Self {
-        let mut universe_id_gen = IdGenerator::new();
-        let universe_id = universe_id_gen.next();
-        let mut universes = HashMap::new();
-        universes.insert(universe_id, Universe::new(universe_id));
+    pub fn new(doc: Rc<Doc>) -> Self {
         Self {
-            universes: universes,
-            fixtures: HashMap::new(),
-            functions: HashMap::new(),
-            function_infos: HashMap::new(),
+            doc: doc,
             running_functions: HashSet::new(),
-            function_id_gen: IdGenerator::new(),
-            internal_function_id_gen: IdGenerator::new_with_start(usize::MAX / 2),
-            fixture_id_gen: IdGenerator::new(),
-            universe_id_gen,
             output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()), //output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()),
         }
-    }
-    pub fn universe(&self, index: usize) -> Option<&Universe> {
-        self.universes.get(&index)
-    }
-    pub(crate) fn universe_mut(&mut self, index: usize) -> Option<&mut Universe> {
-        self.universes.get_mut(&index)
-    }
-    pub fn push_universe(&mut self, universe: Universe) -> Result<(), String> {
-        if self.universes.contains_key(&universe.id()) {
-            return Err(format!("universe id {} already exsists", universe.id()));
-        }
-        self.universes.insert(universe.id(), universe);
-        Ok(())
-    }
-    pub fn next_universe_id(&mut self) -> usize {
-        self.universe_id_gen.next()
-    }
-
-    pub fn get_fixture(&self, id: usize) -> Option<&Fixture> {
-        self.fixtures.get(&id)
-    }
-    pub fn push_fixture(&mut self, fixture: Fixture) -> Result<(), String> {
-        if self.fixtures.contains_key(&fixture.id()) {
-            return Err(format!("fxiture id {} already exsits", fixture.id(),));
-        }
-        self.fixtures.insert(fixture.id(), fixture);
-        Ok(())
-    }
-    pub fn next_fixture_id(&mut self) -> usize {
-        self.fixture_id_gen.next()
-    }
-
-    //TODO: Resultを返すようにしたい
-    pub fn get_function(&self, id: usize) -> &Box<dyn Function> {
-        if let Some(some) = self.functions.get(&id) {
-            some
-        } else {
-            panic!("{}", format!("function id {} not found", id))
-        }
-    }
-    pub fn push_function(&mut self, function: Box<dyn Function>) -> Result<(), String> {
-        if self.functions.contains_key(&function.id()) {
-            return Err(format!("function id {} already exsists", function.id(),));
-        }
-        self.functions.insert(function.id(), function);
-        self.update_function_infos();
-        Ok(())
-    }
-    pub fn next_function_id(&mut self) -> usize {
-        self.function_id_gen.next()
-    }
-    pub(crate) fn next_internal_function_id(&mut self) -> usize {
-        self.internal_function_id_gen.next()
-    }
-
-    fn update_function_infos(&mut self) {
-        self.function_infos = self
-            .functions
-            .iter()
-            .map(|(id, func)| {
-                (
-                    *id,
-                    FunctionInfo {
-                        id: func.id(),
-                        function_type: func.function_type(),
-                    },
-                )
-            })
-            .collect();
     }
 }
 
@@ -302,24 +206,6 @@ impl EngineCommand {
             return true;
         }
         false
-    }
-}
-
-struct IdGenerator {
-    id: usize,
-}
-impl IdGenerator {
-    fn new() -> Self {
-        Self { id: 0 }
-    }
-    fn new_with_start(start: usize) -> Self {
-        Self { id: start }
-    }
-
-    fn next(&mut self) -> usize {
-        let id = self.id;
-        self.id += 1;
-        id
     }
 }
 
