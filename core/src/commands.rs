@@ -1,3 +1,3 @@
 pub mod doc;
-pub mod scene;
+pub mod static_scene;
 pub mod timeline;
