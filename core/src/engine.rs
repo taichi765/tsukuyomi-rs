@@ -1,9 +1,8 @@
 use crate::doc::Doc;
-use crate::functions::{Fader, FunctionRuntime, FunctionType, StaticSceneData};
+use crate::functions::FunctionRuntime;
 use crate::plugins::Plugin;
-use crate::plugins::artnet::ArtNetPlugin;
-use std::any::Any;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+use std::sync::mpsc::Receiver;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
@@ -11,38 +10,60 @@ use std::time::Duration;
 
 const TICK_DURATION: Duration = Duration::from_millis(100);
 
+pub enum EngineCommand {
+    StartFunction(usize),
+    StopFunction(usize),
+    AddPlugin(Box<dyn Plugin>),
+    Shutdown,
+}
+
 /// Engine is the single source of true.
 /// It also manages the timer.
 pub struct Engine {
     doc: Arc<RwLock<Doc>>,
+    command_rx: Receiver<EngineCommand>,
     active_runtimes: HashMap<usize, Box<dyn FunctionRuntime>>,
-    output_plugin: Box<dyn Plugin>,
+    output_plugins: Vec<Box<dyn Plugin>>,
+    should_shutdown: bool,
 }
 
-/* ---------- running ---------- */
 impl Engine {
-    pub fn new(doc: Arc<RwLock<Doc>>) -> Self {
+    pub fn new(doc: Arc<RwLock<Doc>>, command_rx: Receiver<EngineCommand>) -> Self {
         Self {
             doc: doc,
+            command_rx,
             active_runtimes: HashMap::new(),
-            output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()), //output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()),
+            output_plugins: Vec::new(),
+            should_shutdown: false,
         }
     }
 
-    pub fn start_loop(&mut self, function_id: usize) {
+    pub fn start_loop(mut self) {
         println!("starting engine...");
-        self.start_function(function_id);
         loop {
-            if self.active_runtimes.len() == 0 {
-                println!("stopping engine");
-                return;
+            if let Ok(cmd) = self.command_rx.try_recv() {
+                match cmd {
+                    EngineCommand::StartFunction(id) => self.start_function(id),
+                    EngineCommand::StopFunction(id) => self.stop_function(id),
+                    EngineCommand::AddPlugin(p) => self.add_output_plugin(p),
+                    EngineCommand::Shutdown => self.should_shutdown = true,
+                }
             }
+
             self.tick();
+
+            if self.should_shutdown {
+                break;
+            }
             std::thread::sleep(TICK_DURATION);
         }
     }
 
-    //数ミリ秒ごとにEngine::run()から呼ぶ
+    fn add_output_plugin(&mut self, plugin: Box<dyn Plugin>) {
+        self.output_plugins.push(plugin);
+    }
+
+    //TODO: 名前を具体的にしたい
     fn tick(&mut self) {
         let mut commands_list = Vec::new();
         {
@@ -61,7 +82,7 @@ impl Engine {
                     fixture_id,
                     channel,
                     value,
-                } => unimplemented!("誰に渡すのか"),
+                } => println!("{}: {}, {}", fixture_id, channel, value),
                 FunctionCommand::StartFade {
                     from_id,
                     to_id,
@@ -78,7 +99,10 @@ impl Engine {
     ///既にstartしてた場合は何もしない
     fn start_function(&mut self, function_id: usize) {
         let doc = self.doc.read().unwrap();
-        let runtime = doc.get_function_data(function_id).unwrap().create_runtime();
+        let runtime = doc
+            .get_function_data(function_id)
+            .expect(format!("could not find function with id {}", function_id).as_str())
+            .create_runtime();
         self.active_runtimes.insert(function_id, runtime);
     }
 

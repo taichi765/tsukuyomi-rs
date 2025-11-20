@@ -45,7 +45,7 @@ impl FunctionData {
     }
 }
 
-pub trait FunctionRuntime {
+pub trait FunctionRuntime: Send {
     fn run(&mut self, data: &FunctionData, tick_duration: Duration) -> Vec<FunctionCommand>;
 }
 
