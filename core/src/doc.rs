@@ -51,10 +51,10 @@ impl Doc {
 // internal
 impl Doc {
     pub(crate) fn add_function(&mut self, function: FunctionData) -> Result<(), String> {
-        //if self.functions.contains_key(&function.id()) {
-        //    return Err(format!("function id {} already exsists", function.id(),));
-        //}
-        //self.functions.insert(function.id(), function);
+        if self.functions.contains_key(&function.id()) {
+            return Err(format!("function id {} already exsists", function.id(),));
+        }
+        self.functions.insert(function.id(), function);
         //TODO: self.update_function_infos();
         Ok(())
     }

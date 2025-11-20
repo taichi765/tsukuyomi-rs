@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use super::{FunctionData, FunctionRuntime};
-use crate::engine::FunctionCommand;
+use crate::{engine::FunctionCommand, functions::FunctionDataGetters};
 
 pub type SceneValue = HashMap<u16, u8>;
 
@@ -11,6 +11,15 @@ pub struct StaticSceneData {
     name: String,
     /// fixture_id->values
     values: HashMap<usize, SceneValue>,
+}
+
+impl FunctionDataGetters for StaticSceneData {
+    fn id(&self) -> usize {
+        self.id
+    }
+    fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 //TODO: 同じfixture_idかつ同じchannelにvalueを設定できちゃう

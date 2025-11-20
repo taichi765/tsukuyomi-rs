@@ -11,7 +11,7 @@ pub struct AddFunction {
 impl AddFunction {
     pub fn new(function: FunctionData) -> Self {
         Self {
-            function_id: 0, //function_id: function.id(),
+            function_id: function.id(),
             function: Some(function),
         }
     }

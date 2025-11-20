@@ -1,6 +1,7 @@
 use crate::engine::FunctionCommand;
 use crate::functions::chaser::ChaserRuntime;
 use crate::functions::static_scene::StaticSceneRuntime;
+use std::ops::Deref;
 use std::time::Duration;
 
 mod chaser;
@@ -15,15 +16,24 @@ pub(crate) use fader::Fader;
 pub use static_scene::SceneValue;
 pub use static_scene::StaticSceneData;
 
-/*pub trait Function: Any {
-    fn function_type(&self) -> FunctionType;
+pub trait FunctionDataGetters {
     fn id(&self) -> usize;
     fn name(&self) -> &str;
-}*/
+}
 
 pub enum FunctionData {
     StaticScene(StaticSceneData),
     Chaser(ChaserData),
+}
+
+impl Deref for FunctionData {
+    type Target = dyn FunctionDataGetters;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            FunctionData::StaticScene(data) => data,
+            FunctionData::Chaser(data) => data,
+        }
+    }
 }
 
 impl FunctionData {

@@ -1,6 +1,6 @@
 use super::{FunctionData, FunctionType};
-use crate::engine::FunctionCommand;
 use crate::functions::FunctionRuntime;
+use crate::{engine::FunctionCommand, functions::FunctionDataGetters};
 use std::{collections::HashMap, time::Duration};
 
 //TODO: フェードインの実装
@@ -16,6 +16,16 @@ struct ChaserStep {
     function_id: usize,
     fade_in: Duration,
     hold: Duration,
+}
+
+impl FunctionDataGetters for ChaserData {
+    fn id(&self) -> usize {
+        self.id
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 impl ChaserStep {
