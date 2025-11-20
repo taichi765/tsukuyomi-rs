@@ -1,11 +1,10 @@
 use crate::doc::Doc;
-use crate::functions::{Fader, Function, FunctionType, StaticSceneData};
+use crate::functions::{Fader, FunctionRuntime, FunctionType, StaticSceneData};
 use crate::plugins::Plugin;
 use crate::plugins::artnet::ArtNetPlugin;
 use crate::universe::DmxAddress;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
@@ -17,7 +16,7 @@ const TICK_DURATION: Duration = Duration::from_millis(100);
 /// It also manages the timer.
 pub struct Engine {
     doc: Arc<RwLock<Doc>>,
-    running_functions: HashSet<usize>,
+    active_runtimes: HashMap<usize, Box<dyn FunctionRuntime>>,
     output_plugin: Box<dyn Plugin>,
 }
 
@@ -57,30 +56,17 @@ impl Engine {
         self.output_plugin
             .send_dmx(0, &self.universe(0).unwrap().values().to_vec()[..])
             .unwrap();
-        //println!("{:?}", self.universe(0).unwrap().values[0]); //アウトプット
     }
 
     pub fn start_loop(&mut self, function_id: usize) {
         println!("starting engine...");
         self.start_function(function_id);
-        //let mut i: i32 = 0;
         loop {
-            //print!("{}:", i);
-            //let start = Instant::now();
-            /*let names: Vec<String> = self
-            .running_functions
-            .iter()
-            .map(|id| self.get_function(*id).name())
-            .collect();*/
-            //print!("{:?}", names);
-            //print!("{}, ", self.running_functions.len());
-            if self.running_functions.len() == 0 {
+            if self.active_runtimes.len() == 0 {
                 println!("stopping engine");
                 return;
             }
             self.tick();
-            //i += 1;
-            //println!("running late: {}μs", start.elapsed().as_millis());
             std::thread::sleep(TICK_DURATION);
         }
     }

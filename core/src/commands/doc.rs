@@ -1,12 +1,15 @@
-use crate::{doc::Doc, doc::DocCommand, functions::Function};
+use crate::{
+    doc::{Doc, DocCommand},
+    functions::FunctionData,
+};
 
 pub struct AddFunction {
-    function: Option<Box<dyn Function>>,
+    function: Option<FunctionData>,
     function_id: usize,
 }
 
 impl AddFunction {
-    pub fn new(function: Box<dyn Function>) -> Self {
+    pub fn new(function: FunctionData) -> Self {
         Self {
             function_id: function.id(),
             function: Some(function),

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{fixture::Fixture, functions::Function, universe::Universe};
+use crate::{fixture::Fixture, functions::FunctionData, universe::Universe};
 
 pub trait DocCommand {
     fn apply(&mut self, doc: &mut Doc) -> Result<(), String>;
@@ -11,7 +11,7 @@ pub trait DocCommand {
 pub struct Doc {
     universes: Vec<Universe>,
     fixtures: HashMap<usize, Fixture>,
-    functions: HashMap<usize, Box<dyn Function>>,
+    functions: HashMap<usize, FunctionData>,
     /*function_infos: HashMap<usize, FunctionInfo>, */
 }
 
@@ -42,11 +42,15 @@ impl Doc {
             functions: HashMap::new(),
         }
     }
+
+    pub fn get_function_data(&self, function_id: usize) -> Option<&FunctionData> {
+        self.functions.get(&function_id)
+    }
 }
 
 // internal
 impl Doc {
-    pub(crate) fn add_function(&mut self, function: Box<dyn Function>) -> Result<(), String> {
+    pub(crate) fn add_function(&mut self, function: FunctionData) -> Result<(), String> {
         if self.functions.contains_key(&function.id()) {
             return Err(format!("function id {} already exsists", function.id(),));
         }
@@ -55,7 +59,7 @@ impl Doc {
         Ok(())
     }
 
-    pub(crate) fn remove_function(&mut self, function_id: usize) -> Option<Box<dyn Function>> {
+    pub(crate) fn remove_function(&mut self, function_id: usize) -> Option<FunctionData> {
         self.functions.remove(&function_id)
     }
 

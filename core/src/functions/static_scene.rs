@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use super::Function;
-use super::{FunctionData, FunctionRuntime, FunctionType};
+use super::{FunctionData, FunctionRuntime};
 use crate::engine::FunctionCommand;
 
 pub type SceneValue = HashMap<u16, u8>;
@@ -30,20 +29,6 @@ impl StaticSceneData {
 
     pub fn insert_value(&mut self, fixture_id: usize, value: SceneValue) {
         self.values.insert(fixture_id, value);
-    }
-}
-
-impl Function for StaticSceneData {
-    fn id(&self) -> usize {
-        self.id
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn function_type(&self) -> FunctionType {
-        FunctionType::Scene
     }
 }
 
