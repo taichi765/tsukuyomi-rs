@@ -1,6 +1,6 @@
 use super::{FunctionInfo, FunctionType};
 use crate::fixture::Fixture;
-use crate::{engine::EngineCommand, functions::Function};
+use crate::{engine::FunctionCommand, functions::Function};
 use std::{collections::HashMap, time::Duration};
 
 //TODO: フェードインの実装
@@ -67,7 +67,7 @@ impl Function for Chaser {
         self.time_in_current_step += tick_duration; //時間を進める
 
         if self.time_in_current_step < self.current_step().duration() {
-            commands.push(EngineCommand::StartFunction(
+            commands.push(FunctionCommand::StartFunction(
                 self.current_step().function_id,
             )); //べき等
             return commands;
@@ -79,25 +79,27 @@ impl Function for Chaser {
             .unwrap();
         match function_info.function_type {
             FunctionType::Scene => {
-                commands.push(EngineCommand::StopFuntion(self.current_step().function_id));
+                commands.push(FunctionCommand::StopFuntion(
+                    self.current_step().function_id,
+                ));
                 self.current_step_num += 1;
                 self.time_in_current_step = Duration::ZERO;
 
                 //最後のステップまで行った
-                if self.steps.len() == self.current_step_num {
-                    commands.push(EngineCommand::StopFuntion(self.id));
+                if data.steps.len() == self.current_step_num {
+                    commands.push(FunctionCommand::StopFuntion(data.id));
                     return commands;
                 }
 
                 //次のステップをstart
                 if self.current_step().fade_in.is_zero() {
                     //フェードインが必要ない場合
-                    commands.push(EngineCommand::StartFunction(
+                    commands.push(FunctionCommand::StartFunction(
                         self.current_step().function_id,
                     ));
                 } else {
-                    commands.push(EngineCommand::StopFuntion(self.id));
-                    commands.push(EngineCommand::StartFade {
+                    commands.push(FunctionCommand::StopFuntion(self.id));
+                    commands.push(FunctionCommand::StartFade {
                         from_id: self
                             .steps
                             .get(&(self.current_step_num - 1))

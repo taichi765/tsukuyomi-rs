@@ -1,7 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use crate::{
-    engine::EngineCommand,
+    engine::FunctionCommand,
     fixture::Fixture,
     functions::{Function, FunctionType},
 };
@@ -28,7 +28,7 @@ impl Function for TimeLine {
         _function_infos: &std::collections::HashMap<usize, super::FunctionInfo>,
         _fixtures: &HashMap<usize, Fixture>,
         _tick_duration: Duration,
-    ) -> Vec<EngineCommand> {
+    ) -> Vec<FunctionCommand> {
         // TODO
         return vec![];
     }

@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use super::Function;
 use super::{FunctionInfo, FunctionType};
-use crate::engine::EngineCommand;
+use crate::engine::FunctionCommand;
 use crate::fixture::Fixture;
 use crate::universe::DmxAddress;
 
@@ -51,7 +51,7 @@ impl Function for StaticScene {
         for (fixture_id, scene_value) in &self.values {
             let start_address = fixtures.get(fixture_id).unwrap().address();
             for (channel, value) in scene_value {
-                commands.push(EngineCommand::WriteUniverse {
+                commands.push(FunctionCommand::WriteUniverse {
                     address: DmxAddress::from_usize(start_address.as_usize() + *channel as usize)
                         .unwrap(),
                     value: *value,

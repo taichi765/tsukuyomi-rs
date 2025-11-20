@@ -1,11 +1,12 @@
 use crate::doc::Doc;
-use crate::functions::{Fader, Function, FunctionType, StaticScene};
+use crate::functions::{Fader, Function, FunctionType, StaticSceneData};
 use crate::plugins::Plugin;
 use crate::plugins::artnet::ArtNetPlugin;
 use crate::universe::DmxAddress;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 //TODO: なんとなくpubにしているものがある pub(crate)とかも活用したい
@@ -15,7 +16,7 @@ const TICK_DURATION: Duration = Duration::from_millis(100);
 /// Engine is the single source of true.
 /// It also manages the timer.
 pub struct Engine {
-    doc: Rc<Doc>,
+    doc: Arc<RwLock<Doc>>,
     running_functions: HashSet<usize>,
     output_plugin: Box<dyn Plugin>,
 }
@@ -38,12 +39,12 @@ impl Engine {
 
         for command in commands_list {
             match command {
-                EngineCommand::StartFunction(function_id) => self.start_function(function_id),
-                EngineCommand::StopFuntion(function_id) => self.stop_function(function_id),
-                EngineCommand::WriteUniverse { address, value } => {
+                FunctionCommand::StartFunction(function_id) => self.start_function(function_id),
+                FunctionCommand::StopFuntion(function_id) => self.stop_function(function_id),
+                FunctionCommand::WriteUniverse { address, value } => {
                     self.universe_mut(0).unwrap().set_value(address, value)
                 }
-                EngineCommand::StartFade {
+                FunctionCommand::StartFade {
                     from_id,
                     to_id,
                     chaser_id,
@@ -57,7 +58,7 @@ impl Engine {
         //println!("{:?}", self.universe(0).unwrap().values[0]); //アウトプット
     }
 
-    pub fn run(&mut self, function_id: usize) {
+    pub fn start_loop(&mut self, function_id: usize) {
         println!("starting engine...");
         self.start_function(function_id);
         //let mut i: i32 = 0;
@@ -98,7 +99,7 @@ impl Engine {
             let from_scene = self.get_function(from_id).as_ref();
             let from_scene = match from_scene.function_type() {
                 FunctionType::Scene => (from_scene as &dyn Any)
-                    .downcast_ref::<StaticScene>()
+                    .downcast_ref::<StaticSceneData>()
                     .unwrap(),
                 _ => panic!("unimplemented type"),
             };
@@ -106,7 +107,7 @@ impl Engine {
             let to_scene = self.get_function(to_id).as_ref();
             let to_scene = match to_scene.function_type() {
                 FunctionType::Scene => (to_scene as &dyn Any)
-                    .downcast_ref::<StaticScene>()
+                    .downcast_ref::<StaticSceneData>()
                     .unwrap(),
                 _ => panic!("unimplemented type"),
             };
@@ -130,7 +131,7 @@ impl Engine {
 
 /* ---------- getter/setter, initialization ----------*/
 impl Engine {
-    pub fn new(doc: Rc<Doc>) -> Self {
+    pub fn new(doc: Arc<RwLock<Doc>>) -> Self {
         Self {
             doc: doc,
             running_functions: HashSet::new(),
@@ -139,13 +140,14 @@ impl Engine {
     }
 }
 
-pub enum EngineCommand {
+pub enum FunctionCommand {
     /// if the function is already started, `Engine` do nothing.
     StartFunction(usize),
     /// if the function is already stoped, `Engine` do nothing.
     StopFuntion(usize),
     WriteUniverse {
-        address: DmxAddress,
+        fixture_id: usize,
+        channel: u16,
         value: u8,
     },
     StartFade {
@@ -156,18 +158,18 @@ pub enum EngineCommand {
     },
 }
 
-// helper funtions for test
-impl EngineCommand {
+// helper functions for test
+impl FunctionCommand {
     ///テスト用
     pub fn is_start_function(&self) -> bool {
-        if let EngineCommand::StartFunction(_) = self {
+        if let FunctionCommand::StartFunction(_) = self {
             return true;
         }
         false
     }
     ///テスト用
     pub fn is_start_function_and(&self, want: usize) -> bool {
-        if let EngineCommand::StartFunction(have) = self
+        if let FunctionCommand::StartFunction(have) = self
             && want == *have
         {
             return true;
@@ -176,14 +178,14 @@ impl EngineCommand {
     }
     ///テスト用
     pub fn is_stop_function(&self) -> bool {
-        if let EngineCommand::StopFuntion(_) = self {
+        if let FunctionCommand::StopFuntion(_) = self {
             return true;
         }
         false
     }
     ///テスト用
     pub fn is_stop_function_and(&self, want: usize) -> bool {
-        if let EngineCommand::StopFuntion(have) = self
+        if let FunctionCommand::StopFuntion(have) = self
             && want == *have
         {
             return true;
@@ -192,14 +194,14 @@ impl EngineCommand {
     }
     ///テスト用
     pub fn is_write_universe(&self) -> bool {
-        if let EngineCommand::WriteUniverse { .. } = self {
+        if let FunctionCommand::WriteUniverse { .. } = self {
             return true;
         }
         false
     }
     ///テスト用
     pub fn is_write_universe_and(&self, want: (u16, u8)) -> bool {
-        if let EngineCommand::WriteUniverse { address, value } = self
+        if let FunctionCommand::WriteUniverse { address, value } = self
             && DmxAddress::new(want.0).unwrap() == *address
             && want.1 == *value
         {
@@ -224,10 +226,10 @@ mod tests {
     #[test]
     fn test_engine_push_function_works() {
         let mut engine = Engine::new();
-        let scene = StaticScene::new(0, "this_should_work");
+        let scene = StaticSceneData::new(0, "this_should_work");
         assert!(engine.push_function(Box::new(scene)).is_ok());
 
-        let scene_invalid = StaticScene::new(0, "this should be error");
+        let scene_invalid = StaticSceneData::new(0, "this should be error");
         assert!(engine.push_function(Box::new(scene_invalid)).is_err());
     }
     #[test]

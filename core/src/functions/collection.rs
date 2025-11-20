@@ -1,4 +1,4 @@
-use crate::engine::EngineCommand;
+use crate::engine::FunctionCommand;
 use crate::fixture::Fixture;
 use crate::functions::{Function, FunctionInfo, FunctionType};
 
@@ -34,11 +34,11 @@ impl Function for Collection {
         _function_infos: &HashMap<usize, FunctionInfo>,
         _fixtures: &HashMap<usize, Fixture>,
         _tick_duration: Duration,
-    ) -> Vec<EngineCommand> {
+    ) -> Vec<FunctionCommand> {
         //TODO: コレクションの終了時中身をストップさせるのはだれ？
         self.functions
             .iter()
-            .map(|id| EngineCommand::StartFunction(*id))
+            .map(|id| FunctionCommand::StartFunction(*id))
             .collect()
     }
 

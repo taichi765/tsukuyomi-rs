@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use crate::engine::EngineCommand;
+use crate::engine::FunctionCommand;
 use crate::functions::{Function, FunctionType, SceneValue};
 use crate::universe::DmxAddress;
 
@@ -75,19 +75,19 @@ impl Function for Fader {
         _function_infos: &std::collections::HashMap<usize, super::FunctionInfo>,
         fixtures: &std::collections::HashMap<usize, crate::fixture::Fixture>,
         tick_duration: Duration,
-    ) -> Vec<EngineCommand> {
+    ) -> Vec<FunctionCommand> {
         let mut commands = Vec::new();
         self.elapsed += tick_duration;
         if self.elapsed >= self.amount_duration {
-            commands.push(EngineCommand::StopFuntion(self.id()));
+            commands.push(FunctionCommand::StopFuntion(self.id()));
 
-            commands.push(EngineCommand::StartFunction(self.to_id));
-            commands.push(EngineCommand::StartFunction(self.chaser_id));
+            commands.push(FunctionCommand::StartFunction(self.to_id));
+            commands.push(FunctionCommand::StartFunction(self.chaser_id));
             return commands;
         }
 
         let ratio = self.elapsed.as_secs_f64() / self.amount_duration.as_secs_f64();
-        let mut write_commands: Vec<EngineCommand> = self
+        let mut write_commands: Vec<FunctionCommand> = self
             .values
             .iter()
             .map(|v| {
@@ -98,7 +98,7 @@ impl Function for Fader {
                     fixtures.get(&v.fixture_id).unwrap().address().as_usize() + v.channel as usize,
                 )
                 .unwrap();
-                EngineCommand::WriteUniverse {
+                FunctionCommand::WriteUniverse {
                     address: address,
                     value: new_value,
                 }
