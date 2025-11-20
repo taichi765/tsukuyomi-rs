@@ -25,15 +25,12 @@ impl Engine {
     //数ミリ秒ごとにEngine::run()から呼ぶ
     fn tick(&mut self) {
         let mut commands_list = Vec::new();
-        for function_id in &self.running_functions {
-            let function: &mut dyn Function =
-                self.doc.get_function_mut(*function_id).unwrap().as_mut();
-
-            commands_list.append(&mut function.run(
-                &self.function_infos,
-                &self.fixtures,
-                TICK_DURATION,
-            ));
+        {
+            let doc = self.doc.read().unwrap();
+            for (function_id, runtime) in &self.active_runtimes {
+                let data = doc.get_function_data(function_id).unwrap();
+                commands_list.append(&mut runtime.run(data, TICK_DURATION));
+            }
         }
 
         for command in commands_list {
@@ -73,12 +70,14 @@ impl Engine {
 
     ///既にstartしてた場合は何もしない
     fn start_function(&mut self, function_id: usize) {
-        self.running_functions.insert(function_id);
+        let doc = self.doc.read().unwrap();
+        let runtime = doc.get_function_data(function_id).unwrap().create_runtime();
+        self.active_runtimes.insert(function_id, runtime);
     }
 
     ///既にstopしてた/そもそも存在しなかった場合、何もしない
     fn stop_function(&mut self, function_id: usize) {
-        self.running_functions.remove(&function_id);
+        self.active_runtimes.remove(&function_id);
     }
 
     fn start_fade(&mut self, from_id: usize, to_id: usize, chaser_id: usize, duration: Duration) {
@@ -122,7 +121,7 @@ impl Engine {
     pub fn new(doc: Arc<RwLock<Doc>>) -> Self {
         Self {
             doc: doc,
-            running_functions: HashSet::new(),
+            active_runtimes: HashSet::new(),
             output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()), //output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()),
         }
     }

@@ -26,6 +26,15 @@ pub enum FunctionData {
     Chaser(ChaserData),
 }
 
+impl FunctionData {
+    pub(crate) fn create_runtime(&self) -> Box<dyn FunctionRuntime> {
+        match self {
+            FunctionData::StaticScene(_) => Box::new(StaticSceneRuntime::new()),
+            FunctionData::Chaser(_) => Box::new(ChaserRuntime::new()),
+        }
+    }
+}
+
 pub trait FunctionRuntime {
     fn run(&mut self, data: FunctionData, tick_duration: Duration) -> Vec<FunctionCommand>;
 }

@@ -34,6 +34,12 @@ impl StaticSceneData {
 
 pub struct StaticSceneRuntime {}
 
+impl StaticSceneRuntime {
+    pub(crate) fn new() -> Self {
+        Self {}
+    }
+}
+
 impl FunctionRuntime for StaticSceneRuntime {
     fn run(&mut self, data: FunctionData, _tick_duration: Duration) -> Vec<FunctionCommand> {
         let FunctionData::StaticScene(data) = data else {

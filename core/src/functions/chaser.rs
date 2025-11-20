@@ -1,7 +1,6 @@
-use super::{FunctionData, FunctionInfo, FunctionType};
-use crate::fixture::Fixture;
+use super::{FunctionData, FunctionType};
+use crate::engine::FunctionCommand;
 use crate::functions::FunctionRuntime;
-use crate::{engine::FunctionCommand, functions::Function};
 use std::{collections::HashMap, time::Duration};
 
 //TODO: フェードインの実装
@@ -44,29 +43,6 @@ impl ChaserData {
                 hold: hold,
             },
         );
-    }
-}
-
-impl Function for ChaserData {
-    ///Scene::writeはengineに呼ばせる
-    fn run(
-        &mut self,
-        function_infos: &HashMap<usize, FunctionInfo>,
-        _fixtures: &HashMap<usize, Fixture>,
-        tick_duration: Duration,
-    ) -> Vec<FunctionCommand> {
-    }
-
-    fn function_type(&self) -> FunctionType {
-        FunctionType::Chaser
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn id(&self) -> usize {
-        self.id
     }
 }
 
@@ -132,6 +108,15 @@ impl FunctionRuntime for ChaserRuntime {
             _ => unimplemented!(),
         }
         commands
+    }
+}
+
+impl ChaserRuntime {
+    pub(crate) fn new() -> Self {
+        Self {
+            time_in_current_step: Duration::ZERO,
+            current_step_num: 0,
+        }
     }
 }
 
