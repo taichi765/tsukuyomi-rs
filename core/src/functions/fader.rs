@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::engine::FunctionCommand;
-use crate::functions::{Function, FunctionType, SceneValue};
+use crate::functions::{FunctionType, SceneValue};
 use crate::universe::DmxAddress;
 
 #[derive(Debug)]
@@ -69,7 +69,7 @@ impl Fader {
     }
 }
 
-impl Function for Fader {
+/*impl FunctionRuntime for Fader {
     fn run(
         &mut self, //可変借用はselfのみ
         _function_infos: &std::collections::HashMap<usize, super::FunctionInfo>,
@@ -99,7 +99,8 @@ impl Function for Fader {
                 )
                 .unwrap();
                 FunctionCommand::WriteUniverse {
-                    address: address,
+                    fixture_id: 0,
+                    channel: 0, //TODO: dummy implementation
                     value: new_value,
                 }
             })
@@ -116,7 +117,7 @@ impl Function for Fader {
     fn name(&self) -> &str {
         ""
     }
-}
+}*/
 
 #[cfg(test)]
 mod tests {

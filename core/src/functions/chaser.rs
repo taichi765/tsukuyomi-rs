@@ -58,15 +58,15 @@ impl FunctionRuntime for ChaserRuntime {
         let mut commands = Vec::new();
         self.time_in_current_step += tick_duration; //時間を進める
 
-        if self.time_in_current_step < self.current_step().duration() {
-            commands.push(FunctionCommand::StartFunction(
-                self.current_step().function_id,
-            )); //べき等
-            return commands;
-        }
+        //if self.time_in_current_step < self.current_step().duration() {
+        commands.push(FunctionCommand::StartFunction(
+            0, //self.current_step().function_id,
+        )); //べき等
+        return commands;
+        //}
 
         //ステップ移行
-        let function_info = function_infos
+        /*let function_info = function_infos
             .get(&self.current_step().function_id)
             .unwrap();
         match function_info.function_type {
@@ -104,7 +104,7 @@ impl FunctionRuntime for ChaserRuntime {
                 }
             }
             _ => unimplemented!(),
-        }
+        }*/
         commands
     }
 }
@@ -117,17 +117,17 @@ impl ChaserRuntime {
         }
     }
 
-    fn current_step(&self) -> &ChaserStep {
+    /*fn current_step(&self) -> &ChaserStep {
         self.steps
             .get(&self.current_step_num)
             .expect(format!("step num {} not found", self.current_step_num).as_str())
-    }
+    }*/
 }
 
 #[cfg(test)]
 mod tests {
 
-    use super::*;
+    /*use super::*;
 
     #[test]
     fn test_chaser_advances_step_after_hold_time() {
@@ -136,7 +136,7 @@ mod tests {
         chaser.add_step(2, Duration::from_millis(1000), Duration::ZERO);
 
         let mut dummy_infos = HashMap::new();
-        dummy_infos.insert(
+        /*dummy_infos.insert(
             1,
             FunctionInfo {
                 id: 1,
@@ -149,7 +149,7 @@ mod tests {
                 id: 2,
                 function_type: FunctionType::Scene,
             },
-        );
+        );*/
 
         let tick_duration = Duration::from_millis(120);
 
@@ -191,5 +191,5 @@ mod tests {
         assert!(found_start && found_stop);
     }
     #[test]
-    fn test_chaser_starts_fade() {}
+    fn test_chaser_starts_fade() {}*/
 }

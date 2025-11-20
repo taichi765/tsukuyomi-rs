@@ -2,7 +2,6 @@ use crate::doc::Doc;
 use crate::functions::{Fader, FunctionRuntime, FunctionType, StaticSceneData};
 use crate::plugins::Plugin;
 use crate::plugins::artnet::ArtNetPlugin;
-use crate::universe::DmxAddress;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -25,7 +24,7 @@ impl Engine {
     pub fn new(doc: Arc<RwLock<Doc>>) -> Self {
         Self {
             doc: doc,
-            active_runtimes: HashSet::new(),
+            active_runtimes: HashMap::new(),
             output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()), //output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()),
         }
     }
@@ -48,8 +47,8 @@ impl Engine {
         let mut commands_list = Vec::new();
         {
             let doc = self.doc.read().unwrap();
-            for (function_id, runtime) in &self.active_runtimes {
-                let data = doc.get_function_data(function_id).unwrap();
+            for (function_id, runtime) in &mut self.active_runtimes {
+                let data = doc.get_function_data(*function_id).unwrap();
                 commands_list.append(&mut runtime.run(data, TICK_DURATION));
             }
         }
@@ -71,9 +70,9 @@ impl Engine {
                 } => self.start_fade(from_id, to_id, chaser_id, duration),
             }
         }
-        self.output_plugin
-            .send_dmx(0, &self.universe(0).unwrap().values().to_vec()[..])
-            .unwrap();
+        /*self.output_plugin
+        .send_dmx(0, &self.universe(0).unwrap().values().to_vec()[..])
+        .unwrap();*/
     }
 
     ///既にstartしてた場合は何もしない
@@ -90,7 +89,7 @@ impl Engine {
 
     fn start_fade(&mut self, from_id: usize, to_id: usize, chaser_id: usize, duration: Duration) {
         //必要な値だけを取り出す
-        let (from_values, to_values) = {
+        /*let (from_values, to_values) = {
             let from_scene = self.get_function(from_id).as_ref();
             let from_scene = match from_scene.function_type() {
                 FunctionType::Scene => (from_scene as &dyn Any)
@@ -120,7 +119,7 @@ impl Engine {
         let fader_id = fader.id();
         self.push_function(Box::new(fader))
             .expect("functionの追加に失敗しました");
-        self.start_function(fader_id);
+        self.start_function(fader_id);*/
     }
 }
 

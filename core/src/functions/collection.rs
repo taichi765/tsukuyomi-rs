@@ -1,6 +1,6 @@
 use crate::engine::FunctionCommand;
 use crate::fixture::Fixture;
-use crate::functions::{Function, FunctionInfo, FunctionType};
+use crate::functions::{FunctionInfo, FunctionType};
 
 use std::collections::HashMap;
 use std::time::Duration;
@@ -28,7 +28,7 @@ impl Collection {
     }
 }
 
-impl Function for Collection {
+/*impl Function for Collection {
     fn run(
         &mut self, //可変借用はselfのみ
         _function_infos: &HashMap<usize, FunctionInfo>,
@@ -51,7 +51,7 @@ impl Function for Collection {
     fn function_type(&self) -> FunctionType {
         FunctionType::Collection
     }
-}
+}*/
 
 #[cfg(test)]
 mod tests {
