@@ -30,8 +30,6 @@ impl ChaserData {
             id: id,
             name: String::from(name),
             steps: HashMap::new(),
-            time_in_current_step: Duration::ZERO,
-            current_step_num: 0,
         }
     }
     pub fn add_step(&mut self, function_id: usize, hold: Duration, fade_in: Duration) {

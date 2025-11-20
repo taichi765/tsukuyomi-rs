@@ -1,10 +1,4 @@
-use std::{collections::HashMap, time::Duration};
-
-use crate::{
-    engine::FunctionCommand,
-    fixture::Fixture,
-    functions::{Function, FunctionType},
-};
+use std::time::Duration;
 
 pub struct TimeLine {
     id: usize,
@@ -19,28 +13,6 @@ impl TimeLine {
             name: name.into(),
             tracks: Vec::new(),
         }
-    }
-}
-
-impl Function for TimeLine {
-    fn run(
-        &mut self,
-        _function_infos: &std::collections::HashMap<usize, super::FunctionInfo>,
-        _fixtures: &HashMap<usize, Fixture>,
-        _tick_duration: Duration,
-    ) -> Vec<FunctionCommand> {
-        // TODO
-        return vec![];
-    }
-
-    fn function_type(&self) -> FunctionType {
-        FunctionType::TimeLine
-    }
-    fn id(&self) -> usize {
-        self.id
-    }
-    fn name(&self) -> &str {
-        &self.name
     }
 }
 
