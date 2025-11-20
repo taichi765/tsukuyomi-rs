@@ -10,24 +10,33 @@ mod fader;
 mod static_scene;
 mod timeline;
 
-pub use chaser::Chaser;
+pub use chaser::ChaserData;
 pub use collection::Collection;
 pub(crate) use fader::Fader;
 pub use static_scene::SceneValue;
-pub use static_scene::StaticScene;
+pub use static_scene::StaticSceneData;
 
 pub trait Function: Any {
     //コマンドパターン
     //実際にUniverseやプラグインに書き込むのは責務外
-    fn run(
+    /*fn run(
         &mut self, //可変借用はselfのみ
         function_infos: &HashMap<usize, FunctionInfo>,
         fixtures: &HashMap<usize, Fixture>,
         tick_duration: Duration,
-    ) -> Vec<EngineCommand>;
+    ) -> Vec<EngineCommand>;*/
     fn function_type(&self) -> FunctionType;
     fn id(&self) -> usize;
     fn name(&self) -> &str;
+}
+
+pub enum FunctionData {
+    StaticScene(StaticSceneData),
+    Chaser(ChaserData),
+}
+
+pub trait FunctionRuntime {
+    fn run(&mut self, data: FunctionData, tick_duration: Duration) -> Vec<FunctionCommand>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

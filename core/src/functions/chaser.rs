@@ -1,18 +1,16 @@
-use super::{FunctionInfo, FunctionType};
+use super::{FunctionData, FunctionInfo, FunctionType};
 use crate::fixture::Fixture;
+use crate::functions::FunctionRuntime;
 use crate::{engine::FunctionCommand, functions::Function};
 use std::{collections::HashMap, time::Duration};
 
 //TODO: フェードインの実装
 
-pub struct Chaser {
+pub struct ChaserData {
     id: usize,
     name: String,
     ///step_number->step
     steps: HashMap<usize, ChaserStep>,
-    time_in_current_step: Duration,
-    ///step_number
-    current_step_num: usize,
 }
 
 struct ChaserStep {
@@ -27,7 +25,7 @@ impl ChaserStep {
     }
 }
 
-impl Chaser {
+impl ChaserData {
     pub fn new(id: usize, name: &str) -> Self {
         Self {
             id: id,
@@ -47,22 +45,42 @@ impl Chaser {
             },
         );
     }
-
-    fn current_step(&self) -> &ChaserStep {
-        self.steps
-            .get(&self.current_step_num)
-            .expect(format!("step num {} not found", self.current_step_num).as_str())
-    }
 }
 
-impl Function for Chaser {
+impl Function for ChaserData {
     ///Scene::writeはengineに呼ばせる
     fn run(
         &mut self,
         function_infos: &HashMap<usize, FunctionInfo>,
         _fixtures: &HashMap<usize, Fixture>,
         tick_duration: Duration,
-    ) -> Vec<EngineCommand> {
+    ) -> Vec<FunctionCommand> {
+    }
+
+    fn function_type(&self) -> FunctionType {
+        FunctionType::Chaser
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn id(&self) -> usize {
+        self.id
+    }
+}
+
+pub struct ChaserRuntime {
+    time_in_current_step: Duration,
+    ///step_number
+    current_step_num: usize,
+}
+
+impl FunctionRuntime for ChaserRuntime {
+    fn run(&mut self, data: FunctionData, tick_duration: Duration) -> Vec<FunctionCommand> {
+        let FunctionData::Chaser(data) = data else {
+            panic!("unknown function data")
+        };
         let mut commands = Vec::new();
         self.time_in_current_step += tick_duration; //時間を進める
 
@@ -115,17 +133,13 @@ impl Function for Chaser {
         }
         commands
     }
+}
 
-    fn function_type(&self) -> FunctionType {
-        FunctionType::Chaser
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn id(&self) -> usize {
-        self.id
+impl ChaserRuntime {
+    fn current_step(&self) -> &ChaserStep {
+        self.steps
+            .get(&self.current_step_num)
+            .expect(format!("step num {} not found", self.current_step_num).as_str())
     }
 }
 
@@ -136,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_chaser_advances_step_after_hold_time() {
-        let mut chaser = Chaser::new(0, "Test Chaser");
+        let mut chaser = ChaserData::new(0, "Test Chaser");
         chaser.add_step(1, Duration::from_millis(500), Duration::ZERO);
         chaser.add_step(2, Duration::from_millis(1000), Duration::ZERO);
 

@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use super::Function;
-use super::{FunctionInfo, FunctionType};
+use super::{FunctionData, FunctionRuntime, FunctionType};
 use crate::engine::FunctionCommand;
-use crate::fixture::Fixture;
-use crate::universe::DmxAddress;
 
-pub struct StaticScene {
+pub type SceneValue = HashMap<u16, u8>;
+
+pub struct StaticSceneData {
     id: usize,
     name: String,
     /// fixture_id->values
@@ -15,7 +15,7 @@ pub struct StaticScene {
 }
 
 //TODO: 同じfixture_idかつ同じchannelにvalueを設定できちゃう
-impl StaticScene {
+impl StaticSceneData {
     pub fn new(id: usize, name: &str) -> Self {
         Self {
             id: id,
@@ -27,26 +27,34 @@ impl StaticScene {
     pub fn values(&self) -> &HashMap<usize, SceneValue> {
         &self.values
     }
-    //TODO: insertかaddの方が良い？
-    pub fn push_value(&mut self, fixture_id: usize, value: SceneValue) {
+
+    pub fn insert_value(&mut self, fixture_id: usize, value: SceneValue) {
         self.values.insert(fixture_id, value);
     }
 }
 
-impl Function for StaticScene {
+impl Function for StaticSceneData {
     fn id(&self) -> usize {
         self.id
     }
+
     fn name(&self) -> &str {
         &self.name
     }
-    ///sceneは自分でstopしない(Chaserに任せる)
-    fn run(
-        &mut self,
-        _function_infos: &HashMap<usize, FunctionInfo>,
-        fixtures: &HashMap<usize, Fixture>,
-        _tick_duration: Duration,
-    ) -> Vec<EngineCommand> {
+
+    fn function_type(&self) -> FunctionType {
+        FunctionType::Scene
+    }
+}
+
+pub struct StaticSceneRuntime {}
+
+impl FunctionRuntime for StaticSceneRuntime {
+    fn run(&mut self, data: FunctionData, _tick_duration: Duration) -> Vec<FunctionCommand> {
+        let FunctionData::StaticScene(data) = data else {
+            panic!("unknown data type")
+        };
+
         let mut commands = Vec::new();
         for (fixture_id, scene_value) in data.values {
             for (channel, value) in scene_value {
@@ -59,12 +67,7 @@ impl Function for StaticScene {
         }
         commands
     }
-    fn function_type(&self) -> FunctionType {
-        FunctionType::Scene
-    }
 }
-
-pub type SceneValue = HashMap<u16, u8>;
 
 #[cfg(test)]
 mod tests {
