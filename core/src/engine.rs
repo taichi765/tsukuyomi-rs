@@ -22,6 +22,27 @@ pub struct Engine {
 
 /* ---------- running ---------- */
 impl Engine {
+    pub fn new(doc: Arc<RwLock<Doc>>) -> Self {
+        Self {
+            doc: doc,
+            active_runtimes: HashSet::new(),
+            output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()), //output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()),
+        }
+    }
+
+    pub fn start_loop(&mut self, function_id: usize) {
+        println!("starting engine...");
+        self.start_function(function_id);
+        loop {
+            if self.active_runtimes.len() == 0 {
+                println!("stopping engine");
+                return;
+            }
+            self.tick();
+            std::thread::sleep(TICK_DURATION);
+        }
+    }
+
     //数ミリ秒ごとにEngine::run()から呼ぶ
     fn tick(&mut self) {
         let mut commands_list = Vec::new();
@@ -53,19 +74,6 @@ impl Engine {
         self.output_plugin
             .send_dmx(0, &self.universe(0).unwrap().values().to_vec()[..])
             .unwrap();
-    }
-
-    pub fn start_loop(&mut self, function_id: usize) {
-        println!("starting engine...");
-        self.start_function(function_id);
-        loop {
-            if self.active_runtimes.len() == 0 {
-                println!("stopping engine");
-                return;
-            }
-            self.tick();
-            std::thread::sleep(TICK_DURATION);
-        }
     }
 
     ///既にstartしてた場合は何もしない
@@ -113,17 +121,6 @@ impl Engine {
         self.push_function(Box::new(fader))
             .expect("functionの追加に失敗しました");
         self.start_function(fader_id);
-    }
-}
-
-/* ---------- getter/setter, initialization ----------*/
-impl Engine {
-    pub fn new(doc: Arc<RwLock<Doc>>) -> Self {
-        Self {
-            doc: doc,
-            active_runtimes: HashSet::new(),
-            output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()), //output_plugin: Box::new(ArtNetPlugin::new("127.0.0.1").unwrap()),
-        }
     }
 }
 
