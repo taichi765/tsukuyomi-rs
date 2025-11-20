@@ -15,3 +15,6 @@
 
 # personal notes, logs etc
 .local/
+
+# Agent settings
+.gemini/
