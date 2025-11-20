@@ -36,7 +36,7 @@ impl FunctionData {
 }
 
 pub trait FunctionRuntime {
-    fn run(&mut self, data: FunctionData, tick_duration: Duration) -> Vec<FunctionCommand>;
+    fn run(&mut self, data: &FunctionData, tick_duration: Duration) -> Vec<FunctionCommand>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

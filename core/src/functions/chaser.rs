@@ -53,10 +53,11 @@ pub struct ChaserRuntime {
 }
 
 impl FunctionRuntime for ChaserRuntime {
-    fn run(&mut self, data: FunctionData, tick_duration: Duration) -> Vec<FunctionCommand> {
+    fn run(&mut self, data: &FunctionData, tick_duration: Duration) -> Vec<FunctionCommand> {
         let FunctionData::Chaser(data) = data else {
             panic!("unknown function data")
         };
+
         let mut commands = Vec::new();
         self.time_in_current_step += tick_duration; //時間を進める
 
@@ -118,9 +119,7 @@ impl ChaserRuntime {
             current_step_num: 0,
         }
     }
-}
 
-impl ChaserRuntime {
     fn current_step(&self) -> &ChaserStep {
         self.steps
             .get(&self.current_step_num)

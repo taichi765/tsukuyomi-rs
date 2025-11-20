@@ -41,7 +41,7 @@ impl StaticSceneRuntime {
 }
 
 impl FunctionRuntime for StaticSceneRuntime {
-    fn run(&mut self, data: FunctionData, _tick_duration: Duration) -> Vec<FunctionCommand> {
+    fn run(&mut self, data: &FunctionData, _tick_duration: Duration) -> Vec<FunctionCommand> {
         let FunctionData::StaticScene(data) = data else {
             panic!("unknown data type")
         };
