@@ -48,13 +48,12 @@ impl Function for StaticScene {
         _tick_duration: Duration,
     ) -> Vec<EngineCommand> {
         let mut commands = Vec::new();
-        for (fixture_id, scene_value) in &self.values {
-            let start_address = fixtures.get(fixture_id).unwrap().address();
+        for (fixture_id, scene_value) in data.values {
             for (channel, value) in scene_value {
                 commands.push(FunctionCommand::WriteUniverse {
-                    address: DmxAddress::from_usize(start_address.as_usize() + *channel as usize)
-                        .unwrap(),
-                    value: *value,
+                    fixture_id,
+                    channel,
+                    value: value,
                 });
             }
         }

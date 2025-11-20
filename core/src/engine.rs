@@ -41,9 +41,11 @@ impl Engine {
             match command {
                 FunctionCommand::StartFunction(function_id) => self.start_function(function_id),
                 FunctionCommand::StopFuntion(function_id) => self.stop_function(function_id),
-                FunctionCommand::WriteUniverse { address, value } => {
-                    self.universe_mut(0).unwrap().set_value(address, value)
-                }
+                FunctionCommand::WriteUniverse {
+                    fixture_id,
+                    channel,
+                    value,
+                } => unimplemented!("誰に渡すのか"),
                 FunctionCommand::StartFade {
                     from_id,
                     to_id,
