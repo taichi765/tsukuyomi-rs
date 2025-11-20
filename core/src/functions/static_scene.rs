@@ -47,12 +47,12 @@ impl FunctionRuntime for StaticSceneRuntime {
         };
 
         let mut commands = Vec::new();
-        for (fixture_id, scene_value) in data.values {
+        for (fixture_id, scene_value) in &data.values {
             for (channel, value) in scene_value {
                 commands.push(FunctionCommand::WriteUniverse {
-                    fixture_id,
-                    channel,
-                    value: value,
+                    fixture_id: *fixture_id,
+                    channel: *channel,
+                    value: *value,
                 });
             }
         }
