@@ -48,7 +48,6 @@ impl ChaserData {
 
 pub struct ChaserRuntime {
     time_in_current_step: Duration,
-    ///step_number
     current_step_num: usize,
 }
 
