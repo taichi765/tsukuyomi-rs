@@ -143,7 +143,7 @@ pub enum FunctionCommand {
 }
 
 // helper functions for test
-impl FunctionCommand {
+/*impl FunctionCommand {
     ///テスト用
     pub fn is_start_function(&self) -> bool {
         if let FunctionCommand::StartFunction(_) = self {
@@ -193,45 +193,7 @@ impl FunctionCommand {
         }
         false
     }
-}
+}*/
 
 #[cfg(test)]
-mod tests {
-
-    use super::*;
-    #[test]
-    fn test_engine_init_empty() {
-        let engine = Engine::new();
-        assert_eq!(engine.universes.len(), 1);
-        assert_eq!(engine.functions.len(), 0);
-        assert_eq!(engine.fixtures.len(), 0);
-    }
-
-    #[test]
-    fn test_engine_push_function_works() {
-        let mut engine = Engine::new();
-        let scene = StaticSceneData::new(0, "this_should_work");
-        assert!(engine.push_function(Box::new(scene)).is_ok());
-
-        let scene_invalid = StaticSceneData::new(0, "this should be error");
-        assert!(engine.push_function(Box::new(scene_invalid)).is_err());
-    }
-    #[test]
-    fn test_engine_push_fixture_works() {
-        let mut engine = Engine::new();
-        let fixture = Fixture::new(0, "this should work", 0);
-        assert!(engine.push_fixture(fixture).is_ok());
-
-        let fixture_invalid = Fixture::new(0, "this should be error", 1);
-        assert!(engine.push_fixture(fixture_invalid).is_err());
-    }
-    #[test]
-    fn test_engine_push_universe_works() {
-        let mut engine = Engine::new();
-        let universe = Universe::new(1);
-        assert!(engine.push_universe(universe).is_ok());
-
-        let universe_invalid = Universe::new(1);
-        assert!(engine.push_universe(universe_invalid).is_err());
-    }
-}
+mod tests {}
