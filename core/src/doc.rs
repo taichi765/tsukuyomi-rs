@@ -58,9 +58,30 @@ impl Doc {
         channel: &str,
     ) -> Option<ResolvedAddress> {
         if let Some(fixture) = self.fixtures.get(&fixture_id) {
+            let fixture_def = self.fixture_definitions.get(&fixture.fixture_def()).expect(
+                format!("could not find fixture definition for {}", fixture.name()).as_str(),
+            );
+            let mode = fixture_def.modes.get(fixture.fixture_mode()).expect(
+                format!(
+                    "could not find fixture mode {} in {}",
+                    fixture.fixture_mode(),
+                    fixture.name()
+                )
+                .as_str(),
+            );
+            let channel = mode.channel_order.get(channel).unwrap().as_ref().expect(
+                format!(
+                    "{}: channel {} is not in mode {}",
+                    fixture.name(),
+                    channel,
+                    fixture.fixture_mode()
+                )
+                .as_str(),
+            );
+            let merge_mode = channel.1.merge_mode;
             Some(ResolvedAddress {
                 address: fixture.address(),
-                merge_mode: fixture.fixture_def(),
+                merge_mode,
             })
         } else {
             None
