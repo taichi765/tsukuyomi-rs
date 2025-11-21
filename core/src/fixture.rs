@@ -15,6 +15,7 @@ pub struct Fixture {
     id: usize,
     name: String,
     address: DmxAddress,
+    fixture_def: Uuid,
 }
 
 impl Fixture {
@@ -33,5 +34,8 @@ impl Fixture {
     }
     pub fn address(&self) -> DmxAddress {
         self.address
+    }
+    pub fn fixture_def(&self) -> &FixtureDef {
+        self.fixture_def
     }
 }

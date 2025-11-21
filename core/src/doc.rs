@@ -16,8 +16,8 @@ pub trait DocCommand {
 }
 
 pub struct Doc {
-    universes: Vec<Universe>,
     fixtures: HashMap<usize, Fixture>,
+    fixture_definitions: HashMap<Uuid, FixtureDef>,
     functions: HashMap<usize, FunctionData>,
     /*function_infos: HashMap<usize, FunctionInfo>, */
 }

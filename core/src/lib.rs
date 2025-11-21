@@ -5,4 +5,5 @@ pub mod plugins;
 //pub mod qxw_loader;
 pub mod commands;
 pub mod doc;
+pub mod fixture_def;
 pub mod universe;
