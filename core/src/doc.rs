@@ -9,6 +9,23 @@ use crate::{
     universe::DmxAddress,
 };
 
+pub enum ResolveError {
+    FixtureNotFound(Uuid),
+    FixtureDefNotFound {
+        fixture_id: Uuid,
+        fixture_def_id: Uuid,
+    },
+    ModeNotFound {
+        fixture_def: Uuid,
+        mode: String,
+    },
+    ChannelNotFound {
+        fixturedef: Uuid,
+        mode: String,
+        channel: String,
+    },
+}
+
 pub trait DocCommand {
     fn apply(&mut self, doc: &mut Doc) -> Result<(), String>;
 
@@ -22,8 +39,8 @@ pub struct Doc {
 }
 
 pub(crate) struct ResolvedAddress {
-    address: DmxAddress,
-    merge_mode: MergeMode,
+    pub address: DmxAddress,
+    pub merge_mode: MergeMode,
 }
 
 impl Doc {
@@ -56,36 +73,43 @@ impl Doc {
         &self,
         fixture_id: Uuid,
         channel: &str,
-    ) -> Option<ResolvedAddress> {
-        if let Some(fixture) = self.fixtures.get(&fixture_id) {
-            let fixture_def = self.fixture_definitions.get(&fixture.fixture_def()).expect(
-                format!("could not find fixture definition for {}", fixture.name()).as_str(),
-            );
-            let mode = fixture_def.modes.get(fixture.fixture_mode()).expect(
-                format!(
-                    "could not find fixture mode {} in {}",
-                    fixture.fixture_mode(),
-                    fixture.name()
-                )
-                .as_str(),
-            );
-            let channel = mode.channel_order.get(channel).unwrap().as_ref().expect(
-                format!(
-                    "{}: channel {} is not in mode {}",
-                    fixture.name(),
-                    channel,
-                    fixture.fixture_mode()
-                )
-                .as_str(),
-            );
-            let merge_mode = channel.1.merge_mode;
-            Some(ResolvedAddress {
-                address: fixture.address(),
-                merge_mode,
-            })
-        } else {
-            None
-        }
+    ) -> Result<ResolvedAddress, ResolveError> {
+        let fixture = self
+            .fixtures
+            .get(&fixture_id)
+            .ok_or(ResolveError::FixtureNotFound(fixture_id))?;
+
+        let fixture_def = self.fixture_definitions.get(&fixture.fixture_def()).ok_or(
+            ResolveError::FixtureDefNotFound {
+                fixture_id: fixture.id(),
+                fixture_def_id: fixture.fixture_def(),
+            },
+        )?;
+        let mode =
+            fixture_def
+                .modes
+                .get(fixture.fixture_mode())
+                .ok_or(ResolveError::ModeNotFound {
+                    fixture_def: fixture.fixture_def(),
+                    mode: fixture.fixture_mode().into(),
+                })?;
+        let channel = mode.channel_order.get(channel).unwrap().as_ref().ok_or(
+            ResolveError::ChannelNotFound {
+                fixturedef: fixture.fixture_def(),
+                mode: fixture.fixture_mode().into(),
+                channel: channel.into(),
+            },
+        )?;
+
+        let merge_mode = channel.1.merge_mode;
+        Ok(ResolvedAddress {
+            address: DmxAddress::new(
+                fixture.address().universe_id(),
+                fixture.address().address() as usize + channel.0,
+            )
+            .unwrap(),
+            merge_mode,
+        })
     }
 
     //仮
