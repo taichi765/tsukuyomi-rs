@@ -1,8 +1,6 @@
-use std::usize;
-
 use uuid::Uuid;
 
-use crate::{fixture_def::FixtureDef, universe::DmxAddress};
+use crate::universe::DmxAddress;
 
 pub(crate) enum MergeMode {
     HTP,
@@ -12,21 +10,22 @@ pub(crate) enum MergeMode {
 //TODO: 占有するチャンネルの計算
 #[derive(Clone)]
 pub struct Fixture {
-    id: usize,
+    id: Uuid,
     name: String,
     address: DmxAddress,
-    fixture_def: Uuid,
+    fixture_def_id: Uuid,
 }
 
 impl Fixture {
-    pub fn new(id: usize, name: &str, address: u16) -> Self {
+    pub fn new(name: &str, address: u16, fixture_def_id: Uuid) -> Self {
         Self {
-            id,
+            id: Uuid::new_v4(),
             name: String::from(name),
             address: DmxAddress::new(address).unwrap(),
+            fixture_def_id,
         }
     }
-    pub fn id(&self) -> usize {
+    pub fn id(&self) -> Uuid {
         self.id
     }
     pub fn name(&self) -> &str {
@@ -35,7 +34,7 @@ impl Fixture {
     pub fn address(&self) -> DmxAddress {
         self.address
     }
-    pub fn fixture_def(&self) -> &FixtureDef {
-        self.fixture_def
+    pub fn fixture_def(&self) -> Uuid {
+        self.fixture_def_id
     }
 }

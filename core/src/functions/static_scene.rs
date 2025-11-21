@@ -1,20 +1,22 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
+use uuid::Uuid;
+
 use super::{FunctionData, FunctionRuntime};
 use crate::{engine::FunctionCommand, functions::FunctionDataGetters};
 
 pub type SceneValue = HashMap<u16, u8>;
 
 pub struct StaticSceneData {
-    id: usize,
+    id: Uuid,
     name: String,
     /// fixture_id->values
     values: HashMap<usize, SceneValue>,
 }
 
 impl FunctionDataGetters for StaticSceneData {
-    fn id(&self) -> usize {
+    fn id(&self) -> Uuid {
         self.id
     }
     fn name(&self) -> &str {
@@ -24,9 +26,9 @@ impl FunctionDataGetters for StaticSceneData {
 
 //TODO: 同じfixture_idかつ同じchannelにvalueを設定できちゃう
 impl StaticSceneData {
-    pub fn new(id: usize, name: &str) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
-            id: id,
+            id: Uuid::new_v4(),
             name: String::from(name),
             values: HashMap::new(),
         }
@@ -77,7 +79,7 @@ mod tests {
 
     #[test]
     fn static_scene_runtime_writes_commands_for_single_fixture() {
-        let mut scene = StaticSceneData::new(1, "test");
+        let mut scene = StaticSceneData::new("test");
         let mut sv = SceneValue::new();
         sv.insert(1, 128);
         sv.insert(2, 255);
@@ -109,7 +111,7 @@ mod tests {
 
     #[test]
     fn static_scene_runtime_writes_commands_for_multiple_fixtures() {
-        let mut scene = StaticSceneData::new(2, "multi");
+        let mut scene = StaticSceneData::new("multi");
 
         let mut sv1 = SceneValue::new();
         sv1.insert(1, 10);
