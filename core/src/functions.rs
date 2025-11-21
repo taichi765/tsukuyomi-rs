@@ -15,9 +15,10 @@ pub use collection::Collection;
 pub(crate) use fader::Fader;
 pub use static_scene::SceneValue;
 pub use static_scene::StaticSceneData;
+use uuid::Uuid;
 
 pub trait FunctionDataGetters {
-    fn id(&self) -> usize;
+    fn id(&self) -> Uuid;
     fn name(&self) -> &str;
 }
 
@@ -28,6 +29,7 @@ pub enum FunctionData {
 
 impl Deref for FunctionData {
     type Target = dyn FunctionDataGetters;
+
     fn deref(&self) -> &Self::Target {
         match self {
             FunctionData::StaticScene(data) => data,

@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::{
     doc::{Doc, DocCommand},
     functions::FunctionData,
@@ -5,7 +7,7 @@ use crate::{
 
 pub struct AddFunction {
     function: Option<FunctionData>,
-    function_id: usize,
+    function_id: Uuid,
 }
 
 impl AddFunction {

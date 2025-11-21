@@ -16,10 +16,9 @@ pub trait DocCommand {
 }
 
 pub struct Doc {
-    fixtures: HashMap<usize, Fixture>,
+    fixtures: HashMap<Uuid, Fixture>,
     fixture_definitions: HashMap<Uuid, FixtureDef>,
-    functions: HashMap<usize, FunctionData>,
-    /*function_infos: HashMap<usize, FunctionInfo>, */
+    functions: HashMap<Uuid, FunctionData>,
 }
 
 pub(crate) struct ResolvedAddress {
@@ -31,11 +30,12 @@ impl Doc {
     pub fn new() -> Self {
         Self {
             fixtures: HashMap::new(),
+            fixture_definitions: HashMap::new(),
             functions: HashMap::new(),
         }
     }
 
-    pub fn get_function_data(&self, function_id: usize) -> Option<&FunctionData> {
+    pub fn get_function_data(&self, function_id: Uuid) -> Option<&FunctionData> {
         self.functions.get(&function_id)
     }
 
@@ -48,14 +48,14 @@ impl Doc {
         Ok(())
     }
 
-    pub(crate) fn remove_function(&mut self, function_id: usize) -> Option<FunctionData> {
+    pub(crate) fn remove_function(&mut self, function_id: Uuid) -> Option<FunctionData> {
         self.functions.remove(&function_id)
     }
 
     pub(crate) fn resolve_address(
         &self,
-        fixture_id: usize,
-        channel: u16,
+        fixture_id: Uuid,
+        channel: &str,
     ) -> Option<ResolvedAddress> {
         if let Some(fixture) = self.fixtures.get(&fixture_id) {
             Some(ResolvedAddress {

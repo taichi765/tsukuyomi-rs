@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::doc::Doc;
 use crate::functions::FunctionRuntime;
 use crate::plugins::Plugin;
@@ -11,8 +13,8 @@ use std::time::Duration;
 const TICK_DURATION: Duration = Duration::from_millis(100);
 
 pub enum EngineCommand {
-    StartFunction(usize),
-    StopFunction(usize),
+    StartFunction(Uuid),
+    StopFunction(Uuid),
     AddPlugin(Box<dyn Plugin>),
     Shutdown,
 }
@@ -22,7 +24,7 @@ pub enum EngineCommand {
 pub struct Engine {
     doc: Arc<RwLock<Doc>>,
     command_rx: Receiver<EngineCommand>,
-    active_runtimes: HashMap<usize, Box<dyn FunctionRuntime>>,
+    active_runtimes: HashMap<Uuid, Box<dyn FunctionRuntime>>,
     output_plugins: Vec<Box<dyn Plugin>>,
     should_shutdown: bool,
 }
@@ -97,7 +99,7 @@ impl Engine {
     }
 
     ///既にstartしてた場合は何もしない
-    fn start_function(&mut self, function_id: usize) {
+    fn start_function(&mut self, function_id: Uuid) {
         let doc = self.doc.read().unwrap();
         let runtime = doc
             .get_function_data(function_id)
@@ -107,11 +109,11 @@ impl Engine {
     }
 
     ///既にstopしてた/そもそも存在しなかった場合、何もしない
-    fn stop_function(&mut self, function_id: usize) {
+    fn stop_function(&mut self, function_id: Uuid) {
         self.active_runtimes.remove(&function_id);
     }
 
-    fn start_fade(&mut self, from_id: usize, to_id: usize, chaser_id: usize, duration: Duration) {
+    fn start_fade(&mut self, from_id: Uuid, to_id: Uuid, chaser_id: Uuid, duration: Duration) {
         //必要な値だけを取り出す
         /*let (from_values, to_values) = {
             let from_scene = self.get_function(from_id).as_ref();
@@ -149,18 +151,18 @@ impl Engine {
 
 pub enum FunctionCommand {
     /// if the function is already started, `Engine` do nothing.
-    StartFunction(usize),
+    StartFunction(Uuid),
     /// if the function is already stoped, `Engine` do nothing.
-    StopFuntion(usize),
+    StopFuntion(Uuid),
     WriteUniverse {
-        fixture_id: usize,
-        channel: u16,
+        fixture_id: Uuid,
+        channel: String,
         value: u8,
     },
     StartFade {
-        from_id: usize,
-        to_id: usize,
-        chaser_id: usize,
+        from_id: Uuid,
+        to_id: Uuid,
+        chaser_id: Uuid,
         duration: Duration,
     },
 }

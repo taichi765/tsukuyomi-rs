@@ -1,4 +1,6 @@
-use super::{FunctionData, FunctionType};
+use uuid::Uuid;
+
+use super::FunctionData;
 use crate::functions::FunctionRuntime;
 use crate::{engine::FunctionCommand, functions::FunctionDataGetters};
 use std::{collections::HashMap, time::Duration};
@@ -6,20 +8,20 @@ use std::{collections::HashMap, time::Duration};
 //TODO: フェードインの実装
 
 pub struct ChaserData {
-    id: usize,
+    id: Uuid,
     name: String,
     ///step_number->step
     steps: HashMap<usize, ChaserStep>,
 }
 
 struct ChaserStep {
-    function_id: usize,
+    function_id: Uuid,
     fade_in: Duration,
     hold: Duration,
 }
 
 impl FunctionDataGetters for ChaserData {
-    fn id(&self) -> usize {
+    fn id(&self) -> Uuid {
         self.id
     }
 
@@ -35,14 +37,14 @@ impl ChaserStep {
 }
 
 impl ChaserData {
-    pub fn new(id: usize, name: &str) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
-            id: id,
+            id: Uuid::new_v4(),
             name: String::from(name),
             steps: HashMap::new(),
         }
     }
-    pub fn add_step(&mut self, function_id: usize, hold: Duration, fade_in: Duration) {
+    pub fn add_step(&mut self, function_id: Uuid, hold: Duration, fade_in: Duration) {
         self.steps.insert(
             self.steps.len(),
             ChaserStep {
@@ -70,7 +72,7 @@ impl FunctionRuntime for ChaserRuntime {
 
         //if self.time_in_current_step < self.current_step().duration() {
         commands.push(FunctionCommand::StartFunction(
-            0, //self.current_step().function_id,
+            Uuid::nil(), //TODO: self.current_step().function_id,
         )); //べき等
         return commands;
         //}
