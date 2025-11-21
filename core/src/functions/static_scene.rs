@@ -81,9 +81,10 @@ mod tests {
     fn static_scene_runtime_writes_commands_for_single_fixture() {
         let mut scene = StaticSceneData::new("test");
         let mut sv = SceneValue::new();
-        sv.insert(1, 128);
-        sv.insert(2, 255);
-        scene.insert_value(10, sv);
+        sv.insert("Intensity".into(), 128);
+        sv.insert("Red".into(), 255);
+        let fixture_id = Uuid::new_v4();
+        scene.insert_value(fixture_id, sv);
 
         let mut runtime = StaticSceneRuntime::new();
         let commands = runtime.run(
@@ -105,29 +106,36 @@ mod tests {
             }
         }
         assert_eq!(found.len(), 2);
-        assert!(found.contains(&(10, 1, 128)));
-        assert!(found.contains(&(10, 2, 255)));
+        assert!(found.contains(&(fixture_id, "Intensity".into(), 128)));
+        assert!(found.contains(&(fixture_id, "Red".into(), 255)));
     }
 
     #[test]
     fn static_scene_runtime_writes_commands_for_multiple_fixtures() {
         let mut scene = StaticSceneData::new("multi");
+        let fixture_id_1 = Uuid::new_v4();
+        let fixture_id_2 = Uuid::new_v4();
 
         let mut sv1 = SceneValue::new();
-        sv1.insert(1, 10);
-        scene.insert_value(1, sv1);
+        sv1.insert("Intensity".into(), 10);
+
+        scene.insert_value(fixture_id_1, sv1);
 
         let mut sv2 = SceneValue::new();
-        sv2.insert(5, 200);
-        sv2.insert(6, 201);
-        scene.insert_value(2, sv2);
+        sv2.insert("Red".into(), 200);
+        sv2.insert("Blue".into(), 201);
+        scene.insert_value(fixture_id_2, sv2);
 
         let mut runtime = StaticSceneRuntime::new();
         let commands = runtime.run(&FunctionData::StaticScene(scene), Duration::from_millis(50));
 
-        let expected: HashSet<_> = vec![(1, 1, 10), (2, 5, 200), (2, 6, 201)]
-            .into_iter()
-            .collect();
+        let expected: HashSet<_> = vec![
+            (fixture_id_1, "Intensity".into(), 10),
+            (fixture_id_2, "Red".into(), 200),
+            (fixture_id_2, "Blue".into(), 201),
+        ]
+        .into_iter()
+        .collect();
 
         let found: HashSet<_> = commands
             .into_iter()
