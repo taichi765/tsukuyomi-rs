@@ -19,11 +19,16 @@ pub struct Fixture {
 }
 
 impl Fixture {
-    pub fn new(name: &str, address: u16, fixture_def_id: Uuid, fixture_mode: String) -> Self {
+    pub fn new(
+        name: &str,
+        address: DmxAddress,
+        fixture_def_id: Uuid,
+        fixture_mode: String,
+    ) -> Self {
         Self {
             id: Uuid::new_v4(),
             name: String::from(name),
-            address: DmxAddress::new(address).unwrap(),
+            address,
             fixture_def_id,
             fixture_mode,
         }

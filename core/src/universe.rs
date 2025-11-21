@@ -3,37 +3,26 @@ use crate::doc::ResolvedAddress;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DmxAddress {
     universe_id: usize,
-    address: u16,
+    address: usize,
 }
 
 impl DmxAddress {
-    pub fn new(address: u16) -> Option<Self> {
+    pub fn new(universe_id: usize, address: usize) -> Option<Self> {
         if address < 512 {
-            Some(Self(address))
+            Some(Self {
+                universe_id,
+                address,
+            })
         } else {
             None
         }
     }
+
     pub fn universe_id(&self) -> usize {
         self.universe_id
     }
-    pub fn address(&self) -> u16 {
+    pub fn address(&self) -> usize {
         self.address
-    }
-
-    pub fn from_usize(address: usize) -> Option<Self> {
-        if let Ok(addr_u16) = u16::try_from(address) {
-            Self::new(addr_u16)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_usize(&self) -> usize {
-        self.0 as usize
-    }
-    pub fn as_u16(&self) -> u16 {
-        self.0
     }
 }
 
@@ -54,6 +43,6 @@ impl Universe {
     }
 
     pub(crate) fn set_value(&mut self, address: ResolvedAddress, value: u8) {
-        self.values[address.as_usize()] = value;
+        self.values[address.address.address as usize] = value;
     }
 }
