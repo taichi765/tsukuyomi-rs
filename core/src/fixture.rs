@@ -1,6 +1,13 @@
 use std::usize;
 
-use crate::universe::DmxAddress;
+use uuid::Uuid;
+
+use crate::{fixture_def::FixtureDef, universe::DmxAddress};
+
+pub(crate) enum MergeMode {
+    HTP,
+    LTP,
+}
 
 //TODO: 占有するチャンネルの計算
 #[derive(Clone)]

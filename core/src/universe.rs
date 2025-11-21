@@ -1,5 +1,10 @@
+use crate::doc::ResolvedAddress;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DmxAddress(u16);
+pub struct DmxAddress {
+    universe_id: usize,
+    address: u16,
+}
 
 impl DmxAddress {
     pub fn new(address: u16) -> Option<Self> {
@@ -8,6 +13,12 @@ impl DmxAddress {
         } else {
             None
         }
+    }
+    pub fn universe_id(&self) -> usize {
+        self.universe_id
+    }
+    pub fn address(&self) -> u16 {
+        self.address
     }
 
     pub fn from_usize(address: usize) -> Option<Self> {
@@ -42,7 +53,7 @@ impl Universe {
         &self.values
     }
 
-    pub fn set_value(&mut self, address: DmxAddress, value: u8) {
+    pub(crate) fn set_value(&mut self, address: ResolvedAddress, value: u8) {
         self.values[address.as_usize()] = value;
     }
 }
