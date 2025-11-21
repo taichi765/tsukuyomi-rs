@@ -6,7 +6,7 @@ use uuid::Uuid;
 use super::{FunctionData, FunctionRuntime};
 use crate::{engine::FunctionCommand, functions::FunctionDataGetters};
 
-pub type SceneValue = HashMap<u16, u8>;
+pub type SceneValue = HashMap<String, u8>;
 
 pub struct StaticSceneData {
     id: Uuid,
@@ -62,7 +62,7 @@ impl FunctionRuntime for StaticSceneRuntime {
             for (channel, value) in scene_value {
                 commands.push(FunctionCommand::WriteUniverse {
                     fixture_id: *fixture_id,
-                    channel: *channel,
+                    channel: channel.clone(),
                     value: *value,
                 });
             }

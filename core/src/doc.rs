@@ -6,7 +6,7 @@ use crate::{
     fixture::{Fixture, MergeMode},
     fixture_def::FixtureDef,
     functions::FunctionData,
-    universe::{DmxAddress, Universe},
+    universe::DmxAddress,
 };
 
 pub trait DocCommand {
