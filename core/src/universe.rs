@@ -36,13 +36,12 @@ impl DmxAddress {
 }
 
 #[derive(Clone, Copy)]
-pub struct Universe {
+pub struct UniverseState {
     values: [u8; 512],
 }
 
 // TODO: LTP, HTP
-// TODO: 別スレッドにする
-impl Universe {
+impl UniverseState {
     pub fn new() -> Self {
         Self { values: [0; 512] }
     }
@@ -52,6 +51,9 @@ impl Universe {
     }
 
     pub(crate) fn set_value(&mut self, address: ResolvedAddress, value: u8) {
-        self.values[address.address.address as usize] = value;
+        match address.merge_mode {
+            MergeMode::HTP => (),
+            MergeMode::LTP => (),
+        }
     }
 }

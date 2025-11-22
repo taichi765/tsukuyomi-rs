@@ -1,11 +1,13 @@
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use uuid::Uuid;
 
-use crate::doc::Doc;
+use crate::doc::{Doc, ResolveError};
 use crate::functions::{FunctionCommand, FunctionRuntime};
 use crate::plugins::Plugin;
+use crate::universe::{UniverseId, UniverseState};
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
-use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 //TODO: なんとなくpubにしているものがある pub(crate)とかも活用したい
@@ -24,8 +26,12 @@ pub enum EngineCommand {
 pub struct Engine {
     doc: Arc<Doc>,
     command_rx: Receiver<EngineCommand>,
+
     active_runtimes: HashMap<Uuid, Box<dyn FunctionRuntime>>,
-    output_plugins: Vec<Box<dyn Plugin>>,
+    output_plugins: HashMap<Uuid, Box<dyn Plugin>>,
+    universe_states: HashMap<UniverseId, UniverseState>,
+    plugin_universe_map_cache: HashMap<Uuid, Vec<UniverseId>>,
+
     should_shutdown: bool,
 }
 
@@ -35,7 +41,9 @@ impl Engine {
             doc: doc,
             command_rx,
             active_runtimes: HashMap::new(),
-            output_plugins: Vec::new(),
+            output_plugins: HashMap::new(),
+            universe_states: HashMap::new(),
+            plugin_universe_map_cache: HashMap::new(),
             should_shutdown: false,
         }
     }
@@ -52,7 +60,19 @@ impl Engine {
                 }
             }
 
-            self.tick();
+            self.run_active_functions();
+
+            self.plugin_universe_map_cache
+                .par_iter()
+                .for_each(|(p_id, u_ids)| {
+                    let plugin = self.output_plugins.get(p_id).unwrap();
+                    u_ids.iter().for_each(|u_id| {
+                        let universe_data = self.universe_states.get(u_id).unwrap();
+                        plugin
+                            .send_dmx((*u_id).into(), &universe_data.values())
+                            .expect("something went wrong");
+                    });
+                });
 
             if self.should_shutdown {
                 break;
@@ -62,11 +82,10 @@ impl Engine {
     }
 
     fn add_output_plugin(&mut self, plugin: Box<dyn Plugin>) {
-        self.output_plugins.push(plugin);
+        self.output_plugins.insert(Uuid::new_v4(), plugin);
     }
 
-    //TODO: 名前を具体的にしたい
-    fn tick(&mut self) {
+    fn run_active_functions(&mut self) {
         let mut commands_list = Vec::new();
         {
             for (function_id, runtime) in &mut self.active_runtimes {
@@ -83,7 +102,9 @@ impl Engine {
                     fixture_id,
                     channel,
                     value,
-                } => println!("{}: {}, {}", fixture_id, channel, value),
+                } => self
+                    .write_universe(fixture_id, channel, value)
+                    .expect("something went wrong"),
                 FunctionCommand::StartFade {
                     from_id,
                     to_id,
@@ -92,9 +113,6 @@ impl Engine {
                 } => self.start_fade(from_id, to_id, chaser_id, duration),
             }
         }
-        /*self.output_plugin
-        .send_dmx(0, &self.universe(0).unwrap().values().to_vec()[..])
-        .unwrap();*/
     }
 
     ///既にstartしてた場合は何もしない
@@ -110,6 +128,21 @@ impl Engine {
     ///既にstopしてた/そもそも存在しなかった場合、何もしない
     fn stop_function(&mut self, function_id: Uuid) {
         self.active_runtimes.remove(&function_id);
+    }
+
+    fn write_universe(
+        &mut self,
+        fixture_id: Uuid,
+        channel: String,
+        value: u8,
+    ) -> Result<(), ResolveError> {
+        let address = self.doc.resolve_address(fixture_id, &channel)?;
+        let universe = self
+            .universe_states
+            .get_mut(&address.address.universe_id())
+            .unwrap();
+        universe.set_value(address, value);
+        Ok(())
     }
 
     fn start_fade(&mut self, from_id: Uuid, to_id: Uuid, chaser_id: Uuid, duration: Duration) {
@@ -145,6 +178,10 @@ impl Engine {
         self.push_function(Box::new(fader))
             .expect("functionの追加に失敗しました");
         self.start_function(fader_id);*/
+    }
+
+    fn update_plugin_universe_map_cache(&mut self) {
+        unimplemented!()
     }
 }
 

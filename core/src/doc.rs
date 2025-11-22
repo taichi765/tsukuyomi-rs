@@ -37,7 +37,9 @@ pub struct Doc {
     fixtures: HashMap<Uuid, Fixture>,
     fixture_definitions: HashMap<Uuid, FixtureDef>,
     functions: HashMap<Uuid, FunctionData>,
+    universe_settings: HashMap<usize, UniverseSetting>,
 }
+pub(crate) struct UniverseSetting {}
 
 pub(crate) struct ResolvedAddress {
     pub address: DmxAddress,
@@ -50,11 +52,16 @@ impl Doc {
             fixtures: HashMap::new(),
             fixture_definitions: HashMap::new(),
             functions: HashMap::new(),
+            universe_settings: HashMap::new(),
         }
     }
 
     pub fn get_function_data(&self, function_id: Uuid) -> Option<&FunctionData> {
         self.functions.get(&function_id)
+    }
+
+    pub(crate) fn universe_settings(&self) -> &HashMap<usize, UniverseSetting> {
+        &self.universe_settings
     }
 
     pub(crate) fn add_function(&mut self, function: FunctionData) -> Result<(), String> {

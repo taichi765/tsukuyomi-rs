@@ -4585,6 +4585,7 @@ dependencies = [
  "artnet_protocol",
  "itertools 0.14.0",
  "quick-xml 0.38.3",
+ "rayon",
  "serde",
  "uuid",
 ]

@@ -1,6 +1,6 @@
 pub mod artnet;
 pub mod stdout;
 
-pub trait Plugin: Send {
+pub trait Plugin: Send + Sync {
     fn send_dmx(&self, universe_id: u8, dmx_data: &[u8]) -> Result<(), std::io::Error>;
 }
