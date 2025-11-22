@@ -39,10 +39,18 @@ impl UniverseState {
         &self.values
     }
 
+    pub(crate) fn clear(&mut self) {
+        self.values.fill(0);
+    }
+
     pub(crate) fn set_value(&mut self, address: ResolvedAddress, value: u8) {
         match address.merge_mode {
-            MergeMode::HTP => (),
-            MergeMode::LTP => (),
+            MergeMode::HTP => {
+                if value > self.values[address.address.value()] {
+                    self.values[address.address.value()] = value
+                }
+            }
+            MergeMode::LTP => self.values[address.address.value()] = value,
         }
     }
 }
