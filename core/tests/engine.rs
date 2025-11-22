@@ -1,5 +1,5 @@
 use std::{
-    sync::{Arc, RwLock, mpsc},
+    sync::{Arc, mpsc},
     thread,
     time::Duration,
 };
@@ -7,7 +7,7 @@ use std::{
 use tsukuyomi_core::{
     doc::Doc,
     engine::{Engine, EngineCommand},
-    functions::{FunctionData, FunctionDataGetters, SceneValue, StaticSceneData},
+    functions::{FunctionDataGetters, SceneValue, StaticSceneData},
 };
 use uuid::Uuid;
 
@@ -27,7 +27,7 @@ fn engine_can_start_function() {
     //doc.add_function(FunctionData::StaticScene(scene)).unwrap();
 
     let (command_tx, command_rx) = mpsc::channel::<EngineCommand>();
-    let mut engine = Engine::new(Arc::new(RwLock::new(doc)), command_rx);
+    let mut engine = Engine::new(Arc::new(doc), command_rx);
 
     let engine_handle = thread::Builder::new()
         .name("tsukuyomi-engine".into())

@@ -22,7 +22,7 @@ pub enum EngineCommand {
 /// Engine is the single source of true.
 /// It also manages the timer.
 pub struct Engine {
-    doc: Arc<RwLock<Doc>>,
+    doc: Arc<Doc>,
     command_rx: Receiver<EngineCommand>,
     active_runtimes: HashMap<Uuid, Box<dyn FunctionRuntime>>,
     output_plugins: Vec<Box<dyn Plugin>>,
@@ -30,7 +30,7 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(doc: Arc<RwLock<Doc>>, command_rx: Receiver<EngineCommand>) -> Self {
+    pub fn new(doc: Arc<Doc>, command_rx: Receiver<EngineCommand>) -> Self {
         Self {
             doc: doc,
             command_rx,
@@ -69,9 +69,8 @@ impl Engine {
     fn tick(&mut self) {
         let mut commands_list = Vec::new();
         {
-            let doc = self.doc.read().unwrap();
             for (function_id, runtime) in &mut self.active_runtimes {
-                let data = doc.get_function_data(*function_id).unwrap();
+                let data = self.doc.get_function_data(*function_id).unwrap();
                 commands_list.append(&mut runtime.run(data, TICK_DURATION));
             }
         }
@@ -100,8 +99,8 @@ impl Engine {
 
     ///既にstartしてた場合は何もしない
     fn start_function(&mut self, function_id: Uuid) {
-        let doc = self.doc.read().unwrap();
-        let runtime = doc
+        let runtime = self
+            .doc
             .get_function_data(function_id)
             .expect(format!("could not find function with id {}", function_id).as_str())
             .create_runtime();
