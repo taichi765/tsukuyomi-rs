@@ -6,7 +6,7 @@ use crate::{
     fixture::{Fixture, MergeMode},
     fixture_def::FixtureDef,
     functions::FunctionData,
-    universe::DmxAddress,
+    universe::{DmxAddress, UniverseId},
 };
 
 #[derive(Debug)]
@@ -39,11 +39,12 @@ pub struct Doc {
     functions: HashMap<Uuid, FunctionData>,
     universe_settings: HashMap<usize, UniverseSetting>,
 }
+
 pub(crate) struct UniverseSetting {}
 
 pub(crate) struct ResolvedAddress {
-    pub address: DmxAddress,
     pub merge_mode: MergeMode,
+    pub address: DmxAddress,
 }
 
 impl Doc {
@@ -81,7 +82,7 @@ impl Doc {
         &self,
         fixture_id: Uuid,
         channel: &str,
-    ) -> Result<ResolvedAddress, ResolveError> {
+    ) -> Result<(UniverseId, ResolvedAddress), ResolveError> {
         let fixture = self
             .fixtures
             .get(&fixture_id)
@@ -110,14 +111,13 @@ impl Doc {
         )?;
 
         let merge_mode = channel.1.merge_mode;
-        Ok(ResolvedAddress {
-            address: DmxAddress::new(
-                fixture.address().universe_id(),
-                fixture.address().address() as usize + channel.0,
-            )
-            .unwrap(),
-            merge_mode,
-        })
+        Ok((
+            fixture.universe_id(),
+            ResolvedAddress {
+                merge_mode,
+                address: DmxAddress::new(fixture.address().value() + channel.0).unwrap(),
+            },
+        ))
     }
 
     //仮

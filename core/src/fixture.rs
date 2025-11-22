@@ -1,9 +1,9 @@
 use uuid::Uuid;
 
-use crate::universe::DmxAddress;
+use crate::universe::{DmxAddress, UniverseId};
 
 #[derive(Clone, Copy)]
-pub(crate) enum MergeMode {
+pub enum MergeMode {
     HTP,
     LTP,
 }
@@ -13,6 +13,7 @@ pub(crate) enum MergeMode {
 pub struct Fixture {
     id: Uuid,
     name: String,
+    universe_id: UniverseId,
     address: DmxAddress,
     fixture_def_id: Uuid,
     fixture_mode: String,
@@ -21,6 +22,7 @@ pub struct Fixture {
 impl Fixture {
     pub fn new(
         name: &str,
+        universe_id: UniverseId,
         address: DmxAddress,
         fixture_def_id: Uuid,
         fixture_mode: String,
@@ -28,6 +30,7 @@ impl Fixture {
         Self {
             id: Uuid::new_v4(),
             name: String::from(name),
+            universe_id,
             address,
             fixture_def_id,
             fixture_mode,
@@ -38,6 +41,9 @@ impl Fixture {
     }
     pub fn name(&self) -> &str {
         &self.name
+    }
+    pub fn universe_id(&self) -> UniverseId {
+        self.universe_id
     }
     pub fn address(&self) -> DmxAddress {
         self.address

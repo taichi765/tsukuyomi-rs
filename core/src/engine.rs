@@ -60,6 +60,8 @@ impl Engine {
                 }
             }
 
+            self.universe_states.iter_mut().for_each(|(_, u)| u.clear());
+
             self.run_active_functions();
 
             self.plugin_universe_map_cache
@@ -69,7 +71,7 @@ impl Engine {
                     u_ids.iter().for_each(|u_id| {
                         let universe_data = self.universe_states.get(u_id).unwrap();
                         plugin
-                            .send_dmx((*u_id).into(), &universe_data.values())
+                            .send_dmx(u_id.value(), &universe_data.values())
                             .expect("something went wrong");
                     });
                 });
@@ -136,11 +138,8 @@ impl Engine {
         channel: String,
         value: u8,
     ) -> Result<(), ResolveError> {
-        let address = self.doc.resolve_address(fixture_id, &channel)?;
-        let universe = self
-            .universe_states
-            .get_mut(&address.address.universe_id())
-            .unwrap();
+        let (universe_id, address) = self.doc.resolve_address(fixture_id, &channel)?;
+        let universe = self.universe_states.get_mut(&universe_id).unwrap();
         universe.set_value(address, value);
         Ok(())
     }
