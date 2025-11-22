@@ -9,6 +9,7 @@ use crate::{
     universe::DmxAddress,
 };
 
+#[derive(Debug)]
 pub enum ResolveError {
     FixtureNotFound(Uuid),
     FixtureDefNotFound {

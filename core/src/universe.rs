@@ -1,13 +1,22 @@
-use crate::doc::ResolvedAddress;
+use crate::{doc::ResolvedAddress, fixture::MergeMode};
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub struct UniverseId(u8);
+
+impl Into<u8> for UniverseId {
+    fn into(self) -> u8 {
+        self.0
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DmxAddress {
-    universe_id: usize,
+    universe_id: UniverseId,
     address: usize,
 }
 
 impl DmxAddress {
-    pub fn new(universe_id: usize, address: usize) -> Option<Self> {
+    pub fn new(universe_id: UniverseId, address: usize) -> Option<Self> {
         if address < 512 {
             Some(Self {
                 universe_id,
@@ -18,7 +27,7 @@ impl DmxAddress {
         }
     }
 
-    pub fn universe_id(&self) -> usize {
+    pub fn universe_id(&self) -> UniverseId {
         self.universe_id
     }
     pub fn address(&self) -> usize {
