@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use super::FunctionData;
 use crate::functions::FunctionRuntime;
-use crate::{engine::FunctionCommand, functions::FunctionDataGetters};
+use crate::{functions::FunctionCommand, functions::FunctionDataGetters};
 use std::{collections::HashMap, time::Duration};
 
 //TODO: フェードインの実装

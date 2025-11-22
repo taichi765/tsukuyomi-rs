@@ -4,7 +4,7 @@ use std::time::Duration;
 use uuid::Uuid;
 
 use super::{FunctionData, FunctionRuntime};
-use crate::{engine::FunctionCommand, functions::FunctionDataGetters};
+use crate::{functions::FunctionCommand, functions::FunctionDataGetters};
 
 pub type SceneValue = HashMap<String, u8>;
 

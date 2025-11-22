@@ -1,4 +1,3 @@
-use crate::engine::FunctionCommand;
 use crate::functions::chaser::ChaserRuntime;
 use crate::functions::static_scene::StaticSceneRuntime;
 use std::ops::Deref;
@@ -50,6 +49,77 @@ impl FunctionData {
 pub trait FunctionRuntime: Send {
     fn run(&mut self, data: &FunctionData, tick_duration: Duration) -> Vec<FunctionCommand>;
 }
+
+pub enum FunctionCommand {
+    /// if the function is already started, `Engine` do nothing.
+    StartFunction(Uuid),
+    /// if the function is already stoped, `Engine` do nothing.
+    StopFuntion(Uuid),
+    WriteUniverse {
+        fixture_id: Uuid,
+        channel: String,
+        value: u8,
+    },
+    StartFade {
+        from_id: Uuid,
+        to_id: Uuid,
+        chaser_id: Uuid,
+        duration: Duration,
+    },
+}
+
+// helper functions for test
+/*impl FunctionCommand {
+    ///テスト用
+    pub fn is_start_function(&self) -> bool {
+        if let FunctionCommand::StartFunction(_) = self {
+            return true;
+        }
+        false
+    }
+    ///テスト用
+    pub fn is_start_function_and(&self, want: usize) -> bool {
+        if let FunctionCommand::StartFunction(have) = self
+            && want == *have
+        {
+            return true;
+        }
+        false
+    }
+    ///テスト用
+    pub fn is_stop_function(&self) -> bool {
+        if let FunctionCommand::StopFuntion(_) = self {
+            return true;
+        }
+        false
+    }
+    ///テスト用
+    pub fn is_stop_function_and(&self, want: usize) -> bool {
+        if let FunctionCommand::StopFuntion(have) = self
+            && want == *have
+        {
+            return true;
+        }
+        false
+    }
+    ///テスト用
+    pub fn is_write_universe(&self) -> bool {
+        if let FunctionCommand::WriteUniverse { .. } = self {
+            return true;
+        }
+        false
+    }
+    ///テスト用
+    pub fn is_write_universe_and(&self, want: (u16, u8)) -> bool {
+        if let FunctionCommand::WriteUniverse { address, value } = self
+            && DmxAddress::new(want.0).unwrap() == *address
+            && want.1 == *value
+        {
+            return true;
+        }
+        false
+    }
+}*/
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FunctionType {

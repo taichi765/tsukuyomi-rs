@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use crate::engine::FunctionCommand;
+use crate::functions::FunctionCommand;
 use crate::functions::{FunctionType, SceneValue};
 use crate::universe::DmxAddress;
 
@@ -36,15 +36,15 @@ impl Fader {
 
         for (fixture_id, values) in prev_values {
             for (ch, v) in values {
-                channel_map.insert((fixture_id, ch), (v, 0));
+                //channel_map.insert((fixture_id, ch), (v, 0));
             }
         }
         for (fixture_id, values) in curr_values {
             for (ch, v) in values {
-                channel_map
-                    .entry((fixture_id, ch))
-                    .and_modify(|values| values.1 = v)
-                    .or_insert((0, v));
+                /*channel_map
+                .entry((fixture_id, ch))
+                .and_modify(|values| values.1 = v)
+                .or_insert((0, v));*/
             }
         }
         let values = channel_map
