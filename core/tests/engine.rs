@@ -7,22 +7,22 @@ use std::{
 use tsukuyomi_core::{
     doc::Doc,
     engine::{Engine, EngineCommand},
-    functions::{FunctionData, SceneValue, StaticSceneData},
+    functions::{FunctionData, FunctionDataGetters, SceneValue, StaticSceneData},
 };
+use uuid::Uuid;
 
 #[test]
 fn engine_can_start_function() {
     let mut doc = Doc::new();
+    let fixture_id = Uuid::new_v4();
 
-    let mut scene = StaticSceneData::new(0, "My Scene");
-    let mut sv1 = SceneValue::new();
-    sv1.insert(1, 10);
-    scene.insert_value(1, sv1);
+    let mut scene = StaticSceneData::new("My Scene");
+    let mut sv = SceneValue::new();
+    sv.insert("Dimmer".into(), 200);
+    sv.insert("Red".into(), 100);
+    scene.insert_value(fixture_id, sv);
 
-    let mut sv2 = SceneValue::new();
-    sv2.insert(5, 200);
-    sv2.insert(6, 201);
-    scene.insert_value(2, sv2);
+    let scene_id = scene.id();
 
     //doc.add_function(FunctionData::StaticScene(scene)).unwrap();
 
@@ -34,9 +34,13 @@ fn engine_can_start_function() {
         .spawn(move || engine.start_loop())
         .unwrap();
 
-    command_tx.send(EngineCommand::StartFunction(0)).unwrap();
+    command_tx
+        .send(EngineCommand::StartFunction(scene_id))
+        .unwrap();
     thread::sleep(Duration::from_secs(1));
-    command_tx.send(EngineCommand::StopFunction(0)).unwrap();
+    command_tx
+        .send(EngineCommand::StopFunction(scene_id))
+        .unwrap();
     command_tx.send(EngineCommand::Shutdown).unwrap();
 
     engine_handle.join().unwrap();
