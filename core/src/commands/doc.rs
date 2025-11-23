@@ -1,8 +1,10 @@
 use crate::{
     doc::{Doc, DocCommand},
+    engine::OutputPluginId,
     fixture::{Fixture, FixtureId},
     fixture_def::{FixtureDef, FixtureDefId},
     functions::{FunctionData, FunctionId},
+    universe::UniverseId,
 };
 // TODO: エラー型の定義(enum or trait)
 // TODO: 重複部分のマクロ定義？
@@ -102,5 +104,31 @@ impl DocCommand for AddFixtureDef {
         } else {
             Err("fixture definition is already removed".into())
         }
+    }
+}
+
+pub struct AddOutput {
+    universe_id: UniverseId,
+    plugin: OutputPluginId,
+}
+
+impl AddOutput {
+    pub fn new(universe_id: UniverseId, plugin: OutputPluginId) -> Self {
+        Self {
+            universe_id,
+            plugin,
+        }
+    }
+}
+
+impl DocCommand for AddOutput {
+    fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
+        doc.add_output(self.universe_id, self.plugin);
+        Ok(())
+    }
+
+    fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
+        doc.remove_output(self.universe_id, self.plugin);
+        Ok(())
     }
 }

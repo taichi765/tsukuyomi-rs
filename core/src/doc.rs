@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::{
     engine::OutputPluginId,
@@ -40,8 +40,8 @@ pub struct Doc {
     universe_settings: HashMap<UniverseId, UniverseSetting>,
 }
 
-pub(crate) struct UniverseSetting {
-    output_plugins: Vec<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
+pub struct UniverseSetting {
+    output_plugins: HashSet<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
 }
 
 pub(crate) struct ResolvedAddress {
@@ -63,41 +63,8 @@ impl Doc {
         self.functions.get(&function_id)
     }
 
-    pub(crate) fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {
+    pub fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {
         &self.universe_settings
-    }
-
-    pub(crate) fn add_function(&mut self, function: FunctionData) -> Result<(), String> {
-        if self.functions.contains_key(&function.id()) {
-            return Err(format!("function id {} already exsists", function.id(),));
-        }
-        self.functions.insert(function.id(), function);
-        Ok(())
-    }
-
-    pub(crate) fn remove_function(&mut self, function_id: FunctionId) -> Option<FunctionData> {
-        self.functions.remove(&function_id)
-    }
-
-    pub(crate) fn add_fixture(&mut self, fixture: Fixture) {
-        // TODO: fixture_defがあるか確認
-        self.fixtures.insert(fixture.id(), fixture);
-    }
-
-    pub(crate) fn remove_fixture(&mut self, fixture_id: FixtureId) -> Option<Fixture> {
-        self.fixtures.remove(&fixture_id)
-    }
-
-    pub(crate) fn add_fixture_def(&mut self, fixture_def: FixtureDef) {
-        self.fixture_definitions
-            .insert(fixture_def.id(), fixture_def);
-    }
-
-    pub(crate) fn remove_fixture_def(
-        &mut self,
-        fixture_def_id: FixtureDefId,
-    ) -> Option<FixtureDef> {
-        self.fixture_definitions.remove(&fixture_def_id)
     }
 
     pub(crate) fn resolve_address(
@@ -140,5 +107,56 @@ impl Doc {
                 address: DmxAddress::new(fixture.address().value() + channel.0).unwrap(),
             },
         ))
+    }
+
+    pub(crate) fn add_function(&mut self, function: FunctionData) -> Result<(), String> {
+        if self.functions.contains_key(&function.id()) {
+            return Err(format!("function id {} already exsists", function.id(),));
+        }
+        self.functions.insert(function.id(), function);
+        Ok(())
+    }
+
+    pub(crate) fn remove_function(&mut self, function_id: FunctionId) -> Option<FunctionData> {
+        self.functions.remove(&function_id)
+    }
+
+    pub(crate) fn add_fixture(&mut self, fixture: Fixture) {
+        // TODO: fixture_defがあるか確認
+        self.fixtures.insert(fixture.id(), fixture);
+    }
+
+    pub(crate) fn remove_fixture(&mut self, fixture_id: FixtureId) -> Option<Fixture> {
+        self.fixtures.remove(&fixture_id)
+    }
+
+    pub(crate) fn add_fixture_def(&mut self, fixture_def: FixtureDef) {
+        self.fixture_definitions
+            .insert(fixture_def.id(), fixture_def);
+    }
+
+    pub(crate) fn remove_fixture_def(
+        &mut self,
+        fixture_def_id: FixtureDefId,
+    ) -> Option<FixtureDef> {
+        self.fixture_definitions.remove(&fixture_def_id)
+    }
+
+    pub(crate) fn add_output(&mut self, universe_id: UniverseId, plugin: OutputPluginId) {
+        // TODO: universeが存在しない時どうする？
+        let setting = self
+            .universe_settings
+            .get_mut(&universe_id)
+            .expect("something went wrong");
+        setting.output_plugins.insert(plugin);
+    }
+
+    pub(crate) fn remove_output(&mut self, universe_id: UniverseId, plugin: OutputPluginId) {
+        let setting = self
+            .universe_settings
+            .get_mut(&universe_id)
+            .expect("something went wrong");
+        //TODO: Optionを返す
+        setting.output_plugins.remove(&plugin);
     }
 }
