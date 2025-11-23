@@ -5,11 +5,11 @@ use crate::doc::{Doc, ResolveError};
 use crate::fixture::FixtureId;
 use crate::functions::{FunctionCommand, FunctionId, FunctionRuntime};
 use crate::plugins::Plugin;
+use crate::readonly::ReadOnly;
 use crate::universe::{UniverseId, UniverseState};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
-use std::sync::Arc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::time::Duration;
 
@@ -67,7 +67,7 @@ pub enum ErrorContext {
 
 // TODO: unwrap, expectを減らす
 pub struct Engine {
-    doc: Arc<Doc>,
+    doc: ReadOnly<Doc>,
     command_rx: Receiver<EngineCommand>,
     message_tx: Sender<EngineMessage>,
 
@@ -81,7 +81,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(
-        doc: Arc<Doc>,
+        doc: ReadOnly<Doc>,
         command_rx: Receiver<EngineCommand>,
         message_tx: Sender<EngineMessage>,
     ) -> Self {
@@ -152,7 +152,8 @@ impl Engine {
         let mut commands_list = Vec::new();
         {
             for (function_id, runtime) in &mut self.active_runtimes {
-                let data = self.doc.get_function_data(*function_id).unwrap();
+                let doc = self.doc.read();
+                let data = doc.get_function_data(*function_id).unwrap();
                 commands_list.append(&mut runtime.run(data, TICK_DURATION));
             }
         }
@@ -182,6 +183,7 @@ impl Engine {
     fn start_function(&mut self, function_id: FunctionId) {
         let runtime = self
             .doc
+            .read()
             .get_function_data(function_id)
             .expect(format!("could not find function with id {}", function_id).as_str())
             .create_runtime();
@@ -199,7 +201,7 @@ impl Engine {
         channel: String,
         value: u8,
     ) -> Result<(), ResolveError> {
-        let (universe_id, address) = self.doc.resolve_address(fixture_id, &channel)?;
+        let (universe_id, address) = self.doc.read().resolve_address(fixture_id, &channel)?;
         let universe = self.universe_states.get_mut(&universe_id).unwrap();
         universe.set_value(address, value);
         Ok(())
