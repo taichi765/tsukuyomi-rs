@@ -33,15 +33,17 @@ impl CommandManager {
         if self.current_index == 0 {
             return Err("no command to undo".into());
         }
+        self.commands[self.current_index - 1].revert(doc)?;
         self.current_index -= 1;
-        self.commands[self.current_index].revert(doc)
+        Ok(())
     }
 
     pub fn redo(&mut self, doc: &mut Doc) -> Result<(), String> {
         if self.current_index == self.commands.len() {
             return Err("no command to redo".into());
         }
+        self.commands[self.current_index + 1].apply(doc)?;
         self.current_index += 1;
-        self.commands[self.current_index].apply(doc)
+        Ok(())
     }
 }
