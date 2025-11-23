@@ -33,7 +33,6 @@ pub struct UniverseState {
     values: [u8; 512],
 }
 
-// TODO: LTP, HTP
 impl UniverseState {
     pub fn new() -> Self {
         Self { values: [0; 512] }

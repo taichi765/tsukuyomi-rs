@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use crate::{
     doc::{Doc, DocCommand},
     fixture::{Fixture, FixtureId},

@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use uuid::Uuid;
-
 use crate::{
     engine::OutputPluginId,
     fixture::{Fixture, FixtureId, MergeMode},
@@ -10,7 +8,6 @@ use crate::{
     universe::{DmxAddress, UniverseId},
 };
 
-// TODO: type aliasの活用
 #[derive(Debug)]
 pub enum ResolveError {
     FixtureNotFound(FixtureId),
@@ -75,7 +72,6 @@ impl Doc {
             return Err(format!("function id {} already exsists", function.id(),));
         }
         self.functions.insert(function.id(), function);
-        //TODO: self.update_function_infos();
         Ok(())
     }
 

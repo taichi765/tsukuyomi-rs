@@ -27,7 +27,6 @@ impl FunctionDataGetters for StaticSceneData {
     }
 }
 
-//TODO: 同じfixture_idかつ同じchannelにvalueを設定できちゃう
 impl StaticSceneData {
     pub fn new(name: &str) -> Self {
         Self {
