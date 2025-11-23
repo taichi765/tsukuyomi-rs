@@ -7,8 +7,10 @@ use crate::functions::{FunctionCommand, FunctionId, FunctionRuntime};
 use crate::plugins::Plugin;
 use crate::universe::{UniverseId, UniverseState};
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::Display;
 use std::sync::Arc;
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc::{Receiver, Sender};
 use std::time::Duration;
 
 //TODO: なんとなくpubにしているものがある pub(crate)とかも活用したい
@@ -25,9 +27,49 @@ pub enum EngineCommand {
     Shutdown,
 }
 
+pub enum EngineMessage {
+    ErrorOccured(EngineError),
+}
+
+#[derive(Debug)]
+pub struct EngineError {
+    context: ErrorContext,
+    source: Box<dyn Error + Send + Sync>,
+}
+
+impl Display for EngineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}: {}", self.context, self.source)
+    }
+}
+
+impl Error for EngineError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(self.source.as_ref())
+    }
+}
+
+#[derive(Debug)]
+pub enum ErrorContext {
+    ResolvingAddress {
+        function_id: FunctionId,
+        fixture_id: FixtureId,
+        channel: String,
+    },
+    RunningFunction {
+        function_id: FunctionId,
+    },
+    SendingDmx {
+        universe_id: UniverseId,
+        plugin_id: OutputPluginId,
+    },
+}
+
+// TODO: unwrap, expectを減らす
 pub struct Engine {
     doc: Arc<Doc>,
     command_rx: Receiver<EngineCommand>,
+    message_tx: Sender<EngineMessage>,
 
     active_runtimes: HashMap<FunctionId, Box<dyn FunctionRuntime>>,
     output_plugins: HashMap<OutputPluginId, Box<dyn Plugin>>,
@@ -38,10 +80,15 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(doc: Arc<Doc>, command_rx: Receiver<EngineCommand>) -> Self {
+    pub fn new(
+        doc: Arc<Doc>,
+        command_rx: Receiver<EngineCommand>,
+        message_tx: Sender<EngineMessage>,
+    ) -> Self {
         Self {
             doc: doc,
             command_rx,
+            message_tx,
             active_runtimes: HashMap::new(),
             output_plugins: HashMap::new(),
             universe_states: HashMap::new(),
@@ -76,9 +123,17 @@ impl Engine {
                 let plugin = self.output_plugins.get(p_id).unwrap();
                 u_ids.iter().for_each(|u_id| {
                     let universe_data = self.universe_states.get(u_id).unwrap();
-                    plugin
-                        .send_dmx(u_id.value(), &universe_data.values())
-                        .expect("something went wrong");
+                    if let Err(e) = plugin.send_dmx(u_id.value(), &universe_data.values()) {
+                        self.message_tx
+                            .send(EngineMessage::ErrorOccured(EngineError {
+                                context: ErrorContext::SendingDmx {
+                                    universe_id: *u_id,
+                                    plugin_id: *p_id,
+                                },
+                                source: Box::new(e),
+                            }))
+                            .unwrap();
+                    }
                 });
             });
 
