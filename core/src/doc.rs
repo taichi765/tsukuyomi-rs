@@ -9,6 +9,7 @@ use crate::{
     universe::{DmxAddress, UniverseId},
 };
 
+// TODO: type aliasの活用
 #[derive(Debug)]
 pub enum ResolveError {
     FixtureNotFound(Uuid),
@@ -78,6 +79,27 @@ impl Doc {
         self.functions.remove(&function_id)
     }
 
+    pub(crate) fn add_fixture(&mut self, fixture: Fixture) -> Uuid {
+        let id = Uuid::new_v4();
+        // TODO: fixture_defがあるか確認
+        self.fixtures.insert(id, fixture);
+        id
+    }
+
+    pub(crate) fn remove_fixture(&mut self, fixture_id: Uuid) -> Option<Fixture> {
+        self.fixtures.remove(&fixture_id)
+    }
+
+    pub(crate) fn add_fixture_def(&mut self, fixture_def: FixtureDef) -> Uuid {
+        let id = Uuid::new_v4();
+        self.fixture_definitions.insert(id, fixture_def);
+        id
+    }
+
+    pub(crate) fn remove_fixture_def(&mut self, fixture_def_id: Uuid) -> Option<FixtureDef> {
+        self.fixture_definitions.remove(&fixture_def_id)
+    }
+
     pub(crate) fn resolve_address(
         &self,
         fixture_id: Uuid,
@@ -119,20 +141,4 @@ impl Doc {
             },
         ))
     }
-
-    //仮
-
-    /*pub fn get_fixture(&self, id: usize) -> Option<&Fixture> {
-        self.fixtures.get(&id)
-    }
-    pub fn push_fixture(&mut self, fixture: Fixture) -> Result<(), String> {
-        if self.fixtures.contains_key(&fixture.id()) {
-            return Err(format!("fxiture id {} already exsits", fixture.id(),));
-        }
-        self.fixtures.insert(fixture.id(), fixture);
-        Ok(())
-    }
-    pub fn next_fixture_id(&mut self) -> usize {
-        self.fixture_id_gen.next()
-    }*/
 }

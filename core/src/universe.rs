@@ -4,6 +4,10 @@ use crate::{doc::ResolvedAddress, fixture::MergeMode};
 pub struct UniverseId(u8);
 
 impl UniverseId {
+    pub fn new(v: u8) -> Self {
+        Self(v)
+    }
+
     pub fn value(&self) -> u8 {
         self.0
     }

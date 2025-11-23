@@ -18,6 +18,7 @@ pub enum EngineCommand {
     StartFunction(Uuid),
     StopFunction(Uuid),
     AddPlugin(Box<dyn Plugin>),
+    AddUniverse,
     Shutdown,
 }
 
@@ -56,6 +57,12 @@ impl Engine {
                     EngineCommand::StartFunction(id) => self.start_function(id),
                     EngineCommand::StopFunction(id) => self.stop_function(id),
                     EngineCommand::AddPlugin(p) => self.add_output_plugin(p),
+                    EngineCommand::AddUniverse => {
+                        self.universe_states.insert(
+                            UniverseId::new(self.universe_states.len() as u8), // TODO 雑 IDをUIスレッドに返すとかしてもいい
+                            UniverseState::new(),
+                        );
+                    }
                     EngineCommand::Shutdown => self.should_shutdown = true,
                 }
             }
