@@ -1,3 +1,4 @@
+use crate::fixture::FixtureId;
 use crate::functions::chaser::ChaserRuntime;
 use crate::functions::static_scene::StaticSceneRuntime;
 use std::ops::Deref;
@@ -16,8 +17,10 @@ pub use static_scene::SceneValue;
 pub use static_scene::StaticSceneData;
 use uuid::Uuid;
 
+declare_id_newtype!(FunctionId);
+
 pub trait FunctionDataGetters {
-    fn id(&self) -> Uuid;
+    fn id(&self) -> FunctionId;
     fn name(&self) -> &str;
 }
 
@@ -50,13 +53,14 @@ pub trait FunctionRuntime: Send {
     fn run(&mut self, data: &FunctionData, tick_duration: Duration) -> Vec<FunctionCommand>;
 }
 
+/// [`FunctionRuntime::run()`] returns this and [`Engine`][crate::engine::Engine] evaluates the command
 pub enum FunctionCommand {
     /// if the function is already started, `Engine` do nothing.
-    StartFunction(Uuid),
+    StartFunction(FunctionId),
     /// if the function is already stoped, `Engine` do nothing.
-    StopFuntion(Uuid),
+    StopFuntion(FunctionId),
     WriteUniverse {
-        fixture_id: Uuid,
+        fixture_id: FixtureId,
         channel: String,
         value: u8,
     },

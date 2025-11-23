@@ -2,15 +2,15 @@ use uuid::Uuid;
 
 use crate::{
     doc::{Doc, DocCommand},
-    fixture::Fixture,
-    fixture_def::FixtureDef,
-    functions::FunctionData,
+    fixture::{Fixture, FixtureId},
+    fixture_def::{FixtureDef, FixtureDefId},
+    functions::{FunctionData, FunctionId},
 };
 // TODO: エラー型の定義(enum or trait)
 // TODO: 重複部分のマクロ定義？
 pub struct AddFunction {
     function: Option<FunctionData>,
-    function_id: Uuid,
+    function_id: FunctionId,
 }
 
 impl AddFunction {
@@ -42,7 +42,7 @@ impl DocCommand for AddFunction {
 
 pub struct AddFixture {
     fixture: Option<Fixture>,
-    fixture_id: Uuid,
+    fixture_id: FixtureId,
 }
 
 impl AddFixture {
@@ -75,7 +75,7 @@ impl DocCommand for AddFixture {
 }
 
 pub struct AddFixtureDef {
-    fixture_def_id: Uuid,
+    fixture_def_id: FixtureDefId,
     fixture_def: Option<FixtureDef>,
 }
 
@@ -102,7 +102,7 @@ impl DocCommand for AddFixtureDef {
             self.fixture_def = Some(def);
             Ok(())
         } else {
-            Err("fixture definition is arleady removed".into())
+            Err("fixture definition is already removed".into())
         }
     }
 }

@@ -1,27 +1,21 @@
 use uuid::Uuid;
 
 use super::FunctionData;
-use crate::functions::FunctionRuntime;
+use crate::functions::{FunctionId, FunctionRuntime};
 use crate::{functions::FunctionCommand, functions::FunctionDataGetters};
 use std::{collections::HashMap, time::Duration};
 
 //TODO: フェードインの実装
 
 pub struct ChaserData {
-    id: Uuid,
+    id: FunctionId,
     name: String,
     ///step_number->step
     steps: HashMap<usize, ChaserStep>,
 }
 
-struct ChaserStep {
-    function_id: Uuid,
-    fade_in: Duration,
-    hold: Duration,
-}
-
 impl FunctionDataGetters for ChaserData {
-    fn id(&self) -> Uuid {
+    fn id(&self) -> FunctionId {
         self.id
     }
 
@@ -30,27 +24,21 @@ impl FunctionDataGetters for ChaserData {
     }
 }
 
-impl ChaserStep {
-    fn duration(&self) -> Duration {
-        self.hold + self.fade_in
-    }
-}
-
 impl ChaserData {
     pub fn new(name: &str) -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: FunctionId::new(),
             name: String::from(name),
             steps: HashMap::new(),
         }
     }
-    pub fn add_step(&mut self, function_id: Uuid, hold: Duration, fade_in: Duration) {
+    pub fn add_step(&mut self, function_id: FunctionId, hold: Duration, fade_in: Duration) {
         self.steps.insert(
             self.steps.len(),
             ChaserStep {
-                function_id: function_id,
-                fade_in: fade_in,
-                hold: hold,
+                function_id,
+                fade_in,
+                hold,
             },
         );
     }
@@ -72,7 +60,7 @@ impl FunctionRuntime for ChaserRuntime {
 
         //if self.time_in_current_step < self.current_step().duration() {
         commands.push(FunctionCommand::StartFunction(
-            Uuid::nil(), //TODO: self.current_step().function_id,
+            FunctionId::from(Uuid::nil()), //TODO: self.current_step().function_id,
         )); //べき等
         return commands;
         //}
@@ -134,6 +122,18 @@ impl ChaserRuntime {
             .get(&self.current_step_num)
             .expect(format!("step num {} not found", self.current_step_num).as_str())
     }*/
+}
+
+struct ChaserStep {
+    function_id: FunctionId,
+    fade_in: Duration,
+    hold: Duration,
+}
+
+impl ChaserStep {
+    fn duration(&self) -> Duration {
+        self.hold + self.fade_in
+    }
 }
 
 #[cfg(test)]

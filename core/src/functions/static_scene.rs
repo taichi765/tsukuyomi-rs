@@ -4,19 +4,22 @@ use std::time::Duration;
 use uuid::Uuid;
 
 use super::{FunctionData, FunctionRuntime};
-use crate::{functions::FunctionCommand, functions::FunctionDataGetters};
+use crate::{
+    fixture::FixtureId,
+    functions::{FunctionCommand, FunctionDataGetters, FunctionId},
+};
 
 pub type SceneValue = HashMap<String, u8>;
 
 pub struct StaticSceneData {
-    id: Uuid,
+    id: FunctionId,
     name: String,
     /// fixture_id->values
-    values: HashMap<Uuid, SceneValue>,
+    values: HashMap<FixtureId, SceneValue>,
 }
 
 impl FunctionDataGetters for StaticSceneData {
-    fn id(&self) -> Uuid {
+    fn id(&self) -> FunctionId {
         self.id
     }
     fn name(&self) -> &str {
@@ -28,17 +31,17 @@ impl FunctionDataGetters for StaticSceneData {
 impl StaticSceneData {
     pub fn new(name: &str) -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: FunctionId::new(),
             name: String::from(name),
             values: HashMap::new(),
         }
     }
 
-    pub fn values(&self) -> &HashMap<Uuid, SceneValue> {
+    pub fn values(&self) -> &HashMap<FixtureId, SceneValue> {
         &self.values
     }
 
-    pub fn insert_value(&mut self, fixture_id: Uuid, value: SceneValue) {
+    pub fn insert_value(&mut self, fixture_id: FixtureId, value: SceneValue) {
         self.values.insert(fixture_id, value);
     }
 }
@@ -83,7 +86,7 @@ mod tests {
         let mut sv = SceneValue::new();
         sv.insert("Intensity".into(), 128);
         sv.insert("Red".into(), 255);
-        let fixture_id = Uuid::new_v4();
+        let fixture_id = FixtureId::from(Uuid::new_v4());
         scene.insert_value(fixture_id, sv);
 
         let mut runtime = StaticSceneRuntime::new();
@@ -113,8 +116,8 @@ mod tests {
     #[test]
     fn static_scene_runtime_writes_commands_for_multiple_fixtures() {
         let mut scene = StaticSceneData::new("multi");
-        let fixture_id_1 = Uuid::new_v4();
-        let fixture_id_2 = Uuid::new_v4();
+        let fixture_id_1 = FixtureId::from(Uuid::new_v4());
+        let fixture_id_2 = FixtureId::from(Uuid::new_v4());
 
         let mut sv1 = SceneValue::new();
         sv1.insert("Intensity".into(), 10);

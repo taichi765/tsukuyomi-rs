@@ -54,10 +54,13 @@ fn engine_can_start_function() {
         channel_order: mode,
     };
     fixture_def.add_mode("Mode 1".into(), mode);
-    command_manager.execute(
-        Box::new(commands::doc::AddFixtureDef::new(fixture_def)),
-        &mut doc,
-    );
+    let fixture_def_id = fixture_def.id();
+    command_manager
+        .execute(
+            Box::new(commands::doc::AddFixtureDef::new(fixture_def)),
+            &mut doc,
+        )
+        .unwrap();
 
     let fixture = Fixture::new(
         "Fixture",
@@ -67,7 +70,10 @@ fn engine_can_start_function() {
         "Mode 1".into(),
     );
 
-    command_manager.execute(Box::new(commands::doc::AddFixture::new(fixture)), &mut doc);
+    let fixture_id = fixture.id();
+    command_manager
+        .execute(Box::new(commands::doc::AddFixture::new(fixture)), &mut doc)
+        .unwrap();
 
     let mut scene = StaticSceneData::new("My Scene");
     let mut sv = SceneValue::new();
@@ -76,12 +82,14 @@ fn engine_can_start_function() {
     scene.insert_value(fixture_id, sv);
     let scene_id = scene.id();
 
-    command_manager.execute(
-        Box::new(commands::doc::AddFunction::new(FunctionData::StaticScene(
-            scene,
-        ))),
-        &mut doc,
-    );
+    command_manager
+        .execute(
+            Box::new(commands::doc::AddFunction::new(FunctionData::StaticScene(
+                scene,
+            ))),
+            &mut doc,
+        )
+        .unwrap();
 
     let (command_tx, command_rx) = mpsc::channel::<EngineCommand>();
     let engine = Engine::new(Arc::new(doc), command_rx);

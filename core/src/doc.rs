@@ -3,26 +3,27 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::{
-    fixture::{Fixture, MergeMode},
-    fixture_def::FixtureDef,
-    functions::FunctionData,
+    engine::OutputPluginId,
+    fixture::{Fixture, FixtureId, MergeMode},
+    fixture_def::{FixtureDef, FixtureDefId},
+    functions::{FunctionData, FunctionId},
     universe::{DmxAddress, UniverseId},
 };
 
 // TODO: type aliasの活用
 #[derive(Debug)]
 pub enum ResolveError {
-    FixtureNotFound(Uuid),
+    FixtureNotFound(FixtureId),
     FixtureDefNotFound {
-        fixture_id: Uuid,
-        fixture_def_id: Uuid,
+        fixture_id: FixtureId,
+        fixture_def_id: FixtureDefId,
     },
     ModeNotFound {
-        fixture_def: Uuid,
+        fixture_def: FixtureDefId,
         mode: String,
     },
     ChannelNotFound {
-        fixturedef: Uuid,
+        fixturedef: FixtureDefId,
         mode: String,
         channel: String,
     },
@@ -34,14 +35,17 @@ pub trait DocCommand {
     fn revert(&mut self, doc: &mut Doc) -> Result<(), String>;
 }
 
+/// single source of true
 pub struct Doc {
-    fixtures: HashMap<Uuid, Fixture>,
-    fixture_definitions: HashMap<Uuid, FixtureDef>,
-    functions: HashMap<Uuid, FunctionData>,
-    universe_settings: HashMap<usize, UniverseSetting>,
+    fixtures: HashMap<FixtureId, Fixture>,
+    fixture_definitions: HashMap<FixtureDefId, FixtureDef>,
+    functions: HashMap<FunctionId, FunctionData>,
+    universe_settings: HashMap<UniverseId, UniverseSetting>,
 }
 
-pub(crate) struct UniverseSetting {}
+pub(crate) struct UniverseSetting {
+    output_plugins: Vec<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
+}
 
 pub(crate) struct ResolvedAddress {
     pub merge_mode: MergeMode,
@@ -58,11 +62,11 @@ impl Doc {
         }
     }
 
-    pub fn get_function_data(&self, function_id: Uuid) -> Option<&FunctionData> {
+    pub fn get_function_data(&self, function_id: FunctionId) -> Option<&FunctionData> {
         self.functions.get(&function_id)
     }
 
-    pub(crate) fn universe_settings(&self) -> &HashMap<usize, UniverseSetting> {
+    pub(crate) fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {
         &self.universe_settings
     }
 
@@ -75,34 +79,34 @@ impl Doc {
         Ok(())
     }
 
-    pub(crate) fn remove_function(&mut self, function_id: Uuid) -> Option<FunctionData> {
+    pub(crate) fn remove_function(&mut self, function_id: FunctionId) -> Option<FunctionData> {
         self.functions.remove(&function_id)
     }
 
-    pub(crate) fn add_fixture(&mut self, fixture: Fixture) -> Uuid {
-        let id = Uuid::new_v4();
+    pub(crate) fn add_fixture(&mut self, fixture: Fixture) {
         // TODO: fixture_defがあるか確認
-        self.fixtures.insert(id, fixture);
-        id
+        self.fixtures.insert(fixture.id(), fixture);
     }
 
-    pub(crate) fn remove_fixture(&mut self, fixture_id: Uuid) -> Option<Fixture> {
+    pub(crate) fn remove_fixture(&mut self, fixture_id: FixtureId) -> Option<Fixture> {
         self.fixtures.remove(&fixture_id)
     }
 
-    pub(crate) fn add_fixture_def(&mut self, fixture_def: FixtureDef) -> Uuid {
-        let id = Uuid::new_v4();
-        self.fixture_definitions.insert(id, fixture_def);
-        id
+    pub(crate) fn add_fixture_def(&mut self, fixture_def: FixtureDef) {
+        self.fixture_definitions
+            .insert(fixture_def.id(), fixture_def);
     }
 
-    pub(crate) fn remove_fixture_def(&mut self, fixture_def_id: Uuid) -> Option<FixtureDef> {
+    pub(crate) fn remove_fixture_def(
+        &mut self,
+        fixture_def_id: FixtureDefId,
+    ) -> Option<FixtureDef> {
         self.fixture_definitions.remove(&fixture_def_id)
     }
 
     pub(crate) fn resolve_address(
         &self,
-        fixture_id: Uuid,
+        fixture_id: FixtureId,
         channel: &str,
     ) -> Result<(UniverseId, ResolvedAddress), ResolveError> {
         let fixture = self

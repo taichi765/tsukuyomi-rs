@@ -2,7 +2,8 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use uuid::Uuid;
 
 use crate::doc::{Doc, ResolveError};
-use crate::functions::{FunctionCommand, FunctionRuntime};
+use crate::fixture::FixtureId;
+use crate::functions::{FunctionCommand, FunctionId, FunctionRuntime};
 use crate::plugins::Plugin;
 use crate::universe::{UniverseId, UniverseState};
 use std::collections::HashMap;
@@ -14,24 +15,24 @@ use std::time::Duration;
 
 const TICK_DURATION: Duration = Duration::from_millis(100);
 
+declare_id_newtype!(OutputPluginId);
+
 pub enum EngineCommand {
-    StartFunction(Uuid),
-    StopFunction(Uuid),
+    StartFunction(FunctionId),
+    StopFunction(FunctionId),
     AddPlugin(Box<dyn Plugin>),
     AddUniverse,
     Shutdown,
 }
 
-/// Engine is the single source of true.
-/// It also manages the timer.
 pub struct Engine {
     doc: Arc<Doc>,
     command_rx: Receiver<EngineCommand>,
 
-    active_runtimes: HashMap<Uuid, Box<dyn FunctionRuntime>>,
-    output_plugins: HashMap<Uuid, Box<dyn Plugin>>,
+    active_runtimes: HashMap<FunctionId, Box<dyn FunctionRuntime>>,
+    output_plugins: HashMap<OutputPluginId, Box<dyn Plugin>>,
     universe_states: HashMap<UniverseId, UniverseState>,
-    output_map_cache: HashMap<Uuid, Vec<UniverseId>>,
+    output_map_cache: HashMap<OutputPluginId, Vec<UniverseId>>,
 
     should_shutdown: bool,
 }
@@ -89,7 +90,7 @@ impl Engine {
     }
 
     fn add_output_plugin(&mut self, plugin: Box<dyn Plugin>) {
-        self.output_plugins.insert(Uuid::new_v4(), plugin);
+        self.output_plugins.insert(OutputPluginId::new(), plugin);
     }
 
     fn run_active_functions(&mut self) {
@@ -123,7 +124,7 @@ impl Engine {
     }
 
     ///既にstartしてた場合は何もしない
-    fn start_function(&mut self, function_id: Uuid) {
+    fn start_function(&mut self, function_id: FunctionId) {
         let runtime = self
             .doc
             .get_function_data(function_id)
@@ -133,13 +134,13 @@ impl Engine {
     }
 
     ///既にstopしてた/そもそも存在しなかった場合、何もしない
-    fn stop_function(&mut self, function_id: Uuid) {
+    fn stop_function(&mut self, function_id: FunctionId) {
         self.active_runtimes.remove(&function_id);
     }
 
     fn write_universe(
         &mut self,
-        fixture_id: Uuid,
+        fixture_id: FixtureId,
         channel: String,
         value: u8,
     ) -> Result<(), ResolveError> {
