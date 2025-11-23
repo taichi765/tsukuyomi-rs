@@ -31,7 +31,7 @@ pub struct Engine {
     active_runtimes: HashMap<Uuid, Box<dyn FunctionRuntime>>,
     output_plugins: HashMap<Uuid, Box<dyn Plugin>>,
     universe_states: HashMap<UniverseId, UniverseState>,
-    plugin_universe_map_cache: HashMap<Uuid, Vec<UniverseId>>,
+    output_map_cache: HashMap<Uuid, Vec<UniverseId>>,
 
     should_shutdown: bool,
 }
@@ -44,7 +44,7 @@ impl Engine {
             active_runtimes: HashMap::new(),
             output_plugins: HashMap::new(),
             universe_states: HashMap::new(),
-            plugin_universe_map_cache: HashMap::new(),
+            output_map_cache: HashMap::new(),
             should_shutdown: false,
         }
     }
@@ -71,17 +71,15 @@ impl Engine {
 
             self.run_active_functions();
 
-            self.plugin_universe_map_cache
-                .par_iter()
-                .for_each(|(p_id, u_ids)| {
-                    let plugin = self.output_plugins.get(p_id).unwrap();
-                    u_ids.iter().for_each(|u_id| {
-                        let universe_data = self.universe_states.get(u_id).unwrap();
-                        plugin
-                            .send_dmx(u_id.value(), &universe_data.values())
-                            .expect("something went wrong");
-                    });
+            self.output_map_cache.par_iter().for_each(|(p_id, u_ids)| {
+                let plugin = self.output_plugins.get(p_id).unwrap();
+                u_ids.iter().for_each(|u_id| {
+                    let universe_data = self.universe_states.get(u_id).unwrap();
+                    plugin
+                        .send_dmx(u_id.value(), &universe_data.values())
+                        .expect("something went wrong");
                 });
+            });
 
             if self.should_shutdown {
                 break;
