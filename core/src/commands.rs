@@ -1,3 +1,5 @@
+use crate::doc::Doc;
+
 pub trait DocCommand {
     fn apply(&mut self, doc: &mut Doc) -> Result<(), String>;
 

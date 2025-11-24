@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use crate::{
     fixture_def::FixtureDefId,
     universe::{DmxAddress, UniverseId},
@@ -23,7 +21,7 @@ pub struct Fixture {
     fixture_def_id: FixtureDefId,
     fixture_mode: String,
 }
-
+// TODO: modeが一つ以上あることを保証
 impl Fixture {
     pub fn new(
         name: &str,

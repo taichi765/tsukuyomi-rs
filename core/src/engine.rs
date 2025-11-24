@@ -208,9 +208,9 @@ impl Engine {
         for (u_id, setting) in doc.universe_settings() {
             setting.output_plugins().iter().for_each(|p_id| {
                 if let Some(universes) = new_map.get_mut(p_id) {
-                    universes.push(u_id);
+                    universes.push(*u_id);
                 } else {
-                    new_map.insert(p_id, vec![u_id])
+                    new_map.insert(*p_id, vec![*u_id]);
                 }
             });
         }

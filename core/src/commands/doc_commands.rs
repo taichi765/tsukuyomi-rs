@@ -1,5 +1,6 @@
 use crate::{
-    doc::{Doc, DocCommand},
+    commands::DocCommand,
+    doc::Doc,
     engine::OutputPluginId,
     fixture::{Fixture, FixtureId},
     fixture_def::{FixtureDef, FixtureDefId},
