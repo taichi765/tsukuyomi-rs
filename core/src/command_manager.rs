@@ -1,22 +1,18 @@
-use std::sync::Arc;
-use std::sync::RwLock;
-use tsukuyomi_core::doc::Doc;
-use tsukuyomi_core::doc::DocCommand;
-use tsukuyomi_core::doc::DocEvent;
-use tsukuyomi_core::doc::DocObserver;
+use crate::commands::DocCommand;
+use crate::doc::Doc;
 
 pub struct CommandManager {
     commands: Vec<Box<dyn DocCommand>>,
     current_index: usize,
-    observers: Vec<Arc<RwLock<dyn DocObserver>>>,
 }
 
+// TODO: DocCommand->Eventの生成
+// FIXME: イベント通知とundo/redoで責務が二つある
 impl CommandManager {
     pub fn new() -> Self {
         Self {
             commands: Vec::new(),
             current_index: 0,
-            observers: Vec::new(),
         }
     }
 
@@ -48,16 +44,5 @@ impl CommandManager {
         self.commands[self.current_index + 1].apply(doc)?;
         self.current_index += 1;
         Ok(())
-    }
-
-    pub fn subscribe(&mut self, observer: Arc<RwLock<dyn DocObserver>>) {
-        self.observers.push(observer);
-    }
-
-    fn notify(&mut self, event: DocEvent) {
-        for observer in &mut self.observers {
-            let mut observer = observer.write().unwrap();
-            observer.on_doc_event(event);
-        }
     }
 }

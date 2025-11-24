@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::{RwLock, Weak},
+};
 
 use crate::{
     engine::OutputPluginId,
@@ -14,6 +17,7 @@ pub struct Doc {
     fixture_definitions: HashMap<FixtureDefId, FixtureDef>,
     functions: HashMap<FunctionId, FunctionData>,
     universe_settings: HashMap<UniverseId, UniverseSetting>,
+    observers: Vec<Weak<RwLock<dyn DocObserver>>>,
 }
 
 impl Doc {
@@ -23,10 +27,11 @@ impl Doc {
             fixture_definitions: HashMap::new(),
             functions: HashMap::new(),
             universe_settings: HashMap::new(),
+            observers: Vec::new(),
         }
     }
 
-    /* ---------- getters ---------- */
+    /* ---------- publics ---------- */
     pub fn get_function_data(&self, function_id: FunctionId) -> Option<&FunctionData> {
         self.functions.get(&function_id)
     }
@@ -34,6 +39,12 @@ impl Doc {
     pub fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {
         &self.universe_settings
     }
+
+    // TODO: イベント種類を指定できるようにする
+    pub fn subscribe(&mut self, observer: Weak<RwLock<dyn DocObserver>>) {
+        self.observers.push(observer);
+    }
+
     /* ---------- internals ---------- */
     pub(crate) fn resolve_address(
         &self,
@@ -118,6 +129,7 @@ impl Doc {
             .get_mut(&universe_id)
             .expect("something went wrong");
         setting.output_plugins.insert(plugin);
+        self.notify(DocEvent::UniverseSettingsChanged);
     }
 
     pub(crate) fn remove_output(&mut self, universe_id: UniverseId, plugin: OutputPluginId) {
@@ -127,6 +139,18 @@ impl Doc {
             .expect("something went wrong");
         //TODO: Optionを返す
         setting.output_plugins.remove(&plugin);
+    }
+
+    /// Notifies event to all observers
+    fn notify(&mut self, event: DocEvent) {
+        self.observers.retain(|weak_ob| {
+            if let Some(ob) = weak_ob.upgrade() {
+                ob.write().unwrap().on_doc_event(event);
+                true
+            } else {
+                false
+            }
+        });
     }
 }
 
@@ -153,9 +177,18 @@ pub struct UniverseSetting {
 }
 
 impl UniverseSetting {
-    pub fn output_plugins(&self) -> HashSet<OutputPluginId> {
-        self.output_plugins();
+    pub fn output_plugins(&self) -> &HashSet<OutputPluginId> {
+        &self.output_plugins
     }
+}
+
+#[derive(Clone, Copy)]
+pub enum DocEvent {
+    UniverseSettingsChanged,
+}
+
+pub trait DocObserver {
+    fn on_doc_event(&mut self, event: DocEvent);
 }
 
 pub(crate) struct ResolvedAddress {
