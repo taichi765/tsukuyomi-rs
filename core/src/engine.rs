@@ -242,8 +242,21 @@ impl Engine {
         self.start_function(fader_id);*/
     }
 
-    fn update_plugin_universe_map_cache(&mut self) {
-        unimplemented!()
+    fn update_output_map_cache(&mut self) {
+        let doc = self.doc.read();
+        let mut new_map: HashMap<OutputPluginId, Vec<UniverseId>> = HashMap::new();
+        for (u_id, setting) in doc.universe_settings() {
+            setting.output_plugins().iter().for_each(|p_id| {
+                if let Some(universes) = new_map.get_mut(p_id) {
+                    universes.push(u_id);
+                } else {
+                    new_map.insert(p_id, vec![u_id])
+                }
+            });
+        }
+
+        self.output_map_cache = new_map;
+    }
     }
 }
 
