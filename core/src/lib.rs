@@ -60,6 +60,15 @@ pub mod readonly {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum DocEvent {
+    UniverseSettingsChanged,
+}
+
+pub trait DocObserver {
+    fn on_doc_event(&mut self, event: DocEvent);
+}
+
 pub mod engine;
 pub mod fixture;
 pub mod functions;
