@@ -187,7 +187,7 @@ pub enum DocEvent {
     UniverseSettingsChanged,
 }
 
-pub trait DocObserver {
+pub trait DocObserver: Send + Sync {
     fn on_doc_event(&mut self, event: DocEvent);
 }
 
