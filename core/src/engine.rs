@@ -19,53 +19,8 @@ const TICK_DURATION: Duration = Duration::from_millis(100);
 
 declare_id_newtype!(OutputPluginId);
 
-pub enum EngineCommand {
-    StartFunction(FunctionId),
-    StopFunction(FunctionId),
-    AddPlugin(Box<dyn Plugin>),
-    AddUniverse,
-    Shutdown,
-}
-
-pub enum EngineMessage {
-    ErrorOccured(EngineError),
-}
-
-#[derive(Debug)]
-pub struct EngineError {
-    context: ErrorContext,
-    source: Box<dyn Error + Send + Sync>,
-}
-
-impl Display for EngineError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}: {}", self.context, self.source)
-    }
-}
-
-impl Error for EngineError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        Some(self.source.as_ref())
-    }
-}
-
-#[derive(Debug)]
-pub enum ErrorContext {
-    ResolvingAddress {
-        function_id: FunctionId,
-        fixture_id: FixtureId,
-        channel: String,
-    },
-    RunningFunction {
-        function_id: FunctionId,
-    },
-    SendingDmx {
-        universe_id: UniverseId,
-        plugin_id: OutputPluginId,
-    },
-}
-
 // TODO: unwrap, expectを減らす
+/// Orchestrates [`FunctionRuntime`]s
 pub struct Engine {
     doc: ReadOnly<Doc>,
     command_rx: Receiver<EngineCommand>,
@@ -100,20 +55,7 @@ impl Engine {
     pub fn start_loop(mut self) {
         println!("starting engine...");
         loop {
-            if let Ok(cmd) = self.command_rx.try_recv() {
-                match cmd {
-                    EngineCommand::StartFunction(id) => self.start_function(id),
-                    EngineCommand::StopFunction(id) => self.stop_function(id),
-                    EngineCommand::AddPlugin(p) => self.add_output_plugin(p),
-                    EngineCommand::AddUniverse => {
-                        self.universe_states.insert(
-                            UniverseId::new(self.universe_states.len() as u8), // TODO 雑 IDをUIスレッドに返すとかしてもいい
-                            UniverseState::new(),
-                        );
-                    }
-                    EngineCommand::Shutdown => self.should_shutdown = true,
-                }
-            }
+            self.handle_engine_commands();
 
             self.universe_states.iter_mut().for_each(|(_, u)| u.clear());
 
@@ -146,6 +88,24 @@ impl Engine {
 
     fn add_output_plugin(&mut self, plugin: Box<dyn Plugin>) {
         self.output_plugins.insert(OutputPluginId::new(), plugin);
+    }
+
+    fn handle_engine_commands(&mut self) {
+        if let Ok(cmd) = self.command_rx.try_recv() {
+            match cmd {
+                EngineCommand::StartFunction(id) => self.start_function(id),
+                EngineCommand::StopFunction(id) => self.stop_function(id),
+                EngineCommand::AddPlugin(p) => self.add_output_plugin(p),
+                EngineCommand::AddUniverse => {
+                    self.universe_states.insert(
+                        UniverseId::new(self.universe_states.len() as u8), // TODO 雑 IDをUIスレッドに返すとかしてもいい
+                        UniverseState::new(),
+                    );
+                }
+                EngineCommand::OutputMapChanged => self.update_output_map_cache(),
+                EngineCommand::Shutdown => self.should_shutdown = true,
+            }
+        }
     }
 
     fn run_active_functions(&mut self) {
@@ -257,7 +217,56 @@ impl Engine {
 
         self.output_map_cache = new_map;
     }
+}
+
+/// Message from the main thread to [`Engine`]
+pub enum EngineCommand {
+    StartFunction(FunctionId),
+    StopFunction(FunctionId),
+    AddPlugin(Box<dyn Plugin>),
+    AddUniverse,
+    OutputMapChanged, // FIXME: Docの監視にメインスレッドを介すのは正しいか？
+    Shutdown,
+}
+
+/// Message from [`Engine`] to the main thread
+pub enum EngineMessage {
+    ErrorOccured(EngineError),
+}
+
+/// The errors occured in [`Engine`]
+#[derive(Debug)]
+pub struct EngineError {
+    context: ErrorContext,
+    source: Box<dyn Error + Send + Sync>,
+}
+
+impl Display for EngineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}: {}", self.context, self.source)
     }
+}
+
+impl Error for EngineError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(self.source.as_ref())
+    }
+}
+
+#[derive(Debug)]
+pub enum ErrorContext {
+    ResolvingAddress {
+        function_id: FunctionId,
+        fixture_id: FixtureId,
+        channel: String,
+    },
+    RunningFunction {
+        function_id: FunctionId,
+    },
+    SendingDmx {
+        universe_id: UniverseId,
+        plugin_id: OutputPluginId,
+    },
 }
 
 #[cfg(test)]

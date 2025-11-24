@@ -8,39 +8,12 @@ use crate::{
     universe::{DmxAddress, UniverseId},
 };
 
-#[derive(Debug)]
-pub enum ResolveError {
-    FixtureNotFound(FixtureId),
-    FixtureDefNotFound {
-        fixture_id: FixtureId,
-        fixture_def_id: FixtureDefId,
-    },
-    ModeNotFound {
-        fixture_def: FixtureDefId,
-        mode: String,
-    },
-    ChannelNotFound {
-        fixturedef: FixtureDefId,
-        mode: String,
-        channel: String,
-    },
-}
-
 /// Single source of true
 pub struct Doc {
     fixtures: HashMap<FixtureId, Fixture>,
     fixture_definitions: HashMap<FixtureDefId, FixtureDef>,
     functions: HashMap<FunctionId, FunctionData>,
     universe_settings: HashMap<UniverseId, UniverseSetting>,
-}
-
-pub struct UniverseSetting {
-    output_plugins: HashSet<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
-}
-
-pub(crate) struct ResolvedAddress {
-    pub merge_mode: MergeMode,
-    pub address: DmxAddress,
 }
 
 impl Doc {
@@ -53,6 +26,7 @@ impl Doc {
         }
     }
 
+    /* ---------- getters ---------- */
     pub fn get_function_data(&self, function_id: FunctionId) -> Option<&FunctionData> {
         self.functions.get(&function_id)
     }
@@ -60,7 +34,7 @@ impl Doc {
     pub fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {
         &self.universe_settings
     }
-
+    /* ---------- internals ---------- */
     pub(crate) fn resolve_address(
         &self,
         fixture_id: FixtureId,
@@ -103,6 +77,7 @@ impl Doc {
         ))
     }
 
+    /* ---------- mutable functions ---------- */
     pub(crate) fn add_function(&mut self, function: FunctionData) -> Result<(), String> {
         if self.functions.contains_key(&function.id()) {
             return Err(format!("function id {} already exsists", function.id(),));
@@ -153,4 +128,37 @@ impl Doc {
         //TODO: Optionを返す
         setting.output_plugins.remove(&plugin);
     }
+}
+
+#[derive(Debug)]
+pub enum ResolveError {
+    FixtureNotFound(FixtureId),
+    FixtureDefNotFound {
+        fixture_id: FixtureId,
+        fixture_def_id: FixtureDefId,
+    },
+    ModeNotFound {
+        fixture_def: FixtureDefId,
+        mode: String,
+    },
+    ChannelNotFound {
+        fixturedef: FixtureDefId,
+        mode: String,
+        channel: String,
+    },
+}
+
+pub struct UniverseSetting {
+    output_plugins: HashSet<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
+}
+
+impl UniverseSetting {
+    pub fn output_plugins(&self) -> HashSet<OutputPluginId> {
+        self.output_plugins();
+    }
+}
+
+pub(crate) struct ResolvedAddress {
+    pub merge_mode: MergeMode,
+    pub address: DmxAddress,
 }
