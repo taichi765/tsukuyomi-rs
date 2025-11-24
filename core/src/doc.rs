@@ -26,13 +26,7 @@ pub enum ResolveError {
     },
 }
 
-pub trait DocCommand {
-    fn apply(&mut self, doc: &mut Doc) -> Result<(), String>;
-
-    fn revert(&mut self, doc: &mut Doc) -> Result<(), String>;
-}
-
-/// single source of true
+/// Single source of true
 pub struct Doc {
     fixtures: HashMap<FixtureId, Fixture>,
     fixture_definitions: HashMap<FixtureDefId, FixtureDef>,
