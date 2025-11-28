@@ -11,7 +11,10 @@
 **/*.rs.bk
 
 # Editor settings
-.vscode/
+**/.vscode/
+**/.zed/
+**/.idea/
+
 
 # personal notes, logs etc
 .local/
