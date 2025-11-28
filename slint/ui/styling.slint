@@ -24,16 +24,27 @@ export global Icons {
 }
 
 export component PlaneText inherits Text{
-    font-size: 1rem;
+    font-size: 1.25rem;
     font-weight: 400;
 }
 
 export component MiddleText inherits Text {
-    font-size: 1.25rem;
-    font-weight: 500;
+    font-size: 1.5rem;
+    font-weight: 450;
 }
 
 export component LargeText inherits Text {
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 1.75rem;
+    font-weight: 500;
+}
+
+// FIXME: orientationプロパティを持たせる
+export component BorderHorz inherits Rectangle{
+    width: 2px;
+    background: Palette.border;
+}
+
+export component BorderVert inherits Rectangle {
+    height: 2px;
+    background: Palette.border;
 }

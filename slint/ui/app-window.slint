@@ -4,9 +4,12 @@ import { FunctionsTab } from "functions-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
 import { Preview2D } from "views/preview-2d.slint";
 import { FunctionView } from "views/function-view.slint";
-import { Icons, MiddleText } from "styling.slint";
+import { Icons, MiddleText, BorderVert, BorderHorz } from "styling.slint";
 import { TopBar } from "top-bar.slint";
 import { TimeLineTab } from "timeline-tab.slint";
+
+
+export { Preview2DLogic } from "./views/preview-2d.slint";
 
 export global MenuBarActions {
     callback save();
@@ -65,7 +68,16 @@ export component HorizontalSplit inherits Rectangle {
 export component AppWindow inherits Window {
     title: "Tsukuyomi";
     icon: Icons.default;
+    //no-frame: true;
     property <bool> showSaveDialog;
+    /*Rectangle {
+        Button {
+            text: "Close";
+            clicked => {
+                root.
+            }
+        }
+    }*/
 
     MenuBar {
         Menu {
@@ -147,6 +159,8 @@ export component AppWindow inherits Window {
             }
         }
         
+        BorderVert {}
+        
         Rectangle {
             //drop-shadow-blur: 0.2rem;
             //drop-shadow-color: Palette.background;
@@ -157,6 +171,7 @@ export component AppWindow inherits Window {
                 //HorizontalSplit {}
                 
                 Preview2D {}
+                BorderHorz {}
                 FunctionView {}
             }
         }

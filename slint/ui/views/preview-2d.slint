@@ -1,5 +1,5 @@
 import { Palette } from "std-widgets.slint";
-import { LargeText } from "../styling.slint";
+import { LargeText, MiddleText } from "../styling.slint";
 
 export struct FixtureEntity {
     x:length,
@@ -24,15 +24,15 @@ export global Preview2DLogic {
 
 export component Preview2D inherits Rectangle{
     VerticalLayout {
-        title:=LargeText {
+        title:=MiddleText {
             text: "Preview";
         }
         body:=Rectangle {
             for fixture in Preview2DLogic.fixture-list: Rectangle {
                 x: fixture.x;
                 y: fixture.y;
-                width: 50px;
-                height: 50px;
+                width: 15px;
+                height: 15px;
                 background: fixture.color;
                 border-width: 1px;
                 border-color: Palette.border;

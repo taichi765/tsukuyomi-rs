@@ -1,7 +1,9 @@
 // Prevent console window in addition to Slint window in Windows release builds when, e.g., starting the app via file manager. Ignored on other platforms.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use slint::{Brush, Color, VecModel};
 use std::error::Error;
+use std::rc::Rc;
 use std::sync::{Arc, RwLock, mpsc};
 use std::thread;
 use tsukuyomi_core::command_manager::CommandManager;
@@ -43,15 +45,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     engine_handle.join().unwrap();
 
-    //ui.on_request_save(|| println!("save requested"));
-
-    /*ui.on_request_increase_value({
-        let ui_handle = ui.as_weak();
-        move || {
-            let ui = ui_handle.unwrap();
-            ui.set_counter(ui.get_counter() + 1);
-        }
-    });*/
+    let fixture_list: Vec<FixtureEntity> = vec![
+        FixtureEntity {
+            x: 10.0,
+            y: 10.0,
+            color: Brush::SolidColor(Color::from_rgb_u8(255, 255, 0)),
+        },
+        FixtureEntity {
+            x: 50.0,
+            y: 50.0,
+            color: Brush::SolidColor(Color::from_rgb_u8(0, 255, 127)),
+        },
+    ];
+    ui.global::<Preview2DLogic>()
+        .set_fixture_list(Rc::new(VecModel::from(fixture_list)).into());
 
     ui.run()?;
 

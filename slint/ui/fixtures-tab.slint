@@ -1,6 +1,7 @@
 import {TabWidget,Palette} from "std-widgets.slint";
 import { FixtureListView } from "views/fixture-list-view.slint";
 import { UniverseView } from "views/universe-view.slint";
+import { BorderVert } from "styling.slint";
 
 export component FixturesTab inherits Rectangle {
     HorizontalLayout {
@@ -8,14 +9,10 @@ export component FixturesTab inherits Rectangle {
             width: 30%;
         }
         
-        border:=Rectangle {
-            width: 1px;
-            border-width: 1px;
-            border-color: Palette.border;
-        }
+        BorderVert {}
         
         UniverseView {
-            width: 70%;
+            width: 65%;
         }
     }
 }
