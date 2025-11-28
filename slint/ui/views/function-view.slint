@@ -1,7 +1,40 @@
-import { TkText } from "../parts/tk-text.slint";
-import { Palette } from "std-widgets.slint";
+import { Palette, StyleMetrics, TabWidget } from "std-widgets.slint";
+import { MiddleText, PlaneText } from "../styling.slint";
 export component FunctionView inherits Rectangle{
-    TkText {
-        text: "this is function view";
+    VerticalLayout {
+        MiddleText {
+            text: "Function";
+            font-size: 1.5rem;
+            font-weight: 20;
+        }
+        TabWidget {
+            orientation: Orientation.vertical;
+            Tab {
+                title: "Dimmer";
+                Rectangle {
+                    PlaneText {text: "dimmer";}
+                }
+            }
+            Tab {
+                title: "Color";
+                Rectangle {
+                    PlaneText {text:"color";}
+                }
+            }
+            Tab{
+                title: @tr("Position");
+                Rectangle {
+                    PlaneText {text: "position";}
+                }
+            }
+            Tab{
+                title: @tr("Gobo");
+                Rectangle {
+                    PlaneText {
+                        text: "gobo";
+                    }
+                }
+            }
+        }
     }
 }

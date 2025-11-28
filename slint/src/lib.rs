@@ -16,6 +16,9 @@ use tsukuyomi_core::{
 };
 
 pub mod doc_event_bridge;
+pub mod preview_plugin;
+
+use crate::preview_plugin::PreviewOutput;
 // TODO: tsukuyomi_core::prelude使いたい
 
 struct MockPlugin {}
@@ -88,7 +91,7 @@ pub fn try_some_commands(command_tx: Sender<EngineCommand>, scene_id: FunctionId
     command_tx.send(EngineCommand::AddUniverse).unwrap();
 
     command_tx
-        .send(EngineCommand::AddPlugin(Box::new(MockPlugin {})))
+        .send(EngineCommand::AddPlugin(Box::new(PreviewOutput::new())))
         .unwrap();
 
     command_tx

@@ -6,7 +6,7 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-slint = { path = "../../slint/api/rs/slint" }
+slint = { path = "../../slint/api/rs/slint",features = ["backend-qt"] }
 tsukuyomi-core={ path="../core" }
 
 [build-dependencies]

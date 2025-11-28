@@ -1,5 +1,4 @@
-import { Icons } from "../styling.slint";
-import { TkText } from "../parts/tk-text.slint";
+import { Icons, MiddleText, PlaneText } from "../styling.slint";
 import { Palette } from "std-widgets.slint";
 
 export struct Fixture {
@@ -46,7 +45,7 @@ export component FixtureListView inherits Rectangle{
                             width: 1.5rem;
                             height: 1.5rem;
                         }
-                        TkText {
+                       MiddleText {
                             text: map.manufacturer;
                         }
                     }
@@ -68,7 +67,7 @@ export component FixtureListView inherits Rectangle{
                         spacer:=Rectangle {
                             width: 2rem;
                         }
-                        TkText {
+                        PlaneText {
                             text: fixture.name;
                         }
                         /*DragArea{

@@ -1,7 +1,43 @@
-import { TkText } from "../parts/tk-text.slint";
 import { Palette } from "std-widgets.slint";
+import { LargeText } from "../styling.slint";
+
+export struct FixtureEntity {
+    x:length,
+    y:length,
+    color:brush
+}
+
+export global Preview2DLogic {
+    in property <[FixtureEntity]> fixture-list:[
+        {
+            x:1px,
+            y:1px,
+            color:rgb(255,0,0)
+        },
+        {
+            x:70px,
+            y:60px,
+            color:rgb(0,0,255)
+        }
+    ];
+}
+
 export component Preview2D inherits Rectangle{
-    TkText {
-        text: "this is 2d preview";
+    VerticalLayout {
+        title:=LargeText {
+            text: "Preview";
+        }
+        body:=Rectangle {
+            for fixture in Preview2DLogic.fixture-list: Rectangle {
+                x: fixture.x;
+                y: fixture.y;
+                width: 50px;
+                height: 50px;
+                background: fixture.color;
+                border-width: 1px;
+                border-color: Palette.border;
+                border-radius: 25px;
+            }
+        }
     }
 }

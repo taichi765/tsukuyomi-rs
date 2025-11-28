@@ -1,18 +1,18 @@
-import { Button,TabWidget,  Palette } from "std-widgets.slint";
+import { Button,TabWidget,  Palette, StandardButton } from "std-widgets.slint";
 import { FixturesTab } from "fixtures-tab.slint";
 import { FunctionsTab } from "functions-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
 import { Preview2D } from "views/preview-2d.slint";
 import { FunctionView } from "views/function-view.slint";
-import { Icons } from "styling.slint";
+import { Icons, MiddleText } from "styling.slint";
 import { TopBar } from "top-bar.slint";
-import { TimeLineView } from "views/timeline-view.slint";
+import { TimeLineTab } from "timeline-tab.slint";
 
 export global MenuBarActions {
     callback save();
     callback save-as();
 }
-component HorizontalSplit inherits Rectangle {
+export component HorizontalSplit inherits Rectangle {
     property<float> proportion: 50%;
     property<float> actual_proportion: handle.pressed ? handle.new_proportion : proportion;
 
@@ -65,7 +65,7 @@ component HorizontalSplit inherits Rectangle {
 export component AppWindow inherits Window {
     title: "Tsukuyomi";
     icon: Icons.default;
-    
+    property <bool> showSaveDialog;
 
     MenuBar {
         Menu {
@@ -85,7 +85,7 @@ export component AppWindow inherits Window {
             MenuSeparator {}
             MenuItem {
                 title: @tr("Save");
-                activated =>MenuBarActions.save();
+                activated =>{showSaveDialog=true;};
             }
             MenuItem {
                 title: @tr("Save As");
@@ -118,15 +118,17 @@ export component AppWindow inherits Window {
                 activated => {};
             }
         }
-    }// MenuBar
-
     
+    }// MenuBar    
 
     VerticalLayout{
+        alignment: LayoutAlignment.start;
+
         TopBar {}
         main-pane:=TabWidget {
             height: 70%;
             width:100%;
+            //orientation: Orientation.vertical;
             Tab {
                 title: @tr("Fixtures");
                 FixturesTab {}
@@ -137,7 +139,7 @@ export component AppWindow inherits Window {
             }
             Tab {
                 title: @tr("TimeLine");
-                TimeLineView {}
+                TimeLineTab {}
             }
             Tab {
                 title: @tr("Virtual Console");
@@ -146,17 +148,30 @@ export component AppWindow inherits Window {
         }
         
         Rectangle {
-            drop-shadow-blur: 0.2rem;
-            drop-shadow-color: Palette.background;
+            //drop-shadow-blur: 0.2rem;
+            //drop-shadow-color: Palette.background;
             height: 30%;
 
             HorizontalLayout {
                 //height: 30%;
-                HorizontalSplit {}
+                //HorizontalSplit {}
                 
                 Preview2D {}
                 FunctionView {}
             }
+        }
+    }
+
+    save-dialog:=Dialog{
+        visible: root.showSaveDialog;
+        MiddleText {
+            text:@tr("Do you want to save before exit?");
+        }
+        StandardButton {kind: StandardButtonKind.yes;}
+        StandardButton {kind:StandardButtonKind.no;}
+        StandardButton {
+            kind:StandardButtonKind.cancel;
+            clicked => {save-dialog.visible=false;}
         }
     }
 }

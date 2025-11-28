@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (command_tx, command_rx) = mpsc::channel::<EngineCommand>();
     let (error_tx, error_rx) = mpsc::channel::<EngineMessage>();
 
-    let mut doc_event_bridge: Arc<RwLock<dyn DocObserver>> =
+    let doc_event_bridge: Arc<RwLock<dyn DocObserver>> =
         Arc::new(RwLock::new(DocEventBridge::new(command_tx.clone())));
     doc.subscribe(Arc::downgrade(&doc_event_bridge));
 
