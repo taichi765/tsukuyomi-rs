@@ -1,33 +1,36 @@
 use std::collections::HashMap;
 use std::sync::mpsc::Sender;
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
 
+use slint::Weak;
 use tsukuyomi_core::engine::EngineCommand;
 use tsukuyomi_core::functions::FunctionId;
-use tsukuyomi_core::plugins::Plugin;
 use tsukuyomi_core::{
     commands,
     commands::DocCommand,
+    doc::Doc,
     fixture::{Fixture, MergeMode},
     fixture_def::{ChannelDef, FixtureDef, FixtureMode},
     functions::{FunctionData, FunctionDataGetters, SceneValue, StaticSceneData},
+    readonly::ReadOnly,
     universe::{DmxAddress, UniverseId},
 };
 
+pub mod bottom_panel_bridge;
 pub mod doc_event_bridge;
 pub mod preview_plugin;
 
+use crate::bottom_panel_bridge::BottomPanelBridge;
 use crate::preview_plugin::PreviewOutput;
 // TODO: tsukuyomi_core::prelude使いたい
 
-struct MockPlugin {}
+slint::include_modules!();
 
-impl Plugin for MockPlugin {
-    fn send_dmx(&self, universe_id: u8, dmx_data: &[u8]) -> Result<(), std::io::Error> {
-        println!("{universe_id}: {}", dmx_data[0]);
-        Ok(())
-    }
+pub fn init_bridges(ui: Weak<AppWindow>, doc: Arc<RwLock<Doc>>) {
+    let ui = ui.unwrap();
+    let bridge = BottomPanelBridge::new(ReadOnly::new(doc));
 }
 
 pub fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FunctionId) {

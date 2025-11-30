@@ -9,12 +9,13 @@ pub struct DocEventBridge {
 }
 
 impl DocObserver for DocEventBridge {
-    fn on_doc_event(&mut self, event: DocEvent) {
+    fn on_doc_event(&mut self, event: &DocEvent) {
         match event {
             DocEvent::UniverseSettingsChanged => self
                 .command_tx
                 .send(EngineCommand::OutputMapChanged)
                 .unwrap(),
+            _ => (),
         }
     }
 }

@@ -145,7 +145,7 @@ impl Doc {
     fn notify(&mut self, event: DocEvent) {
         self.observers.retain(|weak_ob| {
             if let Some(ob) = weak_ob.upgrade() {
-                ob.write().unwrap().on_doc_event(event);
+                ob.write().unwrap().on_doc_event(&event);
                 true
             } else {
                 false
@@ -182,13 +182,15 @@ impl UniverseSetting {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub enum DocEvent {
     UniverseSettingsChanged,
+    FixtureAdded { id: FixtureId },
+    FixtureRemoved { id: FixtureId },
 }
 
 pub trait DocObserver: Send + Sync {
-    fn on_doc_event(&mut self, event: DocEvent);
+    fn on_doc_event(&mut self, event: &DocEvent);
 }
 
 pub(crate) struct ResolvedAddress {
