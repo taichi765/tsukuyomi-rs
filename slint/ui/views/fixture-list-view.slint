@@ -2,8 +2,7 @@ import { Icons, MiddleText, PlaneText } from "../styling.slint";
 import { Palette } from "std-widgets.slint";
 
 export struct FixtureData {
-    name:string
-}
+    name:string}
 
 export struct FixtureListModel {
     manufacturer:string,
@@ -15,58 +14,49 @@ export global FixtureListViewLogic {
     in property <[FixtureListModel]> fixtures:[
         {
             manufacturer:"Stage Evolution",
-            fixtures:[
-                {name:"HPAR64-9"},
-                {name:"ORION WH"},
-                {name:"IM-MH90S"}
-            ],
+            fixtures:[{ name:"HPAR64-9" }, { name:"ORION WH" }, { name:"IM-MH90S" }],
             expanded:false
         },
-        {
-            manufacturer:"IM-Relax",
-            fixtures:[
-                {name:"IM-MH90S"}
-            ],
-            expanded:false
-        }
+        { manufacturer:"IM-Relax", fixtures:[{ name:"IM-MH90S" }], expanded:false }
     ];
 }
 
-export component FixtureListView inherits Rectangle{
-
+export component FixtureListView inherits Rectangle {
     VerticalLayout {
         alignment: LayoutAlignment.start;
-        for map in FixtureListViewLogic.fixtures: Rectangle {        
+        for map in FixtureListViewLogic.fixtures: Rectangle {
             VerticalLayout {
-                header:=Rectangle {
+                header := Rectangle {
                     HorizontalLayout {
                         Image {
-                            source: map.expanded?Icons.arrow-drop-down:Icons.arrow-right;
+                            source: map.expanded ? Icons.arrow-drop-down : Icons.arrow-right;
                             width: 1.5rem;
                             height: 1.5rem;
                         }
-                       MiddleText {
+
+                        MiddleText {
                             text: map.manufacturer;
                         }
                     }
+
                     TouchArea {
-                        width:parent.width;
+                        width: parent.width;
                         height: parent.height;
                         clicked => {
                             debug("clicked");
-                            map.expanded=!map.expanded
+                            map.expanded = !map.expanded
                         }
                     }
                 }
-                
-                if map.expanded:VerticalLayout{
-                    alignment: LayoutAlignment.start;
-                    for fixture in map.fixtures:HorizontalLayout{
-                        alignment: LayoutAlignment.start;
 
-                        spacer:=Rectangle {
+                if map.expanded:VerticalLayout {
+                    alignment: LayoutAlignment.start;
+                    for fixture in map.fixtures: HorizontalLayout {
+                        alignment: LayoutAlignment.start;
+                        spacer := Rectangle {
                             width: 2rem;
                         }
+
                         PlaneText {
                             text: fixture.name;
                         }
@@ -78,5 +68,5 @@ export component FixtureListView inherits Rectangle{
                 }
             }
         }
-    }   
+    }
 }

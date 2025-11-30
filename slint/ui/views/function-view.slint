@@ -1,33 +1,42 @@
 import { Palette, StyleMetrics, TabWidget } from "std-widgets.slint";
 import { MiddleText, PlaneText } from "../styling.slint";
-export component FunctionView inherits Rectangle{
+export component FunctionView inherits Rectangle {
     in property <string> fixture-id;
-
     VerticalLayout {
         MiddleText {
             text: @tr("Function");
         }
+
         TabWidget {
             orientation: Orientation.vertical;
             Tab {
                 title: @tr("Dimmer");
                 Rectangle {
-                    PlaneText {text: "dimmer";}
+                    PlaneText {
+                        text: "dimmer";
+                    }
                 }
             }
+
             Tab {
                 title: @tr("Color");
                 Rectangle {
-                    PlaneText {text:"color";}
+                    PlaneText {
+                        text: "color";
+                    }
                 }
             }
-            Tab{
+
+            Tab {
                 title: @tr("Position");
                 Rectangle {
-                    PlaneText {text: "position";}
+                    PlaneText {
+                        text: "position";
+                    }
                 }
             }
-            Tab{
+
+            Tab {
                 title: @tr("Gobo");
                 Rectangle {
                     PlaneText {

@@ -11,6 +11,10 @@ export global TkStyleMetrics {
     out property <bool> dark-color-scheme: Palette.color-scheme == ColorScheme.dark;
 }
 
+export global Theme {
+    out property <color> tooltip-background: white;
+}
+
 export global FontSettings {
     out property <relative-font-size> font-size:1.3rem;
 }
@@ -26,7 +30,7 @@ export global Icons {
     out property <image> close:@image-url("../assets/icons/fluent_segoe_chrome_close.svg");
 }
 
-export component PlaneText inherits Text{
+export component PlaneText inherits Text {
     font-size: 1.25rem;
     font-weight: 400;
 }
@@ -42,7 +46,7 @@ export component LargeText inherits Text {
 }
 
 // FIXME: orientationプロパティを持たせる
-export component BorderHorz inherits Rectangle{
+export component BorderHorz inherits Rectangle {
     width: 2px;
     background: Palette.border;
 }

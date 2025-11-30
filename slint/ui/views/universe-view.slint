@@ -2,11 +2,10 @@ import { StyleMetrics, Palette } from "std-widgets.slint";
 
 export component UniverseView inherits Rectangle {
     background: Palette.background;
-
     HorizontalLayout {
-        for num[i] in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]: Rectangle {
+        for num[i] in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]: Rectangle {
             VerticalLayout {
-                for num2[j] in[1,2,3,4,5,6,7,8,9,10]:Rectangle{
+                for num2[j] in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]: Rectangle {
                     width: 3rem;
                     height: 3rem;
                     background: Palette.foreground;
@@ -17,5 +16,3 @@ export component UniverseView inherits Rectangle {
         }
     }
 }
-
-

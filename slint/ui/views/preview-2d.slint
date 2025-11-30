@@ -4,37 +4,25 @@ import { LargeText, MiddleText } from "../styling.slint";
 export struct FixtureEntityData {
     x:length,
     y:length,
-    color:brush
-}
+    color:brush}
 
 export global Preview2DLogic {
-    in property <[FixtureEntityData]> fixture-list:[
-        {
-            x:1px,
-            y:1px,
-            color:rgb(255,0,0)
-        },
-        {
-            x:70px,
-            y:60px,
-            color:rgb(0,0,255)
-        }
-    ];
+    in property <[FixtureEntityData]> fixture-list:[{ x:1px, y:1px, color:rgb(255,0,0) }, { x:70px, y:60px, color:rgb(0,0,255) }];
 }
 
-component FixtureEntity inherits Rectangle{
+component FixtureEntity inherits Rectangle {
     //in property <brush> color;
 }
 
-export component Preview2D inherits Rectangle{
+export component Preview2D inherits Rectangle {
     VerticalLayout {
-        title:=MiddleText {
+        title := MiddleText {
             text: @tr("Preview");
         }
-        body:=Rectangle {
-            for fixture in Preview2DLogic.fixture-list: fixture-rect:=Rectangle {
-                property <bool> selected;
 
+        body := Rectangle {
+            for fixture in Preview2DLogic.fixture-list: fixture-rect := Rectangle {
+                property <bool> selected;
                 x: fixture.x;
                 y: fixture.y;
                 selected: false;
@@ -44,19 +32,18 @@ export component Preview2D inherits Rectangle{
                 //border-radius: 25px;
 
                 states [
-                    active when selected:{
+                    active when selected: {
                         fixture-rect.border-width: 2px;
                         fixture-rect.border-color: Palette.accent-foreground;
                     }
-                    inactive when !selected:{
+                    inactive when !selected: {
                         fixture-rect.border-width: 1px;
                         fixture-rect.border-color: Palette.border;
                     }
                 ]
-
-                ta:=TouchArea {
+                ta := TouchArea {
                     clicked => {
-                        fixture-rect.selected=!fixture-rect.selected;
+                        fixture-rect.selected = !fixture-rect.selected;
                     }
                 }
             }

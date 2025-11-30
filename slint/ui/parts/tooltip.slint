@@ -1,0 +1,61 @@
+// From https://github.com/slint-ui/slint/issues/6446
+import { Theme } from "../styling.slint";
+import { Palette } from "std-widgets.slint";
+export component ToolTipArea {
+    preferred-height: 100%;
+    preferred-width: 100%;
+    property <string> text;
+    property <bool> has-hover;
+    property <length> mouse-x;
+    property <length> mouse-y;
+    public function show-tooltip(has-hover: bool, x: length, y: length, msg: string) {
+        if !has-hover {
+            root.has-hover = false;
+            return;
+        }
+        root.has-hover = has-hover;
+        root.text = msg;
+
+        // if  tooltip is outside of the window
+        if x + 1rem + container.width > self.width - 10px {
+            root.mouse-x = self.width - container.width - 10px;
+        } else {
+            root.mouse-x = x + 1rem;
+        }
+        if y + 1rem + container.height > self.height - 10px {
+            root.mouse-y = y - 1rem - container.height;
+        } else {
+            root.mouse-y = y + 1rem;
+        }
+    }
+    container := Rectangle {
+        states [
+            visible when root.has-hover: {
+                opacity: 0.8;
+                in {
+                    animate opacity {
+                        duration: 175ms;
+                        delay: 700ms;
+                    }
+                }
+            }
+        ]
+        x: root.mouse-x;
+        y: root.mouse-y;
+        background: Theme.tooltip-background;
+        //Skin.palette.shadow;
+
+        opacity: 0;
+        width: tt_l.preferred-width;
+        height: tt_l.preferred-height;
+        tt_l := HorizontalLayout {
+            padding: 3px;
+            Text {
+                text <=> root.text;
+                wrap: word-wrap;
+                max-width: 15rem;
+                color: black;
+            }
+        }
+    }
+}

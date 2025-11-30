@@ -1,13 +1,21 @@
-import { Button,TabWidget,  Palette, StandardButton } from "std-widgets.slint";
+import { Button, TabWidget, Palette, StandardButton } from "std-widgets.slint";
 import { FixturesTab } from "fixtures-tab.slint";
 import { FunctionsTab } from "functions-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
 import { Preview2D } from "views/preview-2d.slint";
 import { FunctionView } from "views/function-view.slint";
-import { Icons, MiddleText, BorderVert, BorderHorz } from "styling.slint";
+import {
+    Icons,
+    MiddleText,
+    BorderVert,
+    BorderHorz,
+    Theme,
+} from "styling.slint";
 import { TopBar } from "top-bar.slint";
 import { TimeLineTab } from "timeline-tab.slint";
+import { ToolTipArea } from "parts/tooltip.slint";
 import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
+import { TitleBar } from "titlebar.slint";
 
 
 export { Preview2DLogic } from "./views/preview-2d.slint";
@@ -16,33 +24,32 @@ export global MenuBarActions {
     callback save();
     callback save-as();
 }
+
 export component HorizontalSplit inherits Rectangle {
-    property<float> proportion: 50%;
-    property<float> actual_proportion: handle.pressed ? handle.new_proportion : proportion;
-
-    
-
+    property <float> proportion: 50%;
+    property <float> actual_proportion: handle.pressed ? handle.new_proportion : proportion;
     r1 := Rectangle {
         height: 100%;
-        width: actual_proportion * parent.width -  handle.width/2;
-        TouchArea {}
-        Rectangle { background: blue; }
+        width: actual_proportion * parent.width - handle.width / 2;
+        TouchArea { }
+
+        Rectangle {
+            background: blue;
+        }
     }
 
     handle := Rectangle {
         x: r1.width;
         height: 100%;
         width: 8px;
-        z:100;
-        background: @linear-gradient(0deg, #ddd, #aaa );
-
+        z: 100;
+        background: @linear-gradient(0deg, #ddd, #aaa);
         out property <float> new_proportion:ta.new_proportion;
         out property <bool> pressed:ta.pressed;
-
-        ta:=TouchArea{
+        ta := TouchArea {
             property <float> new_proportion: max(0.05, min(0.95, proportion + (self.mouse_x - self.pressed_x) / root.width));
             clicked => {
-                root.proportion=self.new_proportion;
+                root.proportion = self.new_proportion;
                 debug("ta clicked")
             }
         }
@@ -52,8 +59,11 @@ export component HorizontalSplit inherits Rectangle {
         height: 100%;
         width: (1 - actual_proportion) * parent.width - handle.width / 2;
         x: handle.x + handle.width;
-        TouchArea {}
-        Rectangle { background: red; }
+        TouchArea { }
+
+        Rectangle {
+            background: red;
+        }
     }
     // This area covers the whole rectangle, but there it can only be clicked form the handle because
     // there is a TouchArea in sub rectangles
@@ -72,9 +82,7 @@ export component AppWindow inherits Window {
     no-frame: true;
     full-screen: true;
     default-font-family: "Inter";
-
     property <bool> showSaveDialog;
-
     callback start_drag();
     callback minimize();
     callback toggle-fullscreen();
@@ -135,67 +143,46 @@ export component AppWindow inherits Window {
     
     }*/// MenuBar    
 
-    content:=VerticalLayout{
+    content := VerticalLayout {
         //alignment: LayoutAlignment.start;
 
-        title-bar:=HorizontalLayout {
-            alignment: LayoutAlignment.end;
-            //height: 10%;
-            Rectangle {
-                Image {
-                    source: Icons.minimize;
-                    colorize: white;
-                }
-                TouchArea {
-                    clicked => {root.minimize();}
-                }
-            }
-            Rectangle {
-                Image {
-                    source: Icons.maximize;//TODO: restoreとmaximizeの切り替え
-                    colorize: white;
-                }
-                TouchArea {
-                    clicked => {root.toggle-fullscreen();}
-                }
-            }
-            Rectangle {
-                Image {
-                    source: Icons.close;
-                    colorize: white;
-                }
-                TouchArea {
-                    clicked => {root.close();}
-                }
-            }
+        TitleBar {
+            minimize => root.minimize();
+            toggle-fullscreen => root.toggle-fullscreen();
+            close => root.close();
+            show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
+            //TODO: バケツリレー
         }
 
         //TopBar {}
-        main-pane:=TabWidget {
+        main-pane := TabWidget {
             //height: 70%;
-            width:100%;
+            width: 100%;
             //orientation: Orientation.vertical;
             Tab {
                 title: @tr("Fixtures");
-                FixturesTab {}
+                FixturesTab { }
             }
+
             Tab {
                 title: @tr("Functions");
-                FunctionsTab {}
+                FunctionsTab { }
             }
+
             Tab {
                 title: @tr("TimeLine");
-                TimeLineTab {}
+                TimeLineTab { }
             }
+
             Tab {
                 title: @tr("Virtual Console");
-                VirtualConsoleTab {}
+                VirtualConsoleTab { }
             }
         }
-        
-        BorderVert {}
-        
-        bottom-panel:=Rectangle {
+
+        BorderVert { }
+
+        bottom-panel := Rectangle {
             //drop-shadow-blur: 0.2rem;
             //drop-shadow-color: Palette.background;
             //height: 30%;
@@ -204,9 +191,11 @@ export component AppWindow inherits Window {
                 //height: 30%;
                 //HorizontalSplit {}
                 
-                Preview2D {}
-                BorderHorz {}
-                FunctionView {}
+                Preview2D { }
+
+                BorderHorz { }
+
+                FunctionView { }
             }
         }
     }
@@ -217,16 +206,29 @@ export component AppWindow inherits Window {
         }
     }*/
 
-    save-dialog:=Dialog{
+   
+
+    save-dialog := Dialog {
         visible: root.showSaveDialog;
         MiddleText {
-            text:@tr("Do you want to save before exit?");
+            text: @tr("Do you want to save before exit?");
         }
-        StandardButton {kind: StandardButtonKind.yes;}
-        StandardButton {kind:StandardButtonKind.no;}
+
         StandardButton {
-            kind:StandardButtonKind.cancel;
-            clicked => {save-dialog.visible=false;}
+            kind: StandardButtonKind.yes;
+        }
+
+        StandardButton {
+            kind: StandardButtonKind.no;
+        }
+
+        StandardButton {
+            kind: StandardButtonKind.cancel;
+            clicked => {
+                save-dialog.visible = false;
+            }
         }
     }
+
+    tooltip := ToolTipArea { }
 }
