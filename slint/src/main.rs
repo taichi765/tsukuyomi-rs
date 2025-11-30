@@ -18,6 +18,8 @@ slint::include_modules!();
 
 fn main() -> Result<(), Box<dyn Error>> {
     let ui = AppWindow::new()?;
+    // TODO: language switch(preferences)
+    // slint::select_bundled_translation("ja".into()).unwrap();
 
     let mut doc = Doc::new();
     let mut command_manager = CommandManager::new();

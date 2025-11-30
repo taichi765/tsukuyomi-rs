@@ -1,0 +1,73 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2025-11-30 08:04+0000\n"
+"PO-Revision-Date: 2025-11-30 17:10+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.8\n"
+
+#: ui/app-window.slint:177
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\app-window.slint:177
+msgctxt "AppWindow"
+msgid "Fixtures"
+msgstr "フィクスチャ"
+
+#: ui/app-window.slint:181
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\app-window.slint:181
+msgctxt "AppWindow"
+msgid "Functions"
+msgstr "ファンクション"
+
+#: ui/app-window.slint:185
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\app-window.slint:185
+msgctxt "AppWindow"
+msgid "TimeLine"
+msgstr "タイムライン"
+
+#: ui/app-window.slint:189
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\app-window.slint:189
+msgctxt "AppWindow"
+msgid "Virtual Console"
+msgstr "バーチャルコンソール"
+
+#: ui/app-window.slint:221
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\app-window.slint:221
+msgctxt "AppWindow"
+msgid "Do you want to save before exit?"
+msgstr "ウィンドウを閉じる前にセーブしますか？"
+
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\timeline-tab.slint:4
+msgctxt "TimeLineTab"
+msgid "TimeLine View"
+msgstr "タイムライン"
+
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\views\function-view.slint:13
+msgctxt "FunctionView"
+msgid "Dimmer"
+msgstr "ディマー"
+
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\views\function-view.slint:19
+msgctxt "FunctionView"
+msgid "Color"
+msgstr "色"
+
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\views\function-view.slint:25
+msgctxt "FunctionView"
+msgid "Position"
+msgstr "ポジション"
+
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\views\function-view.slint:31
+msgctxt "FunctionView"
+msgid "Gobo"
+msgstr "ゴボ"
+
+#: C:\Users\taich\source\tsukuyomi-rs\slint\ui\views\preview-2d.slint:32
+msgctxt "Preview2D"
+msgid "Preview"
+msgstr "プレビュー"

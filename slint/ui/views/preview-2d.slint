@@ -1,14 +1,14 @@
 import { Palette } from "std-widgets.slint";
 import { LargeText, MiddleText } from "../styling.slint";
 
-export struct FixtureEntity {
+export struct FixtureEntityData {
     x:length,
     y:length,
     color:brush
 }
 
 export global Preview2DLogic {
-    in property <[FixtureEntity]> fixture-list:[
+    in property <[FixtureEntityData]> fixture-list:[
         {
             x:1px,
             y:1px,
@@ -22,21 +22,43 @@ export global Preview2DLogic {
     ];
 }
 
+component FixtureEntity inherits Rectangle{
+    //in property <brush> color;
+}
+
 export component Preview2D inherits Rectangle{
     VerticalLayout {
         title:=MiddleText {
-            text: "Preview";
+            text: @tr("Preview");
         }
         body:=Rectangle {
-            for fixture in Preview2DLogic.fixture-list: Rectangle {
+            for fixture in Preview2DLogic.fixture-list: fixture-rect:=Rectangle {
+                property <bool> selected;
+
                 x: fixture.x;
                 y: fixture.y;
+                selected: false;
                 width: 15px;
                 height: 15px;
                 background: fixture.color;
-                border-width: 1px;
-                border-color: Palette.border;
-                border-radius: 25px;
+                //border-radius: 25px;
+
+                states [
+                    active when selected:{
+                        fixture-rect.border-width: 2px;
+                        fixture-rect.border-color: Palette.accent-foreground;
+                    }
+                    inactive when !selected:{
+                        fixture-rect.border-width: 1px;
+                        fixture-rect.border-color: Palette.border;
+                    }
+                ]
+
+                ta:=TouchArea {
+                    clicked => {
+                        fixture-rect.selected=!fixture-rect.selected;
+                    }
+                }
             }
         }
     }

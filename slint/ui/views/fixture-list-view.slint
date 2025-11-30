@@ -1,13 +1,13 @@
 import { Icons, MiddleText, PlaneText } from "../styling.slint";
 import { Palette } from "std-widgets.slint";
 
-export struct Fixture {
+export struct FixtureData {
     name:string
 }
 
 export struct FixtureListModel {
     manufacturer:string,
-    fixtures:[Fixture],
+    fixtures:[FixtureData],
     expanded:bool,  
 }
 
