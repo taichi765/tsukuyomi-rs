@@ -7,6 +7,7 @@ import { FunctionView } from "views/function-view.slint";
 import { Icons, MiddleText, BorderVert, BorderHorz } from "styling.slint";
 import { TopBar } from "top-bar.slint";
 import { TimeLineTab } from "timeline-tab.slint";
+import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
 
 
 export { Preview2DLogic } from "./views/preview-2d.slint";
@@ -70,6 +71,7 @@ export component AppWindow inherits Window {
     icon: Icons.default;
     no-frame: true;
     full-screen: true;
+    default-font-family: "Inter";
 
     property <bool> showSaveDialog;
 
