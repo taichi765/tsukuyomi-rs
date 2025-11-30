@@ -68,8 +68,15 @@ export component HorizontalSplit inherits Rectangle {
 export component AppWindow inherits Window {
     title: "Tsukuyomi";
     icon: Icons.default;
-    //no-frame: true;
+    no-frame: true;
+    full-screen: true;
+
     property <bool> showSaveDialog;
+
+    callback start_drag();
+    callback minimize();
+    callback toggle-fullscreen();
+    callback close();
     /*Rectangle {
         Button {
             text: "Close";
@@ -79,7 +86,8 @@ export component AppWindow inherits Window {
         }
     }*/
 
-    MenuBar {
+
+    /*MenuBar {
         Menu {
             title: @tr("File");
             MenuItem {
@@ -131,14 +139,46 @@ export component AppWindow inherits Window {
             }
         }
     
-    }// MenuBar    
+    }*/// MenuBar    
 
-    VerticalLayout{
-        alignment: LayoutAlignment.start;
+    content:=VerticalLayout{
+        //alignment: LayoutAlignment.start;
 
-        TopBar {}
+        title-bar:=HorizontalLayout {
+            alignment: LayoutAlignment.end;
+            //height: 10%;
+            Rectangle {
+                Image {
+                    source: Icons.minimize;
+                    colorize: white;
+                }
+                TouchArea {
+                    clicked => {root.minimize();}
+                }
+            }
+            Rectangle {
+                Image {
+                    source: Icons.maximize;//TODO: restoreとmaximizeの切り替え
+                    colorize: white;
+                }
+                TouchArea {
+                    clicked => {root.toggle-fullscreen();}
+                }
+            }
+            Rectangle {
+                Image {
+                    source: Icons.close;
+                    colorize: white;
+                }
+                TouchArea {
+                    clicked => {root.close();}
+                }
+            }
+        }
+
+        //TopBar {}
         main-pane:=TabWidget {
-            height: 70%;
+            //height: 70%;
             width:100%;
             //orientation: Orientation.vertical;
             Tab {
@@ -161,10 +201,10 @@ export component AppWindow inherits Window {
         
         BorderVert {}
         
-        Rectangle {
+        bottom-panel:=Rectangle {
             //drop-shadow-blur: 0.2rem;
             //drop-shadow-color: Palette.background;
-            height: 30%;
+            //height: 30%;
 
             HorizontalLayout {
                 //height: 30%;
@@ -176,6 +216,12 @@ export component AppWindow inherits Window {
             }
         }
     }
+
+    /*TouchArea {
+        moved => {
+            root.start_drag();
+        }
+    }*/
 
     save-dialog:=Dialog{
         visible: root.showSaveDialog;

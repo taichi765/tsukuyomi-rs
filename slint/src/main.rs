@@ -1,6 +1,7 @@
 // Prevent console window in addition to Slint window in Windows release builds when, e.g., starting the app via file manager. Ignored on other platforms.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use i_slint_backend_winit::WinitWindowAccessor;
 use slint::{Brush, Color, VecModel};
 use std::error::Error;
 use std::rc::Rc;
@@ -45,13 +46,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     engine_handle.join().unwrap();
 
-    let fixture_list: Vec<FixtureEntity> = vec![
-        FixtureEntity {
+    let fixture_list: Vec<FixtureEntityData> = vec![
+        FixtureEntityData {
             x: 10.0,
             y: 10.0,
             color: Brush::SolidColor(Color::from_rgb_u8(255, 255, 0)),
         },
-        FixtureEntity {
+        FixtureEntityData {
             x: 50.0,
             y: 50.0,
             color: Brush::SolidColor(Color::from_rgb_u8(0, 255, 127)),
@@ -59,6 +60,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     ];
     ui.global::<Preview2DLogic>()
         .set_fixture_list(Rc::new(VecModel::from(fixture_list)).into());
+
+    let ui_handle = ui.as_weak();
+    ui.on_start_drag(move || {
+        let ui = ui_handle.unwrap();
+        ui.window().with_winit_window(|w| w.drag_window());
+    });
+    let ui_handle = ui.as_weak();
+    ui.on_minimize(move || {
+        let ui = ui_handle.unwrap();
+        ui.window().set_minimized(true);
+    });
+    let ui_handle = ui.as_weak();
+    ui.on_close(move || {
+        let ui = ui_handle.unwrap();
+        ui.window().hide().unwrap()
+    });
 
     ui.run()?;
 
