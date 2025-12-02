@@ -1,7 +1,24 @@
-import { Palette, StyleMetrics, TabWidget } from "std-widgets.slint";
-import { MiddleText, PlaneText } from "../styling.slint";
-export component FunctionView inherits Rectangle {
+import { Palette, StyleMetrics, TabWidget, Slider } from "std-widgets.slint";
+import { PlaneText, MiddleText } from "../parts/texts.slint";
+
+export struct FaderValues {
+    dimmer: int,
+    color-r: int,
+    color-g: int,
+    color-b: int
+}
+
+export global FaderLogic {
+    in-out property <FaderValues> values;
+    callback value-changed();
+}
+
+export component FadersView inherits Rectangle {
     in property <string> fixture-id;
+    property <FaderValues> values <=> FaderLogic.values;
+
+    changed values => FaderLogic.value-changed();
+
     VerticalLayout {
         MiddleText {
             text: @tr("Function");
@@ -12,8 +29,15 @@ export component FunctionView inherits Rectangle {
             Tab {
                 title: @tr("Dimmer");
                 Rectangle {
-                    PlaneText {
-                        text: "dimmer";
+                    Slider {
+                        orientation: Orientation.vertical;
+                        minimum: 0;
+                        maximum: 255;
+                        height: 65%;
+                        transform-rotation: 180deg;
+                        changed(value) => {
+                            root.values.dimmer=round(value);
+                        }
                     }
                 }
             }

@@ -1,3 +1,8 @@
+pub mod bottom_panel_bridge;
+pub mod doc_event_bridge;
+pub mod fader_view_bridge;
+pub mod preview_plugin;
+
 use std::collections::HashMap;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, RwLock};
@@ -17,10 +22,6 @@ use tsukuyomi_core::{
     readonly::ReadOnly,
     universe::{DmxAddress, UniverseId},
 };
-
-pub mod bottom_panel_bridge;
-pub mod doc_event_bridge;
-pub mod preview_plugin;
 
 use crate::bottom_panel_bridge::BottomPanelBridge;
 use crate::preview_plugin::PreviewOutput;

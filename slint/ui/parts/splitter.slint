@@ -1,0 +1,100 @@
+
+export component HorizontalSplit inherits Rectangle {
+    property <float> proportion: 50%;
+    property <float> actual_proportion: handle.pressed ? handle.new_proportion : proportion;
+    r1 := Rectangle {
+        height: 100%;
+        width: actual_proportion * parent.width - handle.width / 2;
+        TouchArea { }
+
+        Rectangle {
+            background: blue;
+        }
+    }
+
+    handle := Rectangle {
+        x: r1.width;
+        height: 100%;
+        width: 8px;
+        z: 100;
+        background: @linear-gradient(0deg, #ddd, #aaa);
+        out property <float> new_proportion:ta.new_proportion;
+        out property <bool> pressed:ta.pressed;
+        ta := TouchArea {
+            property <float> new_proportion: max(0.05, min(0.95, proportion + (self.mouse_x - self.pressed_x) / root.width));
+            clicked => {
+                root.proportion = self.new_proportion;
+                debug("ta clicked")
+            }
+        }
+    }
+
+    r2 := Rectangle {
+        height: 100%;
+        width: (1 - actual_proportion) * parent.width - handle.width / 2;
+        x: handle.x + handle.width;
+        TouchArea { }
+
+        Rectangle {
+            background: red;
+        }
+    }
+    // This area covers the whole rectangle, but there it can only be clicked form the handle because
+    // there is a TouchArea in sub rectangles
+    touch := TouchArea {
+        property <float> new_proportion: max(0.05, min(0.95, proportion + (self.mouse_x - self.pressed_x) / root.width));
+        clicked => {
+            proportion = new_proportion;
+            debug("clicked")
+        }
+    }
+}
+
+export component SplitterVert inherits Rectangle {
+    property <float> proportion:40%;
+    property <float> actual-proportion:handle.pressed ? handle.new-proportion : self.proportion;
+
+    changed proportion => {
+        debug("root changed {}",proportion)
+    }
+
+    r1:=Rectangle{
+        width: 100%;
+        height: root.actual-proportion*root.height - handle.height/2;
+        x:0;
+        y:0;
+        Rectangle{
+            background: red;
+        }
+        TouchArea {}
+    }
+
+    handle:=Rectangle{
+        height: 6px;
+        y:r1.height;
+        z:100;
+        background: white;
+
+        out property <float> new-proportion:ta.new-proportion;
+        out property <bool> pressed:ta.pressed;
+        ta:=TouchArea{
+            out property <float> new-proportion:max(0.05, min(0.95, proportion + (self.mouse-y - self.pressed-y) / root.height));
+            changed pressed => {
+                if !pressed{
+                    root.proportion=ta.new-proportion;
+                    debug("set");
+                }
+            }
+        }
+    }
+
+    r2:=Rectangle{
+        width: 100%;
+        height: (1 - root.actual-proportion)*root.height - handle.height/2;
+        y:handle.y;
+        Rectangle {
+            background: blue;
+        }
+        TouchArea {}
+    }
+}
