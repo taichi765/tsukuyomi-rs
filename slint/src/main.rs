@@ -68,15 +68,28 @@ fn main() -> Result<(), Box<dyn Error>> {
         let ui = ui_handle.unwrap();
         ui.window().with_winit_window(|w| w.drag_window());
     });
+
     let ui_handle = ui.as_weak();
     ui.on_minimize(move || {
         let ui = ui_handle.unwrap();
         ui.window().set_minimized(true);
     });
+
+    // TODO: toggle-fullscreen
+
     let ui_handle = ui.as_weak();
     ui.on_close(move || {
         let ui = ui_handle.unwrap();
         ui.window().hide().unwrap()
+    });
+
+    #[cfg(target_os = "macos")]
+    ui.set_is_macos(true);
+    #[cfg(not(target_os = "macos"))]
+    ui.set_is_macos(false);
+
+    ui.global::<FaderLogic>().on_value_changed(move || {
+        println!("value changed!");
     });
 
     ui.run()?;

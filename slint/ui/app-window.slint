@@ -3,10 +3,9 @@ import { FixturesTab } from "fixtures-tab.slint";
 import { FunctionsTab } from "functions-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
 import { Preview2D } from "views/preview-2d.slint";
-import { FunctionView } from "views/function-view.slint";
+import { FadersView } from "views/faders-view.slint";
 import {
     Icons,
-    MiddleText,
     BorderVert,
     BorderHorz,
     Theme,
@@ -16,64 +15,15 @@ import { TimeLineTab } from "timeline-tab.slint";
 import { ToolTipArea } from "parts/tooltip.slint";
 import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
 import { TitleBar } from "titlebar.slint";
+import { MiddleText } from "parts/texts.slint";
 
 
 export { Preview2DLogic } from "./views/preview-2d.slint";
+export { FaderLogic } from "./views/faders-view.slint";
 
 export global MenuBarActions {
     callback save();
     callback save-as();
-}
-
-export component HorizontalSplit inherits Rectangle {
-    property <float> proportion: 50%;
-    property <float> actual_proportion: handle.pressed ? handle.new_proportion : proportion;
-    r1 := Rectangle {
-        height: 100%;
-        width: actual_proportion * parent.width - handle.width / 2;
-        TouchArea { }
-
-        Rectangle {
-            background: blue;
-        }
-    }
-
-    handle := Rectangle {
-        x: r1.width;
-        height: 100%;
-        width: 8px;
-        z: 100;
-        background: @linear-gradient(0deg, #ddd, #aaa);
-        out property <float> new_proportion:ta.new_proportion;
-        out property <bool> pressed:ta.pressed;
-        ta := TouchArea {
-            property <float> new_proportion: max(0.05, min(0.95, proportion + (self.mouse_x - self.pressed_x) / root.width));
-            clicked => {
-                root.proportion = self.new_proportion;
-                debug("ta clicked")
-            }
-        }
-    }
-
-    r2 := Rectangle {
-        height: 100%;
-        width: (1 - actual_proportion) * parent.width - handle.width / 2;
-        x: handle.x + handle.width;
-        TouchArea { }
-
-        Rectangle {
-            background: red;
-        }
-    }
-    // This area covers the whole rectangle, but there it can only be clicked form the handle because
-    // there is a TouchArea in sub rectangles
-    touch := TouchArea {
-        property <float> new_proportion: max(0.05, min(0.95, proportion + (self.mouse_x - self.pressed_x) / root.width));
-        clicked => {
-            proportion = new_proportion;
-            debug("clicked")
-        }
-    }
 }
 
 export component AppWindow inherits Window {
@@ -83,13 +33,14 @@ export component AppWindow inherits Window {
     full-screen: true;
     default-font-family: "Inter";
     property <bool> showSaveDialog;
+    in property <bool> is-macos;
     callback start_drag();
     callback minimize();
     callback toggle-fullscreen();
     callback close();
 
 
-    /*MenuBar {
+    if is-macos:MenuBar {
         Menu {
             title: @tr("File");
             MenuItem {
@@ -141,12 +92,12 @@ export component AppWindow inherits Window {
             }
         }
     
-    }*/// MenuBar    
+    }    
 
     content := VerticalLayout {
         //alignment: LayoutAlignment.start;
 
-        TitleBar {
+        if !is-macos:TitleBar {
             minimize => root.minimize();
             toggle-fullscreen => root.toggle-fullscreen();
             close => root.close();
@@ -195,7 +146,7 @@ export component AppWindow inherits Window {
 
                 BorderHorz { }
 
-                FunctionView { }
+                FadersView { }
             }
         }
     }
