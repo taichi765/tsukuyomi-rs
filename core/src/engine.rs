@@ -1,7 +1,7 @@
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use uuid::Uuid;
 
-use crate::doc::{Doc, ResolveError};
+use crate::doc::Doc;
 use crate::fixture::FixtureId;
 use crate::functions::{FunctionCommand, FunctionId, FunctionRuntime};
 use crate::plugins::Plugin;
@@ -30,6 +30,7 @@ pub struct Engine {
     output_plugins: HashMap<OutputPluginId, Box<dyn Plugin>>,
     universe_states: HashMap<UniverseId, UniverseState>,
     output_map_cache: HashMap<OutputPluginId, Vec<UniverseId>>,
+    live_values: HashMap<(FixtureId, String), u8>,
 
     should_shutdown: bool,
 }
@@ -48,6 +49,7 @@ impl Engine {
             output_plugins: HashMap::new(),
             universe_states: HashMap::new(),
             output_map_cache: HashMap::new(),
+            live_values: HashMap::new(),
             should_shutdown: false,
         }
     }
@@ -58,6 +60,12 @@ impl Engine {
             self.handle_engine_commands();
 
             self.universe_states.iter_mut().for_each(|(_, u)| u.clear());
+
+            // apply live values before running function, so LTP channels will be overridden.
+            let live_values = self.live_values.clone();
+            live_values.iter().for_each(|((id, ch), v)| {
+                self.write_universe(*id, ch, *v);
+            });
 
             self.run_active_functions();
 
@@ -82,7 +90,7 @@ impl Engine {
             if self.should_shutdown {
                 break;
             }
-            std::thread::sleep(TICK_DURATION);
+            std::thread::sleep(TICK_DURATION); //TODO: フレームレートを安定させる
         }
     }
 
@@ -101,6 +109,18 @@ impl Engine {
                         UniverseId::new(self.universe_states.len() as u8), // TODO 雑 IDをUIスレッドに返すとかしてもいい
                         UniverseState::new(),
                     );
+                }
+                EngineCommand::SetLiveValue {
+                    fixture_id,
+                    channel,
+                    value,
+                } => {
+                    if value == 0 {
+                        // エントリが存在しなかった場合も何もしない
+                        let _ = self.live_values.remove(&(fixture_id, channel));
+                    } else {
+                        let _ = self.live_values.insert((fixture_id, channel), value);
+                    }
                 }
                 EngineCommand::OutputMapChanged => self.update_output_map_cache(),
                 EngineCommand::Shutdown => self.should_shutdown = true,
@@ -225,6 +245,11 @@ pub enum EngineCommand {
     StopFunction(FunctionId),
     AddPlugin(Box<dyn Plugin>),
     AddUniverse,
+    SetLiveValue {
+        fixture_id: FixtureId,
+        channel: String,
+        value: u8,
+    },
     OutputMapChanged, // FIXME: Docの監視にメインスレッドを介すのは正しいか？
     Shutdown,
 }
@@ -256,7 +281,6 @@ impl Error for EngineError {
 #[derive(Debug)]
 pub enum ErrorContext {
     ResolvingAddress {
-        function_id: FunctionId,
         fixture_id: FixtureId,
         channel: String,
     },
