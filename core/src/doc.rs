@@ -1,5 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
+    error::Error,
+    fmt::Display,
     sync::{RwLock, Weak},
 };
 
@@ -170,6 +172,18 @@ pub enum ResolveError {
         mode: String,
         channel: String,
     },
+}
+
+impl Display for ResolveError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "error while resolving address: {:?}", self)
+    }
+}
+
+impl Error for ResolveError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
 }
 
 pub struct UniverseSetting {

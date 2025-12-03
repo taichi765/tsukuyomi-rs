@@ -69,23 +69,7 @@ impl Engine {
 
             self.run_active_functions();
 
-            self.output_map_cache.par_iter().for_each(|(p_id, u_ids)| {
-                let plugin = self.output_plugins.get(p_id).unwrap();
-                u_ids.iter().for_each(|u_id| {
-                    let universe_data = self.universe_states.get(u_id).unwrap();
-                    if let Err(e) = plugin.send_dmx(u_id.value(), &universe_data.values()) {
-                        self.message_tx
-                            .send(EngineMessage::ErrorOccured(EngineError {
-                                context: ErrorContext::SendingDmx {
-                                    universe_id: *u_id,
-                                    plugin_id: *p_id,
-                                },
-                                source: Box::new(e),
-                            }))
-                            .unwrap();
-                    }
-                });
-            });
+            self.dispatch_outputs();
 
             if self.should_shutdown {
                 break;
@@ -146,9 +130,7 @@ impl Engine {
                     fixture_id,
                     channel,
                     value,
-                } => self
-                    .write_universe(fixture_id, channel, value)
-                    .expect("something went wrong"),
+                } => self.write_universe(fixture_id, &channel, value),
                 FunctionCommand::StartFade {
                     from_id,
                     to_id,
@@ -157,6 +139,26 @@ impl Engine {
                 } => self.start_fade(from_id, to_id, chaser_id, duration),
             }
         }
+    }
+
+    fn dispatch_outputs(&mut self) {
+        self.output_map_cache.par_iter().for_each(|(p_id, u_ids)| {
+            let plugin = self.output_plugins.get(p_id).unwrap();
+            u_ids.iter().for_each(|u_id| {
+                let universe_data = self.universe_states.get(u_id).unwrap();
+                if let Err(e) = plugin.send_dmx(u_id.value(), &universe_data.values()) {
+                    self.message_tx
+                        .send(EngineMessage::ErrorOccured(EngineError {
+                            context: ErrorContext::SendingDmx {
+                                universe_id: *u_id,
+                                plugin_id: *p_id,
+                            },
+                            source: Box::new(e),
+                        }))
+                        .unwrap();
+                }
+            });
+        });
     }
 
     ///既にstartしてた場合は何もしない
@@ -175,16 +177,27 @@ impl Engine {
         self.active_runtimes.remove(&function_id);
     }
 
-    fn write_universe(
-        &mut self,
-        fixture_id: FixtureId,
-        channel: String,
-        value: u8,
-    ) -> Result<(), ResolveError> {
-        let (universe_id, address) = self.doc.read().resolve_address(fixture_id, &channel)?;
-        let universe = self.universe_states.get_mut(&universe_id).unwrap();
-        universe.set_value(address, value);
-        Ok(())
+    fn write_universe(&mut self, fixture_id: FixtureId, channel: &str, value: u8) {
+        match self.doc.read().resolve_address(fixture_id, channel) {
+            Ok((universe_id, address)) => {
+                let universe = self.universe_states.get_mut(&universe_id).unwrap();
+                universe.set_value(address, value);
+            }
+            Err(e) => {
+                if let Err(send_err) =
+                    self.message_tx
+                        .send(EngineMessage::ErrorOccured(EngineError {
+                            context: ErrorContext::ResolvingAddress {
+                                fixture_id,
+                                channel: String::from(channel),
+                            },
+                            source: Box::new(e),
+                        }))
+                {
+                    eprintln!("engine: failed to send error: {}", send_err);
+                }
+            }
+        }
     }
 
     fn start_fade(&mut self, from_id: Uuid, to_id: Uuid, chaser_id: Uuid, duration: Duration) {
