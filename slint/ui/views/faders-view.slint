@@ -5,19 +5,17 @@ export struct FaderValues {
     dimmer: int,
     color-r: int,
     color-g: int,
-    color-b: int
-}
+    color-b: int}
 
 export global FaderLogic {
     in-out property <FaderValues> values;
-    callback value-changed();
+    callback value-changed(string, string, int);
+    // fixture-id, channel, value
 }
 
 export component FadersView inherits Rectangle {
     in property <string> fixture-id;
     property <FaderValues> values <=> FaderLogic.values;
-
-    changed values => FaderLogic.value-changed();
 
     VerticalLayout {
         MiddleText {
@@ -28,16 +26,20 @@ export component FadersView inherits Rectangle {
             orientation: Orientation.vertical;
             Tab {
                 title: @tr("Dimmer");
-                Rectangle {
-                    Slider {
+                VerticalLayout {
+                    slider := Slider {
                         orientation: Orientation.vertical;
                         minimum: 0;
                         maximum: 255;
                         height: 65%;
-                        transform-rotation: 180deg;
                         changed(value) => {
-                            root.values.dimmer=round(value);
+                            root.values.dimmer = round(value);
+                            FaderLogic.value-changed(fixture-id,"dimmer",value);
                         }
+                    }
+
+                    Text {
+                        text: round(slider.value);
                     }
                 }
             }
