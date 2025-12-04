@@ -1,6 +1,0 @@
-[workspace]
-members=[
-    "slint",
-    "core"
-]
-resolver="3"

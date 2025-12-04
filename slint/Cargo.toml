@@ -9,6 +9,7 @@ edition = "2024"
 slint = { path = "../../slint/api/rs/slint",features = ["backend-winit"] }
 tsukuyomi-core={ path="../core" }
 i-slint-backend-winit={ path = "../../slint/internal/backends/winit" }
+uuid={workspace=true}
 
 [build-dependencies]
 slint-build = { path="../../slint/api/rs/build" }

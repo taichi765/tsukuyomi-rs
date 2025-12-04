@@ -1,0 +1,10 @@
+[workspace]
+members=[
+    "slint",
+    "core"
+]
+resolver="3"
+
+[workspace.dependencies]
+uuid={version="1.19.0",features=["v4"]}
+log="0.4.29"
