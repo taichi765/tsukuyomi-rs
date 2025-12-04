@@ -79,7 +79,8 @@ impl Engine {
     }
 
     fn add_output_plugin(&mut self, plugin: Box<dyn Plugin>) {
-        self.output_plugins.insert(OutputPluginId::new(), plugin);
+        self.output_plugins.insert(plugin.id(), plugin);
+        dbg!("added output plugin");
     }
 
     fn handle_engine_commands(&mut self) {

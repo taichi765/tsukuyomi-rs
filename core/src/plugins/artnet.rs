@@ -2,11 +2,12 @@ use std::net::{SocketAddr, UdpSocket};
 
 use artnet_protocol::{ArtCommand, Output};
 
-use crate::plugins::Plugin;
+use crate::{engine::OutputPluginId, plugins::Plugin};
 
 const ARTNET_PORT: u16 = 6454;
 
 pub struct ArtNetPlugin {
+    id: OutputPluginId,
     socket: UdpSocket,
     destination: SocketAddr,
 }
@@ -22,6 +23,7 @@ impl ArtNetPlugin {
             .parse()
             .expect("invalid target IP address");
         Ok(Self {
+            id: OutputPluginId::new(),
             socket,
             destination,
         })
@@ -41,5 +43,9 @@ impl Plugin for ArtNetPlugin {
         let buf = command.write_to_buffer().unwrap();
         self.socket.send_to(&buf, self.destination)?;
         Ok(())
+    }
+
+    fn id(&self) -> OutputPluginId {
+        self.id
     }
 }
