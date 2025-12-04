@@ -1,3 +1,4 @@
+use log::warn;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use uuid::Uuid;
 
@@ -56,6 +57,7 @@ impl Engine {
 
     pub fn start_loop(mut self) {
         println!("starting engine...");
+        self.update_output_map_cache();
         loop {
             self.handle_engine_commands();
 
@@ -89,11 +91,19 @@ impl Engine {
                 EngineCommand::StartFunction(id) => self.start_function(id),
                 EngineCommand::StopFunction(id) => self.stop_function(id),
                 EngineCommand::AddPlugin(p) => self.add_output_plugin(p),
-                EngineCommand::AddUniverse => {
-                    self.universe_states.insert(
-                        UniverseId::new(self.universe_states.len() as u8), // TODO 雑 IDをUIスレッドに返すとかしてもいい
-                        UniverseState::new(),
-                    );
+                EngineCommand::UniverseAdded(id) => {
+                    if let None = self.universe_states.insert(id, UniverseState::new()) {
+                        warn!(
+                            "[engine] UniverseAdded: universe id {id:?} already exists in Engine::universes"
+                        );
+                    }
+                }
+                EngineCommand::UniverseRemoved(id) => {
+                    if let None = self.universe_states.remove(&id) {
+                        warn!(
+                            "[engine] UniverseRemoved: universe id {id:?} does not exists in Engine::universes"
+                        );
+                    }
                 }
                 EngineCommand::SetLiveValue {
                     fixture_id,
@@ -145,6 +155,7 @@ impl Engine {
     fn dispatch_outputs(&mut self) {
         self.output_map_cache.par_iter().for_each(|(p_id, u_ids)| {
             let plugin = self.output_plugins.get(p_id).unwrap();
+            dbg!("sending to plugin id {}", p_id);
             u_ids.iter().for_each(|u_id| {
                 let universe_data = self.universe_states.get(u_id).unwrap();
                 if let Err(e) = plugin.send_dmx(u_id.value(), &universe_data.values()) {
@@ -236,7 +247,9 @@ impl Engine {
         self.start_function(fader_id);*/
     }
 
+    // FIXME: universe_settingsごとプッシュ型の方がいいか？
     fn update_output_map_cache(&mut self) {
+        dbg!("updating output map cache");
         let doc = self.doc.read();
         let mut new_map: HashMap<OutputPluginId, Vec<UniverseId>> = HashMap::new();
         for (u_id, setting) in doc.universe_settings() {
@@ -255,17 +268,21 @@ impl Engine {
 
 /// Message from the main thread to [`Engine`]
 pub enum EngineCommand {
+    // Commands
     StartFunction(FunctionId),
     StopFunction(FunctionId),
     AddPlugin(Box<dyn Plugin>),
-    AddUniverse,
     SetLiveValue {
         fixture_id: FixtureId,
         channel: String,
         value: u8,
     },
-    OutputMapChanged, // FIXME: Docの監視にメインスレッドを介すのは正しいか？
     Shutdown,
+
+    // Events
+    OutputMapChanged, // FIXME: Docの監視にメインスレッドを介すのは正しいか？
+    UniverseAdded(UniverseId),
+    UniverseRemoved(UniverseId),
 }
 
 /// Message from [`Engine`] to the main thread
