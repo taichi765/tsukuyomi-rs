@@ -5,7 +5,6 @@ pub mod preview_plugin;
 
 use std::collections::HashMap;
 use std::error::Error;
-use std::rc::Rc;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, RwLock, mpsc};
 use std::thread;
@@ -13,9 +12,8 @@ use std::time::Duration;
 
 use i_slint_backend_winit::WinitWindowAccessor;
 
-use slint::Weak;
-use slint::{Brush, Color, VecModel};
 use tsukuyomi_core::command_manager::CommandManager;
+use tsukuyomi_core::commands::doc_commands;
 use tsukuyomi_core::engine::{Engine, EngineCommand, EngineMessage};
 use tsukuyomi_core::functions::FunctionId;
 use tsukuyomi_core::{
@@ -25,11 +23,11 @@ use tsukuyomi_core::{
     fixture::{Fixture, MergeMode},
     fixture_def::{ChannelDef, FixtureDef, FixtureMode},
     functions::{FunctionData, FunctionDataGetters, SceneValue, StaticSceneData},
+    plugins::Plugin,
     readonly::ReadOnly,
     universe::{DmxAddress, UniverseId},
 };
 
-use crate::bottom_panel_bridge::BottomPanelBridge;
 use crate::doc_event_bridge::DocEventBridge;
 use crate::fader_view_bridge::{adapt_2d_preview, adapt_fader_view};
 use crate::preview_plugin::PreviewOutput;
@@ -62,6 +60,21 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
         .unwrap();
 
     try_some_commands(command_tx.clone(), scene_id);
+
+    // TODO: シリアライズからの復元
+    let plugin = PreviewOutput::new();
+    if let Err(e) = command_manager.execute(
+        Box::new(doc_commands::AddOutput::new(
+            UniverseId::new(0),
+            plugin.id(),
+        )),
+        &mut doc.write().unwrap(),
+    ) {
+        println!("{}", e); // TODO: some error handling
+    }
+    command_tx
+        .send(EngineCommand::AddPlugin(Box::new(plugin)))
+        .unwrap();
 
     let ui = AppWindow::new()?;
     // TODO: language switch(preferences)
@@ -165,10 +178,6 @@ pub fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FunctionId) {
 
 pub fn try_some_commands(command_tx: Sender<EngineCommand>, scene_id: FunctionId) {
     command_tx.send(EngineCommand::AddUniverse).unwrap();
-
-    command_tx
-        .send(EngineCommand::AddPlugin(Box::new(PreviewOutput::new())))
-        .unwrap();
 
     command_tx
         .send(EngineCommand::StartFunction(scene_id))
