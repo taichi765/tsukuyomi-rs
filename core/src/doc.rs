@@ -91,56 +91,100 @@ impl Doc {
     }
 
     /* ---------- mutable functions ---------- */
-    pub(crate) fn add_function(&mut self, function: FunctionData) -> Result<(), String> {
-        if self.functions.contains_key(&function.id()) {
-            return Err(format!("function id {} already exsists", function.id(),));
-        }
-        self.functions.insert(function.id(), function);
-        Ok(())
+
+    /// Same as [std::collections::HashMap::remove()]
+    pub(crate) fn add_function(&mut self, function: FunctionData) -> Option<FunctionData> {
+        let id = function.id();
+        let opt = self.functions.insert(id, function);
+        self.notify(DocEvent::FunctionInserted(id));
+        opt
     }
 
-    pub(crate) fn remove_function(&mut self, function_id: FunctionId) -> Option<FunctionData> {
-        self.functions.remove(&function_id)
+    /// Same as [std::collections::HashMap::remove()]
+    pub(crate) fn remove_function(&mut self, id: &FunctionId) -> Option<FunctionData> {
+        let opt = self.functions.remove(id);
+        self.notify(DocEvent::FunctionRemoved(*id));
+        opt
     }
 
-    pub(crate) fn add_fixture(&mut self, fixture: Fixture) {
+    /// Same as [std::collections::HashMap::remove()]
+    pub(crate) fn insert_fixture(&mut self, fixture: Fixture) -> Option<Fixture> {
         // TODO: fixture_defがあるか確認
-        self.fixtures.insert(fixture.id(), fixture);
+        let id = fixture.id();
+        let opt = self.fixtures.insert(id, fixture);
+        self.notify(DocEvent::FixtureInserted(id));
+        opt
     }
 
-    pub(crate) fn remove_fixture(&mut self, fixture_id: FixtureId) -> Option<Fixture> {
-        self.fixtures.remove(&fixture_id)
+    /// Same as [std::collections::HashMap::remove()]
+    pub(crate) fn remove_fixture(&mut self, id: &FixtureId) -> Option<Fixture> {
+        let opt = self.fixtures.remove(id);
+        self.notify(DocEvent::FixtureRemoved(*id));
+        opt
     }
 
-    pub(crate) fn add_fixture_def(&mut self, fixture_def: FixtureDef) {
-        self.fixture_definitions
-            .insert(fixture_def.id(), fixture_def);
+    /// Same as [std::collections::HashMap::remove()]
+    pub(crate) fn insert_fixture_def(&mut self, fixture_def: FixtureDef) -> Option<FixtureDef> {
+        let id = fixture_def.id();
+        let opt = self.fixture_definitions.insert(id, fixture_def);
+        self.notify(DocEvent::FixtureDefInserted(id));
+        opt
     }
 
-    pub(crate) fn remove_fixture_def(
+    /// Same as [std::collections::HashMap::remove()]
+    pub(crate) fn remove_fixture_def(&mut self, id: &FixtureDefId) -> Option<FixtureDef> {
+        // TODO: このFixtureDefを参照しているFixtureの処理
+        let opt = self.fixture_definitions.remove(id);
+        self.notify(DocEvent::FixtureDefRemoved(*id));
+        opt
+    }
+
+    /// Returns `Some(old_setting)` or `None`
+    pub(crate) fn add_universe(&mut self, id: UniverseId) -> Option<UniverseSetting> {
+        let opt = self.universe_settings.insert(id, UniverseSetting::new());
+        self.notify(DocEvent::UniverseAdded(id));
+        opt
+    }
+
+    /// Same as [std::collections::HashMap::remove()]
+    pub(crate) fn remove_universe(&mut self, id: &UniverseId) -> Option<UniverseSetting> {
+        let opt = self.universe_settings.remove(id);
+        self.notify(DocEvent::UniverseRemoved(*id));
+        opt
+    }
+
+    /// Returns `true` when plugin already exists.
+    pub(crate) fn add_output(
         &mut self,
-        fixture_def_id: FixtureDefId,
-    ) -> Option<FixtureDef> {
-        self.fixture_definitions.remove(&fixture_def_id)
-    }
-
-    pub(crate) fn add_output(&mut self, universe_id: UniverseId, plugin: OutputPluginId) {
-        // TODO: universeが存在しない時どうする？
+        universe_id: UniverseId,
+        plugin: OutputPluginId,
+    ) -> Result<bool, OutputMapError> {
         let setting = self
             .universe_settings
             .get_mut(&universe_id)
-            .expect("something went wrong");
-        setting.output_plugins.insert(plugin);
-        self.notify(DocEvent::UniverseSettingsChanged);
+            .ok_or(OutputMapError::UniverseNotFound)?;
+        let is_inserted = setting.output_plugins.insert(plugin);
+        if is_inserted {
+            self.notify(DocEvent::UniverseSettingsChanged);
+        }
+        Ok(is_inserted)
     }
 
-    pub(crate) fn remove_output(&mut self, universe_id: UniverseId, plugin: OutputPluginId) {
+    /// Returns `true` when plugin was not in the list.
+    pub(crate) fn remove_output(
+        &mut self,
+        universe_id: &UniverseId,
+        plugin: &OutputPluginId,
+    ) -> Result<bool, OutputMapError> {
         let setting = self
             .universe_settings
             .get_mut(&universe_id)
-            .expect("something went wrong");
-        //TODO: Optionを返す
-        setting.output_plugins.remove(&plugin);
+            .ok_or(OutputMapError::UniverseNotFound)?;
+        let is_removed = setting.output_plugins.remove(&plugin);
+        if is_removed {
+            self.notify(DocEvent::UniverseRemoved(*universe_id));
+        }
+        Ok(is_removed)
     }
 
     /// Notifies event to all observers
@@ -154,6 +198,26 @@ impl Doc {
             }
         });
     }
+}
+
+#[derive(Clone)]
+pub enum DocEvent {
+    UniverseSettingsChanged,
+    UniverseAdded(UniverseId),
+    UniverseRemoved(UniverseId),
+    /// Also emitted when [`Fixture`] is updated
+    FixtureInserted(FixtureId),
+    FixtureRemoved(FixtureId),
+    /// Also emitted when [`FixtureDef`] is updated
+    FixtureDefInserted(FixtureDefId),
+    FixtureDefRemoved(FixtureDefId),
+    /// Also emitted when [`FunctionData`] is updated
+    FunctionInserted(FunctionId),
+    FunctionRemoved(FunctionId),
+}
+
+pub trait DocObserver: Send + Sync {
+    fn on_doc_event(&mut self, event: &DocEvent);
 }
 
 #[derive(Debug)]
@@ -186,25 +250,37 @@ impl Error for ResolveError {
     }
 }
 
+#[derive(Debug)]
+pub enum OutputMapError {
+    UniverseNotFound,
+}
+
+impl Display for OutputMapError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl Error for OutputMapError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+}
+
 pub struct UniverseSetting {
     output_plugins: HashSet<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
 }
 
 impl UniverseSetting {
+    pub fn new() -> Self {
+        Self {
+            output_plugins: HashSet::new(),
+        }
+    }
+
     pub fn output_plugins(&self) -> &HashSet<OutputPluginId> {
         &self.output_plugins
     }
-}
-
-#[derive(Clone)]
-pub enum DocEvent {
-    UniverseSettingsChanged,
-    FixtureAdded { id: FixtureId },
-    FixtureRemoved { id: FixtureId },
-}
-
-pub trait DocObserver: Send + Sync {
-    fn on_doc_event(&mut self, event: &DocEvent);
 }
 
 pub(crate) struct ResolvedAddress {

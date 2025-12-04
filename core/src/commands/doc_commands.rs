@@ -26,13 +26,17 @@ impl AddFunction {
 impl DocCommand for AddFunction {
     fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
         if let Some(f) = self.function.take() {
-            doc.add_function(f)
+            if let Some(_) = doc.add_function(f) {
+                Ok(()) // FIXME: DocCommandでUpdateとCreateは分けるべき？
+            } else {
+                Ok(())
+            }
         } else {
             Err("function is already moved".into())
         }
     }
     fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
-        if let Some(f) = doc.remove_function(self.function_id) {
+        if let Some(f) = doc.remove_function(&self.function_id) {
             self.function = Some(f);
             Ok(())
         } else {
@@ -58,7 +62,7 @@ impl AddFixture {
 impl DocCommand for AddFixture {
     fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
         if let Some(f) = self.fixture.take() {
-            doc.add_fixture(f);
+            doc.insert_fixture(f);
             Ok(())
         } else {
             Err("fixture is already moved".into())
@@ -66,7 +70,7 @@ impl DocCommand for AddFixture {
     }
 
     fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
-        if let Some(f) = doc.remove_fixture(self.fixture_id) {
+        if let Some(f) = doc.remove_fixture(&self.fixture_id) {
             self.fixture = Some(f);
             Ok(())
         } else {
@@ -92,14 +96,14 @@ impl AddFixtureDef {
 impl DocCommand for AddFixtureDef {
     fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
         if let Some(def) = self.fixture_def.take() {
-            doc.add_fixture_def(def);
+            doc.insert_fixture_def(def);
             Ok(())
         } else {
             Err("fixture definition is already moved".into())
         }
     }
     fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
-        if let Some(def) = doc.remove_fixture_def(self.fixture_def_id) {
+        if let Some(def) = doc.remove_fixture_def(&self.fixture_def_id) {
             self.fixture_def = Some(def);
             Ok(())
         } else {
@@ -129,7 +133,7 @@ impl DocCommand for AddOutput {
     }
 
     fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
-        doc.remove_output(self.universe_id, self.plugin);
+        doc.remove_output(&self.universe_id, &self.plugin);
         Ok(())
     }
 }
