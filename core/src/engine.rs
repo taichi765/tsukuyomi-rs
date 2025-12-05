@@ -86,7 +86,8 @@ impl Engine {
     }
 
     fn handle_engine_commands(&mut self) {
-        if let Ok(cmd) = self.command_rx.try_recv() {
+        while let Ok(cmd) = self.command_rx.try_recv() {
+            trace!(?cmd, "received command");
             match cmd {
                 EngineCommand::StartFunction(id) => self.start_function(id),
                 EngineCommand::StopFunction(id) => self.stop_function(id),
@@ -154,10 +155,15 @@ impl Engine {
 
     fn dispatch_outputs(&mut self) {
         self.output_map_cache.par_iter().for_each(|(p_id, u_ids)| {
-            let plugin = self.output_plugins.get(p_id).unwrap();
-            dbg!("sending to plugin id {}", p_id);
+            let Some(plugin) = self.output_plugins.get(p_id) else {
+                warn!(plugin_id = %p_id, "plugin not found"); // FIXME: message_txでエラーを送るべき？
+                return;
+            };
             u_ids.iter().for_each(|u_id| {
-                let universe_data = self.universe_states.get(u_id).unwrap();
+                let Some(universe_data) = self.universe_states.get(u_id) else {
+                    warn!(universe_id = ?u_id, "universe state not created");
+                    return;
+                };
                 if let Err(e) = plugin.send_dmx(u_id.value(), &universe_data.values()) {
                     self.message_tx
                         .send(EngineMessage::ErrorOccured(EngineError {
