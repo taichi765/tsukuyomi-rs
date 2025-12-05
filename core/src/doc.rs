@@ -283,7 +283,19 @@ impl UniverseSetting {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct ResolvedAddress {
     pub merge_mode: MergeMode,
     pub address: DmxAddress,
+}
+
+#[cfg(test)]
+mod tests {
+    mod events;
+    mod fixture_defs;
+    mod fixtures;
+    mod functions;
+    mod helpers;
+    mod resolve;
+    mod universe_outputs;
 }

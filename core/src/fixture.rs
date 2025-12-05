@@ -5,7 +5,7 @@ use crate::{
 
 declare_id_newtype!(FixtureId);
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum MergeMode {
     HTP,
     LTP,
