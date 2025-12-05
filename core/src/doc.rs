@@ -5,6 +5,8 @@ use std::{
     sync::{RwLock, Weak},
 };
 
+use tracing::{trace, warn};
+
 use crate::{
     engine::OutputPluginId,
     fixture::{Fixture, FixtureId, MergeMode},
@@ -165,6 +167,7 @@ impl Doc {
             .ok_or(OutputMapError::UniverseNotFound)?;
         let is_inserted = setting.output_plugins.insert(plugin);
         if is_inserted {
+            trace!("notifying setting change");
             self.notify(DocEvent::UniverseSettingsChanged);
         }
         Ok(is_inserted)
@@ -189,11 +192,13 @@ impl Doc {
 
     /// Notifies event to all observers
     fn notify(&mut self, event: DocEvent) {
+        trace!("observers: {}", self.observers.len());
         self.observers.retain(|weak_ob| {
             if let Some(ob) = weak_ob.upgrade() {
                 ob.write().unwrap().on_doc_event(&event);
                 true
             } else {
+                warn!("failed to upgrade weak reference");
                 false
             }
         });

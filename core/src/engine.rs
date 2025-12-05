@@ -1,5 +1,5 @@
-use log::warn;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use tracing::{error, info, trace, warn};
 use uuid::Uuid;
 
 use crate::doc::Doc;
@@ -56,7 +56,7 @@ impl Engine {
     }
 
     pub fn start_loop(mut self) {
-        println!("starting engine...");
+        info!("starting engine...");
         self.update_output_map_cache();
         loop {
             self.handle_engine_commands();
@@ -82,7 +82,7 @@ impl Engine {
 
     fn add_output_plugin(&mut self, plugin: Box<dyn Plugin>) {
         self.output_plugins.insert(plugin.id(), plugin);
-        dbg!("added output plugin");
+        trace!("added output plugin");
     }
 
     fn handle_engine_commands(&mut self) {
@@ -94,14 +94,14 @@ impl Engine {
                 EngineCommand::UniverseAdded(id) => {
                     if let None = self.universe_states.insert(id, UniverseState::new()) {
                         warn!(
-                            "[engine] UniverseAdded: universe id {id:?} already exists in Engine::universes"
+                            "UniverseAdded: universe id {id:?} already exists in Engine::universes"
                         );
                     }
                 }
                 EngineCommand::UniverseRemoved(id) => {
                     if let None = self.universe_states.remove(&id) {
                         warn!(
-                            "[engine] UniverseRemoved: universe id {id:?} does not exists in Engine::universes"
+                            "UniverseRemoved: universe id {id:?} does not exists in Engine::universes"
                         );
                     }
                 }
@@ -206,7 +206,7 @@ impl Engine {
                             source: Box::new(e),
                         }))
                 {
-                    eprintln!("engine: failed to send error: {}", send_err);
+                    error!("engine: failed to send error: {}", send_err);
                 }
             }
         }
@@ -249,10 +249,11 @@ impl Engine {
 
     // FIXME: universe_settingsごとプッシュ型の方がいいか？
     fn update_output_map_cache(&mut self) {
-        dbg!("updating output map cache");
+        trace!("updating output map cache");
         let doc = self.doc.read();
         let mut new_map: HashMap<OutputPluginId, Vec<UniverseId>> = HashMap::new();
         for (u_id, setting) in doc.universe_settings() {
+            trace!("plugin in doc({u_id:?}):{:?}", setting.output_plugins());
             setting.output_plugins().iter().for_each(|p_id| {
                 if let Some(universes) = new_map.get_mut(p_id) {
                     universes.push(*u_id);
@@ -267,6 +268,7 @@ impl Engine {
 }
 
 /// Message from the main thread to [`Engine`]
+#[derive(Debug)]
 pub enum EngineCommand {
     // Commands
     StartFunction(FunctionId),

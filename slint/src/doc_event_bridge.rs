@@ -1,5 +1,6 @@
 use std::sync::mpsc::Sender;
 
+use tracing::trace;
 use tsukuyomi_core::doc::{DocEvent, DocObserver};
 use tsukuyomi_core::engine::EngineCommand;
 

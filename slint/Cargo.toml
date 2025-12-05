@@ -10,6 +10,8 @@ slint = { path = "../../slint/api/rs/slint",features = ["backend-winit"] }
 tsukuyomi-core={ path="../core" }
 i-slint-backend-winit={ path = "../../slint/internal/backends/winit" }
 uuid={workspace=true}
+tracing={workspace=true}
+tracing-subscriber="0.3.0"
 
 [build-dependencies]
 slint-build = { path="../../slint/api/rs/build" }

@@ -5,13 +5,14 @@ pub mod preview_plugin;
 
 use std::collections::HashMap;
 use std::error::Error;
-use std::sync::mpsc::Sender;
-use std::sync::{Arc, RwLock, mpsc};
-use std::thread;
-use std::time::Duration;
+use std::sync::mpsc::{Receiver, Sender};
+use std::sync::{Arc, RwLock, Weak, mpsc};
+use std::thread::{self, JoinHandle};
 
 use i_slint_backend_winit::WinitWindowAccessor;
 
+use tracing::Level;
+use tracing_subscriber::FmtSubscriber;
 use tsukuyomi_core::command_manager::CommandManager;
 use tsukuyomi_core::commands::doc_commands;
 use tsukuyomi_core::engine::{Engine, EngineCommand, EngineMessage};
@@ -23,7 +24,6 @@ use tsukuyomi_core::{
     fixture::{Fixture, MergeMode},
     fixture_def::{ChannelDef, FixtureDef, FixtureMode},
     functions::{FunctionData, FunctionDataGetters, SceneValue, StaticSceneData},
-    plugins::Plugin,
     readonly::ReadOnly,
     universe::{DmxAddress, UniverseId},
 };

@@ -10,4 +10,4 @@ quick-xml = {version="0.38.3", features=["serialize"]}
 rayon = "1.11.0"
 serde = {version="1.0.228", features=["derive"]}
 uuid={workspace=true}
-log={workspace=true}
+tracing={workspace=true}
