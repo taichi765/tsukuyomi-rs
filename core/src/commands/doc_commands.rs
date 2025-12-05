@@ -2,6 +2,7 @@ pub use fixture::*;
 pub use fixture_def::*;
 pub use function::*;
 pub use plugin::*;
+pub use universe::*;
 
 mod function {
     use crate::{
@@ -162,6 +163,31 @@ mod plugin {
         fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
             doc.remove_output(&self.universe_id, &self.plugin)
                 .map_err(|e| format!("{e:?}"))?;
+            Ok(())
+        }
+    }
+}
+
+mod universe {
+    use crate::{commands::DocCommand, doc::Doc, universe::UniverseId};
+
+    pub struct AddUniverse {
+        id: UniverseId,
+    }
+
+    impl AddUniverse {
+        pub fn new(id: UniverseId) -> Self {
+            Self { id }
+        }
+    }
+
+    impl DocCommand for AddUniverse {
+        fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
+            doc.add_universe(self.id); //FIXME: SomeだったときErrを返すべきか？
+            Ok(())
+        }
+        fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
+            doc.remove_universe(&self.id); //FIXME: NoneだったときにErrを返すべきか？
             Ok(())
         }
     }

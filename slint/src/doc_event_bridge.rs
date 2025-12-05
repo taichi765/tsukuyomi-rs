@@ -12,10 +12,12 @@ pub struct DocEventBridge {
 impl DocObserver for DocEventBridge {
     fn on_doc_event(&mut self, event: &DocEvent) {
         match event {
-            DocEvent::UniverseSettingsChanged => self
-                .command_tx
-                .send(EngineCommand::OutputMapChanged)
-                .unwrap(),
+            DocEvent::UniverseSettingsChanged => {
+                self.send(EngineCommand::OutputMapChanged);
+                trace!("sent update command")
+            }
+            DocEvent::UniverseAdded(id) => self.send(EngineCommand::UniverseAdded(*id)),
+            DocEvent::UniverseRemoved(id) => self.send(EngineCommand::UniverseRemoved(*id)),
             _ => (),
         }
     }
@@ -24,5 +26,11 @@ impl DocObserver for DocEventBridge {
 impl DocEventBridge {
     pub fn new(command_tx: Sender<EngineCommand>) -> Self {
         Self { command_tx }
+    }
+
+    fn send(&mut self, command: EngineCommand) {
+        self.command_tx
+            .send(command)
+            .expect("failed to send message to engine");
     }
 }

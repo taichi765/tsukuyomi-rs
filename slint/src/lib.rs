@@ -29,53 +29,87 @@ use tsukuyomi_core::{
 };
 
 use crate::doc_event_bridge::DocEventBridge;
-use crate::fader_view_bridge::{adapt_2d_preview, adapt_fader_view};
-use crate::preview_plugin::PreviewOutput;
+use crate::fader_view_bridge::{setup_2d_preview, setup_fader_view};
 // TODO: tsukuyomi_core::prelude使いたい
 
 slint::include_modules!();
 
 pub fn run_main() -> Result<(), Box<dyn Error>> {
-    let mut doc = Doc::new();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
+    let doc = Arc::new(RwLock::new(Doc::new()));
+    // HACK: Initialize engine and bridge before changing Doc.
+    // If Doc is changed before engine initialized, number of universe would be
+    // unsynchronized.
+    let (engine_handle, command_tx, error_rx, _bridge) = setup_engine(Arc::clone(&doc));
+
     let mut command_manager = CommandManager::new();
 
     let (commands, scene_id) = create_some_presets();
-    commands
-        .into_iter()
-        .for_each(|cmd| command_manager.execute(cmd, &mut doc).unwrap());
+    commands.into_iter().for_each(|cmd| {
+        command_manager
+            .execute(cmd, &mut doc.write().unwrap())
+            .unwrap()
+    });
+    for i in 1..5 {
+        command_manager
+            .execute(
+                Box::new(doc_commands::AddUniverse::new(UniverseId::new(i))),
+                &mut doc.write().unwrap(),
+            )
+            .unwrap();
+    }
 
+    let ui = setup_window().expect("failed to setup ui");
+
+    setup_fader_view(&ui, command_tx.clone());
+    setup_2d_preview(
+        &ui,
+        Arc::clone(&doc),
+        &mut command_manager,
+        command_tx.clone(),
+    );
+
+    ui.run()?;
+
+    if let Err(e) = command_tx.send(EngineCommand::Shutdown) {
+        eprintln!("failed to send message to engine:{}", e);
+    }
+
+    engine_handle.join().unwrap();
+
+    Ok(())
+}
+
+fn setup_engine(
+    doc: Arc<RwLock<Doc>>,
+) -> (
+    JoinHandle<()>,
+    Sender<EngineCommand>,
+    Receiver<EngineMessage>,
+    Arc<RwLock<DocEventBridge>>,
+) {
     let (command_tx, command_rx) = mpsc::channel::<EngineCommand>();
     let (error_tx, error_rx) = mpsc::channel::<EngineMessage>();
 
-    let doc_event_bridge: Arc<RwLock<dyn DocObserver>> =
-        Arc::new(RwLock::new(DocEventBridge::new(command_tx.clone())));
-    doc.subscribe(Arc::downgrade(&doc_event_bridge));
+    let bridge = Arc::new(RwLock::new(DocEventBridge::new(command_tx.clone())));
+    let weak: Weak<RwLock<dyn DocObserver>> = Arc::downgrade(&bridge) as _;
+    doc.write().unwrap().subscribe(weak);
 
-    let doc = Arc::new(RwLock::new(doc));
-    let engine = Engine::new(ReadOnly::new(Arc::clone(&doc)), command_rx, error_tx);
+    let engine = Engine::new(ReadOnly::new(doc), command_rx, error_tx);
 
     let engine_handle = thread::Builder::new()
         .name("tsukuyomi-engine".into())
         .spawn(move || engine.start_loop())
         .unwrap();
+    (engine_handle, command_tx, error_rx, bridge)
+}
 
-    try_some_commands(command_tx.clone(), scene_id);
-
-    // TODO: シリアライズからの復元
-    let plugin = PreviewOutput::new();
-    if let Err(e) = command_manager.execute(
-        Box::new(doc_commands::AddOutput::new(
-            UniverseId::new(0),
-            plugin.id(),
-        )),
-        &mut doc.write().unwrap(),
-    ) {
-        println!("{}", e); // TODO: some error handling
-    }
-    command_tx
-        .send(EngineCommand::AddPlugin(Box::new(plugin)))
-        .unwrap();
-
+fn setup_window() -> Result<AppWindow, Box<dyn Error>> {
     let ui = AppWindow::new()?;
     // TODO: language switch(preferences)
     slint::select_bundled_translation("en".into()).unwrap();
@@ -104,22 +138,10 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
     ui.set_is_macos(true);
     #[cfg(not(target_os = "macos"))]
     ui.set_is_macos(false);
-
-    adapt_fader_view(&ui, command_tx.clone());
-    adapt_2d_preview(&ui);
-
-    ui.run()?;
-
-    if let Err(e) = command_tx.send(EngineCommand::Shutdown) {
-        eprintln!("failed to send message to engine:{}", e);
-    }
-
-    engine_handle.join().unwrap();
-
-    Ok(())
+    Ok(ui)
 }
 
-pub fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FunctionId) {
+fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FunctionId) {
     let mut commands: Vec<Box<dyn DocCommand>> = Vec::new();
 
     let mut fixture_def = FixtureDef::new("Test Manufacturer".into(), "Test Model".into());
@@ -174,16 +196,4 @@ pub fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FunctionId) {
     )));
 
     (commands, scene_id)
-}
-
-pub fn try_some_commands(command_tx: Sender<EngineCommand>, scene_id: FunctionId) {
-    command_tx.send(EngineCommand::AddUniverse).unwrap();
-
-    command_tx
-        .send(EngineCommand::StartFunction(scene_id))
-        .unwrap();
-    thread::sleep(Duration::from_secs(1));
-    command_tx
-        .send(EngineCommand::StopFunction(scene_id))
-        .unwrap();
 }
