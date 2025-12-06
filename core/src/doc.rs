@@ -36,8 +36,19 @@ impl Doc {
     }
 
     /* ---------- publics ---------- */
-    pub fn get_function_data(&self, function_id: FunctionId) -> Option<&FunctionData> {
-        self.functions.get(&function_id)
+    /// Same as [std::collections::HashMap::get()]
+    pub fn get_function_data(&self, id: &FunctionId) -> Option<&FunctionData> {
+        self.functions.get(id)
+    }
+
+    /// Same as [std::collections::HashMap::get()]
+    pub fn get_fixture(&self, id: &FixtureId) -> Option<&Fixture> {
+        self.fixtures.get(id)
+    }
+
+    /// Same as [std::collections::HashMap::get()]
+    pub fn get_fixture_def(&self, id: &FixtureDefId) -> Option<&FixtureDef> {
+        self.fixture_defs.get(id)
     }
 
     pub fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {

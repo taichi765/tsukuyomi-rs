@@ -2,7 +2,7 @@ use std::net::{SocketAddr, UdpSocket};
 
 use artnet_protocol::{ArtCommand, Output};
 
-use crate::{engine::OutputPluginId, plugins::Plugin};
+use crate::{engine::OutputPluginId, plugins::Plugin, universe::UniverseId};
 
 const ARTNET_PORT: u16 = 6454;
 
@@ -31,12 +31,12 @@ impl ArtNetPlugin {
 }
 
 impl Plugin for ArtNetPlugin {
-    fn send_dmx(&self, universe_id: u8, dmx_data: &[u8]) -> Result<(), std::io::Error> {
+    fn send_dmx(&self, universe_id: UniverseId, dmx_data: &[u8]) -> Result<(), std::io::Error> {
         if cfg!(debug_assertions) {
             println!("send_dmx is called")
         }
         let command = ArtCommand::Output(Output {
-            port_address: universe_id.into(),
+            port_address: universe_id.value().into(),
             data: dmx_data.to_vec().into(),
             ..Default::default()
         });
