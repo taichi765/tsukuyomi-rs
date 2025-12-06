@@ -18,7 +18,7 @@ use crate::{
 /// Single source of true
 pub struct Doc {
     fixtures: HashMap<FixtureId, Fixture>,
-    fixture_definitions: HashMap<FixtureDefId, FixtureDef>,
+    fixture_defs: HashMap<FixtureDefId, FixtureDef>,
     functions: HashMap<FunctionId, FunctionData>,
     universe_settings: HashMap<UniverseId, UniverseSetting>,
     observers: Vec<Weak<RwLock<dyn DocObserver>>>,
@@ -28,7 +28,7 @@ impl Doc {
     pub fn new() -> Self {
         Self {
             fixtures: HashMap::new(),
-            fixture_definitions: HashMap::new(),
+            fixture_defs: HashMap::new(),
             functions: HashMap::new(),
             universe_settings: HashMap::new(),
             observers: Vec::new(),
@@ -71,7 +71,7 @@ impl Doc {
             .get(&fixture_id)
             .ok_or(ResolveError::FixtureNotFound(fixture_id))?;
 
-        let fixture_def = self.fixture_definitions.get(&fixture.fixture_def()).ok_or(
+        let fixture_def = self.fixture_defs.get(&fixture.fixture_def()).ok_or(
             ResolveError::FixtureDefNotFound {
                 fixture_id: fixture.id(),
                 fixture_def_id: fixture.fixture_def(),
@@ -139,7 +139,7 @@ impl Doc {
     /// Same as [std::collections::HashMap::remove()]
     pub(crate) fn insert_fixture_def(&mut self, fixture_def: FixtureDef) -> Option<FixtureDef> {
         let id = fixture_def.id();
-        let opt = self.fixture_definitions.insert(id, fixture_def);
+        let opt = self.fixture_defs.insert(id, fixture_def);
         self.notify(DocEvent::FixtureDefInserted(id));
         opt
     }
@@ -147,7 +147,7 @@ impl Doc {
     /// Same as [std::collections::HashMap::remove()]
     pub(crate) fn remove_fixture_def(&mut self, id: &FixtureDefId) -> Option<FixtureDef> {
         // TODO: このFixtureDefを参照しているFixtureの処理
-        let opt = self.fixture_definitions.remove(id);
+        let opt = self.fixture_defs.remove(id);
         self.notify(DocEvent::FixtureDefRemoved(*id));
         opt
     }
