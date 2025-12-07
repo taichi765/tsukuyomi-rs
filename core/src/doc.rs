@@ -23,6 +23,7 @@ pub struct Doc {
     observers: Vec<Weak<RwLock<dyn DocObserver>>>,
 }
 
+/* ---------- public, readonly ---------- */
 impl Doc {
     pub fn new() -> Self {
         Self {
@@ -97,10 +98,61 @@ impl Doc {
             fixture.universe_id(),
             ResolvedAddress {
                 merge_mode,
-                address: DmxAddress::new(fixture.address().value() + channel.0).unwrap(),
+                address: DmxAddress::new(fixture.address().value() + channel_offset).unwrap(),
             },
         ))
     }
+
+    pub fn get_fixture_by_address(
+        &self,
+        universe_id: &UniverseId,
+        address: DmxAddress,
+    ) -> Option<&(FixtureId, usize)> {
+        self.fixture_by_address_index.get(&(*universe_id, address))
+    }
+}
+
+#[derive(Clone)]
+pub enum DocEvent {
+    UniverseSettingsChanged,
+    UniverseAdded(UniverseId),
+    UniverseRemoved(UniverseId),
+    /// Also emitted when [`Fixture`] is updated
+    FixtureInserted(FixtureId),
+    FixtureRemoved(FixtureId),
+    /// Also emitted when [`FixtureDef`] is updated
+    FixtureDefInserted(FixtureDefId),
+    FixtureDefRemoved(FixtureDefId),
+    /// Also emitted when [`FunctionData`] is updated
+    FunctionInserted(FunctionId),
+    FunctionRemoved(FunctionId),
+}
+
+pub trait DocObserver: Send + Sync {
+    fn on_doc_event(&mut self, event: &DocEvent);
+}
+
+pub struct UniverseSetting {
+    output_plugins: HashSet<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
+}
+
+impl UniverseSetting {
+    pub fn new() -> Self {
+        Self {
+            output_plugins: HashSet::new(),
+        }
+    }
+
+    pub fn output_plugins(&self) -> &HashSet<OutputPluginId> {
+        &self.output_plugins
+    }
+}
+
+#[derive(Debug)]
+pub struct ResolvedAddress {
+    pub merge_mode: MergeMode,
+    pub address: DmxAddress,
+}
 
 #[derive(Debug, Error)]
 pub enum ResolveError {
@@ -124,6 +176,8 @@ pub enum ResolveError {
     },
 }
 
+/* ---------- pub(crate), mutables ---------- */
+impl Doc {
     /// Same as [std::collections::HashMap::remove()]
     pub(crate) fn add_function(&mut self, function: FunctionData) -> Option<FunctionData> {
         let id = function.id();
@@ -232,6 +286,9 @@ pub enum FixtureInsertError {
     #[error(transparent)]
     AddressConflicted(#[from] AddressConflictedError),
 }
+
+/* ---------- privates ---------- */
+impl Doc {
 
     /// Notifies event to all observers
     fn notify(&mut self, event: DocEvent) {
