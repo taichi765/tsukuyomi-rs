@@ -267,6 +267,53 @@ impl Doc {
 
 /* ---------- privates ---------- */
 impl Doc {
+    /// Validates that
+    /// - The definition specified in [fixture.fixture_def()][`Fixture::fixture_def()`] exists in [`Doc`].
+    /// - The mode specified in [fixture.fixture_mode()][`Fixture::fixture_mode()`] exists in the definition.
+    /// <- FIXME: should this validation be done in here? [Fixture::add_mode] might be more apporopriate.
+    /// - The fixture does not conflict with existing [Fixture]s' address.
+    fn validate_fixture(&self, fixture: &Fixture) -> Result<(), ValidateError> {
+        let def_id = fixture.fixture_def();
+        let fixture_def =
+            self.get_fixture_def(&def_id)
+                .ok_or(ValidateError::FixtureDefNotFound(FixtureDefNotFound {
+                    fixture_id: fixture.id(),
+                    fixture_def_id: def_id,
+                }))?;
+        let mode_name = fixture.fixture_mode();
+        let mode = fixture_def
+            .modes()
+            .get(mode_name)
+            .ok_or(ValidateError::ModeNotFound(ModeNotFound {
+                fixture_def: def_id,
+                mode: String::from(mode_name),
+            }))?;
+        let offset = mode.offset();
+
+        let mut conflicts = Vec::new();
+        let address_base = fixture.address();
+        for i in 0..offset {
+            let address = DmxAddress::new(address_base.value() + i).expect("address overflow");
+            if let Some((old_fixture_id, old_offset)) = self
+                .fixture_by_address_index
+                .get(&(fixture.universe_id(), address))
+            {
+                conflicts.push(AddressConflictedError {
+                    address: address,
+                    old_fixture_id: *old_fixture_id,
+                    old_offset: *old_offset,
+                    new_fixture_id: fixture.id(),
+                    new_offset: i,
+                });
+            }
+        }
+
+        if conflicts.is_empty() {
+            return Ok(());
+        } else {
+            return Err(ValidateError::AddressConflicted(conflicts));
+        }
+    }
 
     /// Notifies event to all observers
     fn notify(&mut self, event: DocEvent) {
