@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use uuid::Uuid;
-
 use super::{FunctionData, FunctionRuntime};
 use crate::{
     fixture::FixtureId,
@@ -78,6 +76,7 @@ mod tests {
     use super::*;
     use std::collections::HashSet;
     use std::time::Duration;
+    use uuid::Uuid;
 
     #[test]
     fn static_scene_runtime_writes_commands_for_single_fixture() {

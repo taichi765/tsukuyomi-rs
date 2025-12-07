@@ -4,7 +4,7 @@ use super::helpers::{make_fixture, make_fixture_def_with_mode};
 use crate::{
     doc::{Doc, ResolveError},
     fixture::{Fixture, FixtureId, MergeMode},
-    fixture_def::{ChannelDef, ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
+    fixture_def::{ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
     universe::{DmxAddress, UniverseId},
 };
 

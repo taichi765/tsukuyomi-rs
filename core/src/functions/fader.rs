@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use crate::functions::FunctionCommand;
-use crate::functions::{FunctionType, SceneValue};
-use crate::universe::DmxAddress;
+use crate::functions::SceneValue;
 
 #[derive(Debug)]
 struct FaderValue {
