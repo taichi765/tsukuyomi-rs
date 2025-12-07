@@ -1,10 +1,9 @@
 use std::{
     collections::{HashMap, HashSet},
-    error::Error,
-    fmt::Display,
     sync::{RwLock, Weak},
 };
 
+use thiserror::Error;
 use tracing::{trace, warn};
 
 use crate::{
@@ -103,7 +102,27 @@ impl Doc {
         ))
     }
 
-    /* ---------- mutable functions ---------- */
+#[derive(Debug, Error)]
+pub enum ResolveError {
+    #[error("cannot find fixture {0:?}")]
+    FixtureNotFound(FixtureId),
+    #[error("cannot find fixture definition {fixture_def_id:?} for fixture {fixture_id:?}")]
+    FixtureDefNotFound {
+        fixture_id: FixtureId,
+        fixture_def_id: FixtureDefId,
+    },
+    #[error("cannot find mode {mode} in the definition {fixture_def:?}")]
+    ModeNotFound {
+        fixture_def: FixtureDefId,
+        mode: String,
+    },
+    #[error("cannot find channel {channel} in mode {mode} of {fixture_def:?}")]
+    ChannelNotFound {
+        fixture_def: FixtureDefId,
+        mode: String,
+        channel: String,
+    },
+}
 
     /// Same as [std::collections::HashMap::remove()]
     pub(crate) fn add_function(&mut self, function: FunctionData) -> Option<FunctionData> {
@@ -175,7 +194,7 @@ impl Doc {
         let setting = self
             .universe_settings
             .get_mut(&universe_id)
-            .ok_or(OutputMapError::UniverseNotFound)?;
+            .ok_or(OutputMapError::UniverseNotFound(universe_id))?;
         let is_inserted = setting.output_plugins.insert(plugin);
         if is_inserted {
             trace!("notifying setting change");
@@ -193,13 +212,26 @@ impl Doc {
         let setting = self
             .universe_settings
             .get_mut(&universe_id)
-            .ok_or(OutputMapError::UniverseNotFound)?;
+            .ok_or(OutputMapError::UniverseNotFound(*universe_id))?;
         let is_removed = setting.output_plugins.remove(&plugin);
         if is_removed {
             self.notify(DocEvent::UniverseRemoved(*universe_id));
         }
         Ok(is_removed)
     }
+}
+
+#[derive(Debug, Error)]
+pub enum OutputMapError {
+    #[error("thare was no universe {0:?}")]
+    UniverseNotFound(UniverseId),
+}
+
+#[derive(Debug, Error)]
+pub enum FixtureInsertError {
+    #[error(transparent)]
+    AddressConflicted(#[from] AddressConflictedError),
+}
 
     /// Notifies event to all observers
     fn notify(&mut self, event: DocEvent) {
@@ -216,93 +248,17 @@ impl Doc {
     }
 }
 
-#[derive(Clone)]
-pub enum DocEvent {
-    UniverseSettingsChanged,
-    UniverseAdded(UniverseId),
-    UniverseRemoved(UniverseId),
-    /// Also emitted when [`Fixture`] is updated
-    FixtureInserted(FixtureId),
-    FixtureRemoved(FixtureId),
-    /// Also emitted when [`FixtureDef`] is updated
-    FixtureDefInserted(FixtureDefId),
-    FixtureDefRemoved(FixtureDefId),
-    /// Also emitted when [`FunctionData`] is updated
-    FunctionInserted(FunctionId),
-    FunctionRemoved(FunctionId),
-}
-
-pub trait DocObserver: Send + Sync {
-    fn on_doc_event(&mut self, event: &DocEvent);
-}
-
-#[derive(Debug)]
-pub enum ResolveError {
-    FixtureNotFound(FixtureId),
-    FixtureDefNotFound {
-        fixture_id: FixtureId,
-        fixture_def_id: FixtureDefId,
-    },
-    ModeNotFound {
-        fixture_def: FixtureDefId,
-        mode: String,
-    },
-    ChannelNotFound {
-        fixturedef: FixtureDefId,
-        mode: String,
-        channel: String,
-    },
-}
-
-impl Display for ResolveError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "error while resolving address: {:?}", self)
-    }
-}
-
-impl Error for ResolveError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
-}
-
-#[derive(Debug)]
-pub enum OutputMapError {
-    UniverseNotFound,
-}
-
-impl Display for OutputMapError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Error for OutputMapError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
-}
-
-pub struct UniverseSetting {
-    output_plugins: HashSet<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
-}
-
-impl UniverseSetting {
-    pub fn new() -> Self {
-        Self {
-            output_plugins: HashSet::new(),
-        }
-    }
-
-    pub fn output_plugins(&self) -> &HashSet<OutputPluginId> {
-        &self.output_plugins
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct ResolvedAddress {
-    pub merge_mode: MergeMode,
-    pub address: DmxAddress,
+#[derive(Debug, Error)]
+#[error(
+    "address conflicted: channel {old_offset} of fixture {old_fixture_id:?}
+    and channel {new_offset} of fixture {new_fixture_id:?}"
+)]
+pub struct AddressConflictedError {
+    address: DmxAddress,
+    old_fixture_id: FixtureId,
+    old_offset: usize,
+    new_fixture_id: FixtureId,
+    new_offset: usize,
 }
 
 #[cfg(test)]
