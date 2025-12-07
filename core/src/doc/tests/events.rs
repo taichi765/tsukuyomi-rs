@@ -55,7 +55,7 @@ fn events_sequence_contains_expected_order() {
     // 4) Insert Fixture
     let fxt = make_fixture("Fx1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     // 5) Add Output (emits UniverseSettingsChanged)
     let plugin_id = OutputPluginId::new();

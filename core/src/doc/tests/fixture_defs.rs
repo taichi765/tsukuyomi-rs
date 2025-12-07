@@ -1,6 +1,6 @@
 use super::helpers::{make_fixture, make_fixture_def_with_mode};
 use crate::{
-    doc::{Doc, ResolveError},
+    doc::{Doc, FixtureDefNotFound, ResolveError},
     fixture::MergeMode,
     fixture_def::ChannelKind,
     universe::{DmxAddress, UniverseId},
@@ -38,7 +38,7 @@ fn insert_fixture_def_emits_event_and_allows_resolution() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("sould work");
 
     let (resolved_uni, resolved_addr) = doc.resolve_address(fxt_id, "Dimmer").unwrap();
     assert_eq!(resolved_uni, uni_id);
@@ -68,7 +68,7 @@ fn remove_fixture_def_emits_event_and_breaks_resolution() {
 
     let fxt = make_fixture("Fxt1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     // now remove fixture def
     let removed = doc.remove_fixture_def(&def_id);
@@ -78,10 +78,10 @@ fn remove_fixture_def_emits_event_and_breaks_resolution() {
     let err = doc.resolve_address(fxt_id, "Dimmer").err().unwrap();
     assert!(matches!(
         err,
-        ResolveError::FixtureDefNotFound {
+        ResolveError::FixtureDefNotFound (FixtureDefNotFound{
             fixture_id: _,
             fixture_def_id
-        } if fixture_def_id == def_id
+        }) if fixture_def_id == def_id
     ));
 }
 

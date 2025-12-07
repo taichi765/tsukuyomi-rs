@@ -2,12 +2,15 @@ use std::sync::{Arc, RwLock};
 
 use super::helpers::TestObserver;
 use super::helpers::{make_fixture, make_fixture_def_with_mode};
+use crate::doc::FixtureNotFound;
 use crate::fixture_def::ChannelKind;
 use crate::{
     doc::{Doc, DocEvent, DocObserver, ResolveError},
     fixture::MergeMode,
     universe::{DmxAddress, UniverseId},
 };
+
+// TODO: Add tests for insert_fixture() with invalid value
 
 #[test]
 fn insert_fixture_returns_none_then_some_and_emits_event() {
@@ -40,7 +43,7 @@ fn insert_fixture_returns_none_then_some_and_emits_event() {
     let fxt_id = fxt.id();
 
     // first insert -> None
-    let old = doc.insert_fixture(fxt.clone());
+    let old = doc.insert_fixture(fxt.clone()).expect("should work");
     assert!(old.is_none());
 
     // event emitted
@@ -54,7 +57,7 @@ fn insert_fixture_returns_none_then_some_and_emits_event() {
     }
 
     // second insert with same id -> Some(previous)
-    let old2 = doc.insert_fixture(fxt);
+    let old2 = doc.insert_fixture(fxt).expect("should work");
     assert!(old2.is_some());
     assert_eq!(old2.unwrap().id(), fxt_id);
 
@@ -105,7 +108,7 @@ fn remove_fixture_returns_some_then_none_and_emits_event() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("sould work");
 
     // remove once -> Some
     let removed = doc.remove_fixture(&fxt_id);
@@ -155,7 +158,7 @@ fn resolve_address_fails_after_fixture_removed() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     // resolve works before removal
     let (resolved_uni, resolved) = doc.resolve_address(fxt_id, "Dimmer").unwrap();
@@ -165,5 +168,5 @@ fn resolve_address_fails_after_fixture_removed() {
     // remove and then resolution should fail
     doc.remove_fixture(&fxt_id);
     let err = doc.resolve_address(fxt_id, "Dimmer").err().unwrap();
-    assert!(matches!(err, ResolveError::FixtureNotFound(id) if id == fxt_id));
+    assert!(matches!(err, ResolveError::FixtureNotFound(FixtureNotFound(id)) if id == fxt_id));
 }
