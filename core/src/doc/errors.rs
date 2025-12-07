@@ -1,0 +1,80 @@
+use thiserror::Error;
+
+use crate::{
+    fixture::FixtureId,
+    fixture_def::FixtureDefId,
+    universe::{DmxAddress, UniverseId},
+};
+
+/// [super::Doc::resolve_address()]
+#[derive(Debug, Error)]
+pub enum ResolveError {
+    #[error(transparent)]
+    FixtureNotFound(#[from] FixtureNotFound),
+    #[error(transparent)]
+    FixtureDefNotFound(#[from] FixtureDefNotFound),
+    #[error(transparent)]
+    ModeNotFound(#[from] ModeNotFound),
+    #[error("cannot find channel {channel} in mode {mode} of {fixture_def:?}")]
+    ChannelNotFound {
+        fixture_def: FixtureDefId,
+        mode: String,
+        channel: String,
+    },
+}
+
+#[derive(Debug, Error)]
+#[error("cannot find fixture {0:?}")]
+pub struct FixtureNotFound(pub FixtureId);
+
+#[derive(Debug, Error)]
+#[error("cannot find fixture definition {fixture_def_id:?} for fixture {fixture_id:?}")]
+pub struct FixtureDefNotFound {
+    pub fixture_id: FixtureId,
+    pub fixture_def_id: FixtureDefId,
+}
+
+#[derive(Debug, Error)]
+#[error("cannot find mode {mode} in the definition {fixture_def:?}")]
+pub struct ModeNotFound {
+    pub fixture_def: FixtureDefId,
+    pub mode: String,
+}
+
+#[derive(Debug, Error)]
+pub(crate) enum OutputMapError {
+    #[error("thare was no universe {0:?}")]
+    UniverseNotFound(UniverseId),
+}
+
+/// Error type for [super::Doc::insert_fixture()]
+#[derive(Debug, Error)]
+pub(crate) enum FixtureInsertError {
+    #[error(transparent)]
+    AddressValidateError(#[from] ValidateError),
+}
+
+/// Error type for [super::Doc::validate_fixture_address_uniqueness()]
+#[derive(Debug, Error)]
+pub(crate) enum ValidateError {
+    #[error(transparent)]
+    FixtureDefNotFound(#[from] FixtureDefNotFound),
+    #[error(transparent)]
+    ModeNotFound(#[from] ModeNotFound),
+    #[error("{} address conflicted",.0.len())]
+    AddressConflicted(Vec<AddressConflictedError>),
+}
+
+/// Internal error type for [`AddressValidateError`]
+#[derive(Debug, Error)]
+#[error(
+    "address conflicted: channel {old_offset} of fixture {old_fixture_id:?}
+    and channel {new_offset} of fixture {new_fixture_id:?}"
+)]
+pub(crate) struct AddressConflictedError {
+    pub address: DmxAddress,
+    pub old_fixture_id: FixtureId,
+    pub old_offset: usize,
+    pub new_fixture_id: FixtureId,
+    pub new_offset: usize,
+}

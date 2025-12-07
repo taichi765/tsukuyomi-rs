@@ -1,9 +1,11 @@
+mod errors;
+pub use errors::*;
+
 use std::{
     collections::{HashMap, HashSet},
     sync::{RwLock, Weak},
 };
 
-use thiserror::Error;
 use tracing::{trace, warn};
 
 use crate::{
@@ -68,22 +70,22 @@ impl Doc {
         let fixture = self
             .fixtures
             .get(&fixture_id)
-            .ok_or(ResolveError::FixtureNotFound(fixture_id))?;
+            .ok_or(ResolveError::FixtureNotFound(FixtureNotFound(fixture_id)))?;
 
         let fixture_def = self.fixture_defs.get(&fixture.fixture_def()).ok_or(
-            ResolveError::FixtureDefNotFound {
+            ResolveError::FixtureDefNotFound(FixtureDefNotFound {
                 fixture_id: fixture.id(),
                 fixture_def_id: fixture.fixture_def(),
-            },
+            }),
         )?;
         let mode =
             fixture_def
                 .modes()
                 .get(fixture.fixture_mode())
-                .ok_or(ResolveError::ModeNotFound {
+                .ok_or(ResolveError::ModeNotFound(ModeNotFound {
                     fixture_def: fixture.fixture_def(),
                     mode: fixture.fixture_mode().into(),
-                })?;
+                }))?;
         let channel_offset =
             mode.channel_order()
                 .get(channel)
@@ -159,28 +161,6 @@ pub struct ResolvedAddress {
     pub address: DmxAddress,
 }
 
-#[derive(Debug, Error)]
-pub enum ResolveError {
-    #[error("cannot find fixture {0:?}")]
-    FixtureNotFound(FixtureId),
-    #[error("cannot find fixture definition {fixture_def_id:?} for fixture {fixture_id:?}")]
-    FixtureDefNotFound {
-        fixture_id: FixtureId,
-        fixture_def_id: FixtureDefId,
-    },
-    #[error("cannot find mode {mode} in the definition {fixture_def:?}")]
-    ModeNotFound {
-        fixture_def: FixtureDefId,
-        mode: String,
-    },
-    #[error("cannot find channel {channel} in mode {mode} of {fixture_def:?}")]
-    ChannelNotFound {
-        fixture_def: FixtureDefId,
-        mode: String,
-        channel: String,
-    },
-}
-
 /* ---------- pub(crate), mutables ---------- */
 impl Doc {
     /// Same as [std::collections::HashMap::remove()]
@@ -198,13 +178,18 @@ impl Doc {
         opt
     }
 
-    /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn insert_fixture(&mut self, fixture: Fixture) -> Option<Fixture> {
-        // TODO: fixture_defがあるか確認
+    /// TODO: update this comment Same as [std::collections::HashMap::remove()]
+    pub(crate) fn insert_fixture(
+        &mut self,
+        fixture: Fixture,
+    ) -> Result<Option<Fixture>, FixtureInsertError> {
+        // FIXME: signature is complicated
+        self.validate_fixture(&fixture)
+            .map_err(|e| FixtureInsertError::AddressValidateError(e))?;
         let id = fixture.id();
         let opt = self.fixtures.insert(id, fixture);
         self.notify(DocEvent::FixtureInserted(id));
-        opt
+        Ok(opt)
     }
 
     /// Same as [std::collections::HashMap::remove()]
@@ -280,18 +265,6 @@ impl Doc {
     }
 }
 
-#[derive(Debug, Error)]
-pub enum OutputMapError {
-    #[error("thare was no universe {0:?}")]
-    UniverseNotFound(UniverseId),
-}
-
-#[derive(Debug, Error)]
-pub enum FixtureInsertError {
-    #[error(transparent)]
-    AddressConflicted(#[from] AddressConflictedError),
-}
-
 /* ---------- privates ---------- */
 impl Doc {
 
@@ -308,19 +281,6 @@ impl Doc {
             }
         });
     }
-}
-
-#[derive(Debug, Error)]
-#[error(
-    "address conflicted: channel {old_offset} of fixture {old_fixture_id:?}
-    and channel {new_offset} of fixture {new_fixture_id:?}"
-)]
-pub struct AddressConflictedError {
-    address: DmxAddress,
-    old_fixture_id: FixtureId,
-    old_offset: usize,
-    new_fixture_id: FixtureId,
-    new_offset: usize,
 }
 
 #[cfg(test)]
