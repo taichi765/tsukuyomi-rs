@@ -50,6 +50,30 @@ pub(crate) fn make_fixture_def_with_mode(
     def
 }
 
+pub(crate) fn make_def_with_two_channels() -> FixtureDef {
+    // Manufacturer/Model arbitrary for test
+    let mut def = FixtureDef::new("TestMfr".to_string(), "ModelDual".to_string());
+
+    // Insert two channel templates: Dimmer (offset 0) and Color (offset 3)
+    def.insert_channel(
+        "Dimmer".into(),
+        ChannelDef::new(crate::fixture::MergeMode::LTP, ChannelKind::Dimmer),
+    );
+    def.insert_channel(
+        "Color".into(),
+        ChannelDef::new(crate::fixture::MergeMode::HTP, ChannelKind::Red),
+    );
+
+    // Mode order specifies offsets
+    let mut order: HashMap<String, Option<usize>> = HashMap::new();
+    order.insert("Dimmer".into(), Some(0));
+    order.insert("Color".into(), Some(1));
+    let mode = FixtureMode::new(order);
+    def.insert_mode("ModeA".into(), mode);
+
+    def
+}
+
 /// Build a Fixture that references a given FixtureDef and mode.
 pub(crate) fn make_fixture(
     name: &str,

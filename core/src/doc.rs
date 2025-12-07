@@ -182,6 +182,7 @@ impl Doc {
         opt
     }
 
+    // TODO: FixtureDefが変更されたときに不変条件が崩れないようにする
     /// TODO: update this comment Same as [std::collections::HashMap::remove()]
     pub(crate) fn insert_fixture(
         &mut self,
@@ -370,6 +371,7 @@ impl Doc {
 
 #[cfg(test)]
 mod tests {
+    mod address_index;
     mod events;
     mod fixture_defs;
     mod fixtures;

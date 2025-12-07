@@ -100,7 +100,9 @@ fn add_output_inserts_once_and_emits_universe_settings_changed() {
     doc.add_universe(uni_id);
 
     // first add_output -> Ok(true) and event UniverseSettingsChanged
-    let added = doc.add_output(uni_id, plugin_id).unwrap();
+    let added = doc
+        .add_output(uni_id, plugin_id)
+        .expect("add_output should succeed");
     assert!(added);
 
     {
@@ -117,7 +119,9 @@ fn add_output_inserts_once_and_emits_universe_settings_changed() {
     assert!(setting.output_plugins().contains(&plugin_id));
 
     // second add_output (same plugin) -> Ok(false) and typically no extra settings-changed event
-    let added_again = doc.add_output(uni_id, plugin_id).unwrap();
+    let added_again = doc
+        .add_output(uni_id, plugin_id)
+        .expect("duplicate add_output should succeed");
     assert!(!added_again);
 
     // the plugin remains present
@@ -184,10 +188,16 @@ fn output_ops_on_nonexistent_universe_returns_error() {
     // no universe added
 
     // add_output should error
-    let err = doc.add_output(uni_id, plugin_id).err().unwrap();
+    let err = doc
+        .add_output(uni_id, plugin_id)
+        .err()
+        .expect("expected add_output to error due to missing universe");
     assert!(matches!(err, OutputMapError::UniverseNotFound(id) if id==uni_id));
 
     // remove_output should error
-    let err2 = doc.remove_output(&uni_id, &plugin_id).err().unwrap();
+    let err2 = doc
+        .remove_output(&uni_id, &plugin_id)
+        .err()
+        .expect("expected remove_output to error due to missing universe");
     assert!(matches!(err2, OutputMapError::UniverseNotFound(id) if id==uni_id));
 }
