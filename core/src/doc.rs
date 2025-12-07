@@ -23,6 +23,8 @@ pub struct Doc {
     functions: HashMap<FunctionId, FunctionData>,
     universe_settings: HashMap<UniverseId, UniverseSetting>,
     observers: Vec<Weak<RwLock<dyn DocObserver>>>,
+
+    fixture_by_address_index: HashMap<(UniverseId, DmxAddress), (FixtureId, usize)>,
 }
 
 /* ---------- public, readonly ---------- */
@@ -34,6 +36,8 @@ impl Doc {
             functions: HashMap::new(),
             universe_settings: HashMap::new(),
             observers: Vec::new(),
+
+            fixture_by_address_index: HashMap::new(),
         }
     }
 
@@ -183,20 +187,72 @@ impl Doc {
         &mut self,
         fixture: Fixture,
     ) -> Result<Option<Fixture>, FixtureInsertError> {
-        // FIXME: signature is complicated
-        self.validate_fixture(&fixture)
+        // FIXME: signature is complicated. Using enum(Outcome::Created/Updated) would be good.
+        let def_id = fixture.fixture_def();
+        let fixture_def =
+            self.get_fixture_def(&def_id)
+                .ok_or(FixtureInsertError::FixtureDefNotFound(FixtureDefNotFound {
+                    fixture_id: fixture.id(),
+                    fixture_def_id: def_id,
+                }))?;
+        let occupied_addresses = fixture
+            .ocuppied_addresses(fixture_def)
+            .map_err(|e| FixtureInsertError::ModeNotFound(e))?;
+
+        self.validate_fixture_address(&fixture, &occupied_addresses)
             .map_err(|e| FixtureInsertError::AddressValidateError(e))?;
+
+        for adr in occupied_addresses {
+            if let None = self.fixture_by_address_index.insert(
+                (fixture.universe_id(), adr),
+                (fixture.id(), (adr - fixture.address()).unwrap()),
+            ) {
+                warn!("address index is invalid"); //TODO: improve message
+            }
+        }
+
         let id = fixture.id();
         let opt = self.fixtures.insert(id, fixture);
+
         self.notify(DocEvent::FixtureInserted(id));
         Ok(opt)
     }
 
     /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn remove_fixture(&mut self, id: &FixtureId) -> Option<Fixture> {
-        let opt = self.fixtures.remove(id);
+    pub(crate) fn remove_fixture(
+        &mut self,
+        id: &FixtureId,
+    ) -> Result<Option<Fixture>, FixtureRemoveError> {
+        if !self.fixtures.contains_key(id) {
+            return Ok(None);
+        }
+        let fixture = self.fixtures.get(id).unwrap();
+        let def_id = fixture.fixture_def();
+        let fixture_def =
+            self.fixture_defs
+                .get(&def_id)
+                .ok_or(FixtureRemoveError::FixtureDefNotFound(FixtureDefNotFound {
+                    fixture_id: *id,
+                    fixture_def_id: def_id,
+                }))?;
+        let occupied_addresses = fixture
+            .ocuppied_addresses(fixture_def)
+            .map_err(|e| FixtureRemoveError::ModeNotFound(e))?;
+
+        for adr in occupied_addresses {
+            if let Some((_old_id, _offset)) = self
+                .fixture_by_address_index
+                .remove(&(fixture.universe_id(), adr))
+            {
+                warn!("the states of address index was invalid");
+            } else {
+                warn!("the states of address index was invalid");
+            }
+        }
+
+        let old = self.fixtures.remove(id).unwrap();
         self.notify(DocEvent::FixtureRemoved(*id));
-        opt
+        Ok(Some(old))
     }
 
     /// Same as [std::collections::HashMap::remove()]
@@ -267,43 +323,25 @@ impl Doc {
 
 /* ---------- privates ---------- */
 impl Doc {
-    /// Validates that
-    /// - The definition specified in [fixture.fixture_def()][`Fixture::fixture_def()`] exists in [`Doc`].
-    /// - The mode specified in [fixture.fixture_mode()][`Fixture::fixture_mode()`] exists in the definition.
-    /// <- FIXME: should this validation be done in here? [Fixture::add_mode] might be more apporopriate.
-    /// - The fixture does not conflict with existing [Fixture]s' address.
-    fn validate_fixture(&self, fixture: &Fixture) -> Result<(), ValidateError> {
-        let def_id = fixture.fixture_def();
-        let fixture_def =
-            self.get_fixture_def(&def_id)
-                .ok_or(ValidateError::FixtureDefNotFound(FixtureDefNotFound {
-                    fixture_id: fixture.id(),
-                    fixture_def_id: def_id,
-                }))?;
-        let mode_name = fixture.fixture_mode();
-        let mode = fixture_def
-            .modes()
-            .get(mode_name)
-            .ok_or(ValidateError::ModeNotFound(ModeNotFound {
-                fixture_def: def_id,
-                mode: String::from(mode_name),
-            }))?;
-        let offset = mode.offset();
-
+    /// Validates that the fixture does not conflict with existing [Fixture]s' address.
+    fn validate_fixture_address(
+        &self,
+        fixture: &Fixture,
+        ocuppied_addresses: &[DmxAddress],
+    ) -> Result<(), ValidateError> {
         let mut conflicts = Vec::new();
-        let address_base = fixture.address();
-        for i in 0..offset {
-            let address = DmxAddress::new(address_base.value() + i).expect("address overflow");
+
+        for adr in ocuppied_addresses {
             if let Some((old_fixture_id, old_offset)) = self
                 .fixture_by_address_index
-                .get(&(fixture.universe_id(), address))
+                .get(&(fixture.universe_id(), *adr))
             {
                 conflicts.push(AddressConflictedError {
-                    address: address,
+                    address: *adr,
                     old_fixture_id: *old_fixture_id,
                     old_offset: *old_offset,
                     new_fixture_id: fixture.id(),
-                    new_offset: i,
+                    new_offset: (*adr - fixture.address()).unwrap(), //TODO: use Err()
                 });
             }
         }
