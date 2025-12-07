@@ -5,6 +5,7 @@ use crate::{
     doc::{Doc, DocEvent, DocObserver},
     engine::OutputPluginId,
     fixture::MergeMode,
+    fixture_def::ChannelKind,
     universe::{DmxAddress, UniverseId},
 };
 
@@ -31,7 +32,14 @@ fn events_sequence_contains_expected_order() {
     }
 
     // 1) Insert FixtureDef
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 0, MergeMode::LTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        0,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 

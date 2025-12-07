@@ -2,6 +2,7 @@ use std::sync::{Arc, RwLock};
 
 use super::helpers::TestObserver;
 use super::helpers::{make_fixture, make_fixture_def_with_mode};
+use crate::fixture_def::ChannelKind;
 use crate::{
     doc::{Doc, DocEvent, DocObserver, ResolveError},
     fixture::MergeMode,
@@ -20,7 +21,14 @@ fn insert_fixture_returns_none_then_some_and_emits_event() {
     }
 
     // prepare dependencies: fixture def + universe
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 0, MergeMode::LTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        0,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -74,7 +82,14 @@ fn remove_fixture_returns_some_then_none_and_emits_event() {
     }
 
     // prepare dependencies: fixture def + universe
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 0, MergeMode::HTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        0,
+        MergeMode::HTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -116,7 +131,14 @@ fn resolve_address_fails_after_fixture_removed() {
     let mut doc = Doc::new();
 
     // prepare dependencies: fixture def + universe
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 5, MergeMode::LTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        5,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 

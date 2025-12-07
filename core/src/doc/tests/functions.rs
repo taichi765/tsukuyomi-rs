@@ -23,7 +23,7 @@ fn add_and_remove_function_emits_events_and_updates_store() {
     assert!(old.is_none());
 
     // get_function_data should return Some
-    let got = doc.get_function_data(func_id);
+    let got = doc.get_function_data(&func_id);
     assert!(got.is_some());
     assert_eq!(got.unwrap().id(), func_id);
 

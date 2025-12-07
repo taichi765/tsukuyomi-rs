@@ -185,9 +185,9 @@ fn output_ops_on_nonexistent_universe_returns_error() {
 
     // add_output should error
     let err = doc.add_output(uni_id, plugin_id).err().unwrap();
-    assert!(matches!(err, OutputMapError::UniverseNotFound));
+    assert!(matches!(err, OutputMapError::UniverseNotFound(id) if id==uni_id));
 
     // remove_output should error
     let err2 = doc.remove_output(&uni_id, &plugin_id).err().unwrap();
-    assert!(matches!(err2, OutputMapError::UniverseNotFound));
+    assert!(matches!(err2, OutputMapError::UniverseNotFound(id) if id==uni_id));
 }

@@ -4,7 +4,7 @@ use super::helpers::{make_fixture, make_fixture_def_with_mode};
 use crate::{
     doc::{Doc, ResolveError},
     fixture::{Fixture, FixtureId, MergeMode},
-    fixture_def::{ChannelDef, FixtureDef, FixtureDefId, FixtureMode},
+    fixture_def::{ChannelDef, ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
     universe::{DmxAddress, UniverseId},
 };
 
@@ -13,7 +13,14 @@ fn resolve_success_single_channel() {
     let mut doc = Doc::new();
 
     // Prepare a def with ModeA -> "Dimmer" at offset 7, LTP
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 7, MergeMode::LTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        7,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -89,7 +96,14 @@ fn resolve_error_mode_not_found() {
     let mut doc = Doc::new();
 
     // Def has only "ModeB", but fixture will use "ModeA"
-    let def = make_fixture_def_with_mode("ModelX", "ModeB", "Dimmer", 1, MergeMode::HTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeB",
+        "Dimmer",
+        1,
+        MergeMode::HTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -122,12 +136,10 @@ fn resolve_error_channel_not_found_entry_present_but_none() {
 
     // Build a def with a mode "ModeA" where "Dimmer" key exists but value is None
     let mut def = FixtureDef::new(String::from("Manufacturer"), String::from("ModelX"));
-    let mut order: HashMap<String, Option<(usize, ChannelDef)>> = HashMap::new();
+    let mut order: HashMap<String, Option<usize>> = HashMap::new();
     order.insert(String::from("Dimmer"), None);
-    let mode = FixtureMode {
-        channel_order: order,
-    };
-    def.add_mode(String::from("ModeA"), mode);
+    let mode = FixtureMode::new(order);
+    def.insert_mode(String::from("ModeA"), mode);
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -149,7 +161,7 @@ fn resolve_error_channel_not_found_entry_present_but_none() {
         .expect_err("should error");
     assert!(matches!(
         err,
-        ResolveError::ChannelNotFound { fixturedef, mode, channel }
-        if fixturedef == def_id && mode == "ModeA" && channel == "Dimmer"
+        ResolveError::ChannelNotFound { fixture_def, mode, channel }
+        if fixture_def == def_id && mode == "ModeA" && channel == "Dimmer"
     ));
 }
