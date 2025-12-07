@@ -337,6 +337,9 @@ impl Doc {
                 .fixture_by_address_index
                 .get(&(fixture.universe_id(), *adr))
             {
+                if *old_fixture_id == fixture.id() {
+                    continue;
+                }
                 conflicts.push(AddressConflictedError {
                     address: *adr,
                     old_fixture_id: *old_fixture_id,
