@@ -60,8 +60,7 @@ impl Doc {
         self.observers.push(observer);
     }
 
-    /* ---------- internals ---------- */
-    pub(crate) fn resolve_address(
+    pub fn resolve_address(
         &self,
         fixture_id: FixtureId,
         channel: &str,
@@ -79,21 +78,27 @@ impl Doc {
         )?;
         let mode =
             fixture_def
-                .modes
+                .modes()
                 .get(fixture.fixture_mode())
                 .ok_or(ResolveError::ModeNotFound {
                     fixture_def: fixture.fixture_def(),
                     mode: fixture.fixture_mode().into(),
                 })?;
-        let channel = mode.channel_order.get(channel).unwrap().as_ref().ok_or(
-            ResolveError::ChannelNotFound {
-                fixturedef: fixture.fixture_def(),
-                mode: fixture.fixture_mode().into(),
-                channel: channel.into(),
-            },
-        )?;
+        let channel_offset =
+            mode.channel_order()
+                .get(channel)
+                .unwrap()
+                .ok_or(ResolveError::ChannelNotFound {
+                    fixture_def: fixture.fixture_def(),
+                    mode: fixture.fixture_mode().into(),
+                    channel: channel.into(),
+                })?;
 
-        let merge_mode = channel.1.merge_mode;
+        let merge_mode = fixture_def
+            .channel_templates()
+            .get(channel)
+            .unwrap() // TODO: should return Err
+            .merge_mode();
         Ok((
             fixture.universe_id(),
             ResolvedAddress {
