@@ -58,9 +58,9 @@ pub struct FixtureMode {
     channel_order: HashMap<String, Option<usize>>,
 }
 
-// TODO: validate
 impl FixtureMode {
     // TODO: 引数取らない方がいいかも
+    // TODO: Validate that channel order is contiguous
     pub fn new(channel_order: HashMap<String, Option<usize>>) -> Self {
         Self { channel_order }
     }

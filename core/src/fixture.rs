@@ -14,7 +14,7 @@ pub enum MergeMode {
 
 //TODO: 占有するチャンネルの計算
 // TODO: クロスユニバース
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Fixture {
     id: FixtureId,
     name: String,
