@@ -6,7 +6,7 @@ use crate::{
     universe::{DmxAddress, UniverseId},
 };
 
-/// [super::Doc::resolve_address()]
+/// Error type for [super::Doc::resolve_address()]
 #[derive(Debug, Error)]
 pub enum ResolveError {
     #[error(transparent)]
@@ -51,16 +51,16 @@ pub(crate) enum OutputMapError {
 #[derive(Debug, Error)]
 pub(crate) enum FixtureInsertError {
     #[error(transparent)]
+    FixtureDefNotFound(#[from] FixtureDefNotFound),
+    #[error(transparent)]
+    ModeNotFound(#[from] ModeNotFound),
+    #[error(transparent)]
     AddressValidateError(#[from] ValidateError),
 }
 
 /// Error type for [super::Doc::validate_fixture_address_uniqueness()]
 #[derive(Debug, Error)]
 pub(crate) enum ValidateError {
-    #[error(transparent)]
-    FixtureDefNotFound(#[from] FixtureDefNotFound),
-    #[error(transparent)]
-    ModeNotFound(#[from] ModeNotFound),
     #[error("{} address conflicted",.0.len())]
     AddressConflicted(Vec<AddressConflictedError>),
 }
@@ -77,4 +77,12 @@ pub(crate) struct AddressConflictedError {
     pub old_offset: usize,
     pub new_fixture_id: FixtureId,
     pub new_offset: usize,
+}
+
+#[derive(Debug, Error)]
+pub(crate) enum FixtureRemoveError {
+    #[error(transparent)]
+    FixtureDefNotFound(#[from] FixtureDefNotFound),
+    #[error(transparent)]
+    ModeNotFound(#[from] ModeNotFound),
 }

@@ -74,7 +74,10 @@ mod fixture {
     impl DocCommand for AddFixture {
         fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
             if let Some(f) = self.fixture.take() {
-                doc.insert_fixture(f);
+                let is_updated = doc.insert_fixture(f).map_err(|e| e.to_string())?.is_some();
+                if is_updated {
+                    return Err("updated".into());
+                }
                 Ok(())
             } else {
                 Err("fixture is already moved".into())
@@ -82,11 +85,16 @@ mod fixture {
         }
 
         fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
-            if let Some(f) = doc.remove_fixture(&self.fixture_id) {
-                self.fixture = Some(f);
-                Ok(())
-            } else {
-                Err("fixture is already removed".into())
+            match doc.remove_fixture(&self.fixture_id) {
+                Ok(opt) => {
+                    if let Some(f) = opt {
+                        self.fixture = Some(f);
+                        Ok(())
+                    } else {
+                        Err("fixture is already removed".into())
+                    }
+                }
+                Err(e) => Err(e.to_string()),
             }
         }
     }
