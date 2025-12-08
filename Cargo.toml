@@ -1,6 +1,6 @@
 [workspace]
 members=[
-    "slint",
+    "ui",
     "core"
 ]
 resolver="3"
