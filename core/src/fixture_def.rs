@@ -75,6 +75,14 @@ impl FixtureMode {
     pub fn channel_order(&self) -> &HashMap<String, Option<usize>> {
         &self.channel_order
     }
+
+    pub fn get_channel_by_offset(&self, offset: usize) -> Option<&str> {
+        let found = self
+            .channel_order
+            .iter()
+            .find(|(_, opt)| opt.is_some_and(|n| n == offset));
+        found.map(|(ch, _)| ch.as_str())
+    }
 }
 
 pub struct ChannelDef {
