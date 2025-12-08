@@ -198,7 +198,10 @@ impl Engine {
     fn write_universe(&mut self, fixture_id: FixtureId, channel: &str, value: u8) {
         match self.doc.read().resolve_address(fixture_id, channel) {
             Ok((universe_id, address)) => {
-                let universe = self.universe_states.get_mut(&universe_id).unwrap();
+                let universe = self
+                    .universe_states
+                    .get_mut(&universe_id)
+                    .expect(format!("universe states not found: {:?}", universe_id).as_str());
                 universe.set_value(address, value);
             }
             Err(e) => {
