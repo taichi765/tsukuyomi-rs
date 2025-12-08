@@ -54,7 +54,7 @@ fn insert_fixture_returns_none_then_some_and_emits_event() {
         assert!(
             obs.events
                 .iter()
-                .any(|e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id))
+                .any(|e| matches!(e, DocEvent::FixtureInserted(id,_) if *id == fxt_id))
         );
     }
 
@@ -71,7 +71,7 @@ fn insert_fixture_returns_none_then_some_and_emits_event() {
         let count = obs
             .events
             .iter()
-            .filter(|e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id))
+            .filter(|e| matches!(e, DocEvent::FixtureInserted(id,_) if *id == fxt_id))
             .count();
         assert!(count >= 2);
     }

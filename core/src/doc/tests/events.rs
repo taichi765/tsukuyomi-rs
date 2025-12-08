@@ -102,7 +102,7 @@ fn events_sequence_contains_expected_order() {
     cur = find_event_idx(
         &events,
         cur,
-        |e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id),
+        |e| matches!(e, DocEvent::FixtureInserted(id,_) if *id == fxt_id),
     )
     .expect("FixtureInserted not found")
         + 1;
