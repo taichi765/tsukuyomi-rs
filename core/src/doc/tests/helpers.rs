@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     doc::{DocEvent, DocObserver},
     fixture::{Fixture, MergeMode},
-    fixture_def::{ChannelDef, FixtureDef, FixtureDefId, FixtureMode},
+    fixture_def::{ChannelDef, ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
     functions::{FunctionData, StaticSceneData},
     universe::{DmxAddress, UniverseId},
 };
@@ -32,17 +32,44 @@ pub(crate) fn make_fixture_def_with_mode(
     channel_name: &str,
     channel_offset: usize,
     merge_mode: MergeMode,
+    kind: ChannelKind,
 ) -> FixtureDef {
     let mut def = FixtureDef::new("TestMfr".to_string(), model.to_string());
 
-    let mut channel_order: HashMap<String, Option<(usize, ChannelDef)>> = HashMap::new();
-    channel_order.insert(
+    def.insert_channel(
         String::from(channel_name),
-        Some((channel_offset, ChannelDef { merge_mode })),
+        ChannelDef::new(merge_mode, kind),
     );
 
-    let mode = FixtureMode { channel_order };
-    def.add_mode(String::from(mode_name), mode);
+    let mut channel_order: HashMap<String, Option<usize>> = HashMap::new();
+    channel_order.insert(String::from(channel_name), Some(channel_offset));
+
+    let mode = FixtureMode::new(channel_order);
+    def.insert_mode(String::from(mode_name), mode);
+
+    def
+}
+
+pub(crate) fn make_def_with_two_channels() -> FixtureDef {
+    // Manufacturer/Model arbitrary for test
+    let mut def = FixtureDef::new("TestMfr".to_string(), "ModelDual".to_string());
+
+    // Insert two channel templates: Dimmer (offset 0) and Color (offset 3)
+    def.insert_channel(
+        "Dimmer".into(),
+        ChannelDef::new(crate::fixture::MergeMode::LTP, ChannelKind::Dimmer),
+    );
+    def.insert_channel(
+        "Color".into(),
+        ChannelDef::new(crate::fixture::MergeMode::HTP, ChannelKind::Red),
+    );
+
+    // Mode order specifies offsets
+    let mut order: HashMap<String, Option<usize>> = HashMap::new();
+    order.insert("Dimmer".into(), Some(0));
+    order.insert("Color".into(), Some(1));
+    let mode = FixtureMode::new(order);
+    def.insert_mode("ModeA".into(), mode);
 
     def
 }

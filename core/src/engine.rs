@@ -129,7 +129,7 @@ impl Engine {
         {
             for (function_id, runtime) in &mut self.active_runtimes {
                 let doc = self.doc.read();
-                let data = doc.get_function_data(*function_id).unwrap();
+                let data = doc.get_function_data(function_id).unwrap();
                 commands_list.append(&mut runtime.run(data, TICK_DURATION));
             }
         }
@@ -164,7 +164,7 @@ impl Engine {
                     warn!(universe_id = ?u_id, "universe state not created");
                     return;
                 };
-                if let Err(e) = plugin.send_dmx(u_id.value(), &universe_data.values()) {
+                if let Err(e) = plugin.send_dmx(*u_id, &universe_data.values()) {
                     self.message_tx
                         .send(EngineMessage::ErrorOccured(EngineError {
                             context: ErrorContext::SendingDmx {
@@ -184,7 +184,7 @@ impl Engine {
         let runtime = self
             .doc
             .read()
-            .get_function_data(function_id)
+            .get_function_data(&function_id)
             .expect(format!("could not find function with id {}", function_id).as_str())
             .create_runtime();
         self.active_runtimes.insert(function_id, runtime);
@@ -198,7 +198,10 @@ impl Engine {
     fn write_universe(&mut self, fixture_id: FixtureId, channel: &str, value: u8) {
         match self.doc.read().resolve_address(fixture_id, channel) {
             Ok((universe_id, address)) => {
-                let universe = self.universe_states.get_mut(&universe_id).unwrap();
+                let universe = self
+                    .universe_states
+                    .get_mut(&universe_id)
+                    .expect(format!("universe states not found: {:?}", universe_id).as_str());
                 universe.set_value(address, value);
             }
             Err(e) => {

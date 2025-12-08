@@ -23,7 +23,7 @@ fn add_and_remove_function_emits_events_and_updates_store() {
     assert!(old.is_none());
 
     // get_function_data should return Some
-    let got = doc.get_function_data(func_id);
+    let got = doc.get_function_data(&func_id);
     assert!(got.is_some());
     assert_eq!(got.unwrap().id(), func_id);
 
@@ -43,7 +43,7 @@ fn add_and_remove_function_emits_events_and_updates_store() {
     assert_eq!(removed.unwrap().id(), func_id);
 
     // get_function_data should return None
-    assert!(doc.get_function_data(func_id).is_none());
+    assert!(doc.get_function_data(&func_id).is_none());
 
     // event emitted for removal
     {
@@ -90,8 +90,8 @@ fn add_multiple_functions_and_remove_one_keeps_the_other() {
     assert!(doc.add_function(func2).is_none());
 
     // both should exist
-    assert!(doc.get_function_data(func1_id).is_some());
-    assert!(doc.get_function_data(func2_id).is_some());
+    assert!(doc.get_function_data(&func1_id).is_some());
+    assert!(doc.get_function_data(&func2_id).is_some());
 
     // remove one
     let removed = doc.remove_function(&func1_id);
@@ -99,8 +99,8 @@ fn add_multiple_functions_and_remove_one_keeps_the_other() {
     assert_eq!(removed.unwrap().id(), func1_id);
 
     // one removed, the other remains
-    assert!(doc.get_function_data(func1_id).is_none());
-    assert!(doc.get_function_data(func2_id).is_some());
+    assert!(doc.get_function_data(&func1_id).is_none());
+    assert!(doc.get_function_data(&func2_id).is_some());
 
     // events sanity check (at least inserted for both and removed for id1)
     {

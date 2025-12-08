@@ -1,3 +1,5 @@
+use std::ops::{Add, Sub};
+
 use crate::{doc::ResolvedAddress, fixture::MergeMode};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
@@ -13,18 +15,24 @@ impl UniverseId {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DmxAddress(usize);
-
-impl DmxAddress {
-    pub fn value(&self) -> usize {
-        self.0
-    }
-}
 
 impl DmxAddress {
     pub fn new(value: usize) -> Option<Self> {
         if value < 512 { Some(Self(value)) } else { None }
+    }
+
+    pub fn value(&self) -> usize {
+        self.0
+    }
+
+    pub fn checked_add(self, rhs: usize) -> Option<DmxAddress> {
+        DmxAddress::new(self.0 + rhs)
+    }
+
+    pub fn checked_sub(self, rhs: Self) -> Option<usize> {
+        self.0.checked_sub(rhs.0)
     }
 }
 

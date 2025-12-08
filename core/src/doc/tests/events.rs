@@ -5,6 +5,7 @@ use crate::{
     doc::{Doc, DocEvent, DocObserver},
     engine::OutputPluginId,
     fixture::MergeMode,
+    fixture_def::ChannelKind,
     universe::{DmxAddress, UniverseId},
 };
 
@@ -31,7 +32,14 @@ fn events_sequence_contains_expected_order() {
     }
 
     // 1) Insert FixtureDef
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 0, MergeMode::LTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        0,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -47,7 +55,7 @@ fn events_sequence_contains_expected_order() {
     // 4) Insert Fixture
     let fxt = make_fixture("Fx1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     // 5) Add Output (emits UniverseSettingsChanged)
     let plugin_id = OutputPluginId::new();
@@ -94,7 +102,7 @@ fn events_sequence_contains_expected_order() {
     cur = find_event_idx(
         &events,
         cur,
-        |e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id),
+        |e| matches!(e, DocEvent::FixtureInserted(id,_) if *id == fxt_id),
     )
     .expect("FixtureInserted not found")
         + 1;

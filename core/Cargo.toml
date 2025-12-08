@@ -11,3 +11,4 @@ rayon = "1.11.0"
 serde = {version="1.0.228", features=["derive"]}
 uuid={workspace=true}
 tracing={workspace=true}
+thiserror={workspace=true}

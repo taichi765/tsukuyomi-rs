@@ -4711,6 +4711,7 @@ dependencies = [
  "quick-xml 0.38.3",
  "rayon",
  "serde",
+ "thiserror 2.0.17",
  "tracing",
  "uuid",
 ]

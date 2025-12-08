@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use super::helpers::{make_fixture, make_fixture_def_with_mode};
 use crate::{
-    doc::{Doc, ResolveError},
+    doc::{Doc, FixtureDefNotFound, FixtureNotFound, ModeNotFound, ResolveError},
     fixture::{Fixture, FixtureId, MergeMode},
-    fixture_def::{ChannelDef, FixtureDef, FixtureDefId, FixtureMode},
+    fixture_def::{ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
     universe::{DmxAddress, UniverseId},
 };
 
@@ -13,7 +13,14 @@ fn resolve_success_single_channel() {
     let mut doc = Doc::new();
 
     // Prepare a def with ModeA -> "Dimmer" at offset 7, LTP
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 7, MergeMode::LTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        7,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -29,7 +36,7 @@ fn resolve_success_single_channel() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     // Resolve
     let (resolved_uni, resolved) = doc
@@ -48,72 +55,7 @@ fn resolve_error_fixture_not_found() {
     let err = doc
         .resolve_address(missing, "Dimmer")
         .expect_err("should error");
-    assert!(matches!(err, ResolveError::FixtureNotFound(id) if id == missing));
-}
-
-#[test]
-fn resolve_error_fixture_def_not_found() {
-    let mut doc = Doc::new();
-
-    // Setup universe only
-    let uni_id = UniverseId::new(1);
-    doc.add_universe(uni_id);
-
-    // Create a fixture that references a non-existent FixtureDef
-    let missing_def = FixtureDefId::new();
-    let fxt = Fixture::new(
-        "FxtMissingDef",
-        uni_id,
-        DmxAddress::new(1).unwrap(),
-        missing_def,
-        String::from("AnyMode"),
-    );
-    let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
-
-    // Resolve should fail with FixtureDefNotFound
-    let err = doc
-        .resolve_address(fxt_id, "Dimmer")
-        .expect_err("should error");
-    assert!(matches!(
-        err,
-        ResolveError::FixtureDefNotFound {
-            fixture_id,
-            fixture_def_id
-        } if fixture_id == fxt_id && fixture_def_id == missing_def
-    ));
-}
-
-#[test]
-fn resolve_error_mode_not_found() {
-    let mut doc = Doc::new();
-
-    // Def has only "ModeB", but fixture will use "ModeA"
-    let def = make_fixture_def_with_mode("ModelX", "ModeB", "Dimmer", 1, MergeMode::HTP);
-    let def_id = def.id();
-    doc.insert_fixture_def(def);
-
-    let uni_id = UniverseId::new(1);
-    doc.add_universe(uni_id);
-
-    let fxt = make_fixture(
-        "FxtWrongMode",
-        def_id,
-        uni_id,
-        DmxAddress::new(10).unwrap(),
-        "ModeA",
-    );
-    let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
-
-    let err = doc
-        .resolve_address(fxt_id, "Dimmer")
-        .expect_err("should error");
-    assert!(matches!(
-        err,
-        ResolveError::ModeNotFound { fixture_def, mode }
-        if fixture_def == def_id && mode == "ModeA"
-    ));
+    assert!(matches!(err, ResolveError::FixtureNotFound(FixtureNotFound(id)) if id == missing));
 }
 
 #[test]
@@ -122,12 +64,10 @@ fn resolve_error_channel_not_found_entry_present_but_none() {
 
     // Build a def with a mode "ModeA" where "Dimmer" key exists but value is None
     let mut def = FixtureDef::new(String::from("Manufacturer"), String::from("ModelX"));
-    let mut order: HashMap<String, Option<(usize, ChannelDef)>> = HashMap::new();
+    let mut order: HashMap<String, Option<usize>> = HashMap::new();
     order.insert(String::from("Dimmer"), None);
-    let mode = FixtureMode {
-        channel_order: order,
-    };
-    def.add_mode(String::from("ModeA"), mode);
+    let mode = FixtureMode::new(order);
+    def.insert_mode(String::from("ModeA"), mode);
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -142,14 +82,14 @@ fn resolve_error_channel_not_found_entry_present_but_none() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     let err = doc
         .resolve_address(fxt_id, "Dimmer")
         .expect_err("should error");
     assert!(matches!(
         err,
-        ResolveError::ChannelNotFound { fixturedef, mode, channel }
-        if fixturedef == def_id && mode == "ModeA" && channel == "Dimmer"
+        ResolveError::ChannelNotFound { fixture_def, mode, channel }
+        if fixture_def == def_id && mode == "ModeA" && channel == "Dimmer"
     ));
 }

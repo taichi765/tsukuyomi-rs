@@ -1,7 +1,8 @@
 use super::helpers::{make_fixture, make_fixture_def_with_mode};
 use crate::{
-    doc::{Doc, ResolveError},
+    doc::{Doc, FixtureDefNotFound, ResolveError},
     fixture::MergeMode,
+    fixture_def::ChannelKind,
     universe::{DmxAddress, UniverseId},
 };
 
@@ -10,7 +11,14 @@ fn insert_fixture_def_emits_event_and_allows_resolution() {
     let mut doc = Doc::new();
 
     // prepare a fixture def with one mode and one channel
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 5, MergeMode::LTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        5,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
 
     // insert
@@ -30,7 +38,7 @@ fn insert_fixture_def_emits_event_and_allows_resolution() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     let (resolved_uni, resolved_addr) = doc.resolve_address(fxt_id, "Dimmer").unwrap();
     assert_eq!(resolved_uni, uni_id);
@@ -43,7 +51,14 @@ fn remove_fixture_def_emits_event_and_breaks_resolution() {
     let mut doc = Doc::new();
 
     // prepare and insert fixture def
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Dimmer", 0, MergeMode::HTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        0,
+        MergeMode::HTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
     doc.insert_fixture_def(def);
 
@@ -53,7 +68,7 @@ fn remove_fixture_def_emits_event_and_breaks_resolution() {
 
     let fxt = make_fixture("Fxt1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt);
+    doc.insert_fixture(fxt).expect("should work");
 
     // now remove fixture def
     let removed = doc.remove_fixture_def(&def_id);
@@ -63,10 +78,10 @@ fn remove_fixture_def_emits_event_and_breaks_resolution() {
     let err = doc.resolve_address(fxt_id, "Dimmer").err().unwrap();
     assert!(matches!(
         err,
-        ResolveError::FixtureDefNotFound {
+        ResolveError::FixtureDefNotFound (FixtureDefNotFound{
             fixture_id: _,
             fixture_def_id
-        } if fixture_def_id == def_id
+        }) if fixture_def_id == def_id
     ));
 }
 
@@ -75,7 +90,14 @@ fn remove_nonexistent_fixture_def_returns_none() {
     let mut doc = Doc::new();
 
     // random UUID via a dummy def: create and drop to get a valid id, then remove twice
-    let def = make_fixture_def_with_mode("ModelX", "ModeA", "Ch", 1, MergeMode::HTP);
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Ch",
+        1,
+        MergeMode::HTP,
+        ChannelKind::Dimmer,
+    );
     let def_id = def.id();
 
     // first insert then remove
