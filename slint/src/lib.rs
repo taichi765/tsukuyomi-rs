@@ -134,10 +134,6 @@ fn setup_window() -> Result<AppWindow, Box<dyn Error>> {
         ui.window().hide().unwrap()
     });
 
-    #[cfg(target_os = "macos")]
-    ui.set_is_macos(true);
-    #[cfg(not(target_os = "macos"))]
-    ui.set_is_macos(false);
     Ok(ui)
 }
 

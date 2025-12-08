@@ -33,14 +33,13 @@ export component AppWindow inherits Window {
     full-screen: true;
     default-font-family: "Inter";
     property <bool> showSaveDialog;
-    in property <bool> is-macos;
     callback start_drag();
     callback minimize();
     callback toggle-fullscreen();
     callback close();
 
 
-    if is-macos:MenuBar {
+    if Platform.os==OperatingSystemType.macos:MenuBar {
         Menu {
             title: @tr("File");
             MenuItem {
@@ -91,8 +90,8 @@ export component AppWindow inherits Window {
                 activated => {};
             }
         }
-    
-    }    
+
+    }
 
     content := VerticalLayout {
         //alignment: LayoutAlignment.start;
@@ -141,7 +140,7 @@ export component AppWindow inherits Window {
             HorizontalLayout {
                 //height: 30%;
                 //HorizontalSplit {}
-                
+
                 Preview2D { }
 
                 BorderHorz { }
@@ -157,7 +156,7 @@ export component AppWindow inherits Window {
         }
     }*/
 
-   
+
 
     save-dialog := Dialog {
         visible: root.showSaveDialog;
