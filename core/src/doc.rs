@@ -197,7 +197,7 @@ impl Doc {
                     fixture_def_id: def_id,
                 }))?;
         let occupied_addresses = fixture
-            .ocuppied_addresses(fixture_def)
+            .occupied_addresses(fixture_def)
             .map_err(|e| FixtureInsertError::ModeNotFound(e))?;
 
         self.validate_fixture_address(&fixture, &occupied_addresses)
@@ -237,7 +237,7 @@ impl Doc {
                     fixture_def_id: def_id,
                 }))?;
         let occupied_addresses = fixture
-            .ocuppied_addresses(fixture_def)
+            .occupied_addresses(fixture_def)
             .map_err(|e| FixtureRemoveError::ModeNotFound(e))?;
 
         for adr in occupied_addresses {
@@ -328,11 +328,11 @@ impl Doc {
     fn validate_fixture_address(
         &self,
         fixture: &Fixture,
-        ocuppied_addresses: &[DmxAddress],
+        occupied_addresses: &[DmxAddress],
     ) -> Result<(), ValidateError> {
         let mut conflicts = Vec::new();
 
-        for adr in ocuppied_addresses {
+        for adr in occupied_addresses {
             if let Some((old_fixture_id, old_offset)) = self
                 .fixture_by_address_index
                 .get(&(fixture.universe_id(), *adr))

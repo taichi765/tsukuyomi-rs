@@ -43,7 +43,7 @@ pub struct ModeNotFound {
 
 #[derive(Debug, Error)]
 pub(crate) enum OutputMapError {
-    #[error("thare was no universe {0:?}")]
+    #[error("there was no universe {0:?}")]
     UniverseNotFound(UniverseId),
 }
 

@@ -38,7 +38,7 @@ fn insert_fixture_def_emits_event_and_allows_resolution() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("sould work");
+    doc.insert_fixture(fxt).expect("should work");
 
     let (resolved_uni, resolved_addr) = doc.resolve_address(fxt_id, "Dimmer").unwrap();
     assert_eq!(resolved_uni, uni_id);

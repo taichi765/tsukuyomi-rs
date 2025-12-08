@@ -232,7 +232,7 @@ fn remove_fixture_returns_some_then_none_and_emits_event() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("sould work");
+    doc.insert_fixture(fxt).expect("should work");
 
     // remove once -> Ok(Some(...))
     let removed = doc

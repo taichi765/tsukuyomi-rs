@@ -76,8 +76,8 @@ impl Fixture {
         Ok(mode.offset())
     }
 
-    /// Enumurates all addresses ocuppied by this [Fixture].
-    pub fn ocuppied_addresses(
+    /// Enumerates all addresses occupied by this [Fixture].
+    pub fn occupied_addresses(
         &self,
         fixture_def: &FixtureDef,
     ) -> Result<Vec<DmxAddress>, ModeNotFound> {
