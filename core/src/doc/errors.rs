@@ -65,7 +65,7 @@ pub(crate) enum ValidateError {
     AddressConflicted(Vec<AddressConflictedError>),
 }
 
-/// Internal error type for [`AddressValidateError`]
+/// Internal error type for [`ValidateError`]
 #[derive(Debug, Error)]
 #[error(
     "address conflicted: channel {old_offset} of fixture {old_fixture_id:?}\
