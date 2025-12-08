@@ -34,5 +34,7 @@ jobs:
         ls -la ./tsukuyomi-rs/tsukuyomi-rs || true
     - name: Build
       run: cargo build --verbose
+      working-directory: ./tsukuyomi-rs-repo
     - name: Run tests
       run: cargo test --verbose
+      working-directory: ./tsukuyomi-rs-repo
