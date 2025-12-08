@@ -1,17 +1,23 @@
 [package]
-name = "tsukuyomi-slint"
-version = "0.1.0"
+name = "tsukuyomi-ui"
+version = { workspace=true }
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-slint = { path = "../../slint/api/rs/slint",features = ["backend-winit"] }
-tsukuyomi-core={ path="../core" }
-i-slint-backend-winit={ path = "../../slint/internal/backends/winit" }
-uuid={workspace=true}
-tracing={workspace=true}
-tracing-subscriber="0.3.0"
+tsukuyomi-core = { path="../core" }
+
+slint = { version="1.14.1", features = ["backend-winit"] }
+i-slint-backend-winit = "1.14.1"
+
+uuid = { workspace=true }
+tracing = { workspace=true }
+tracing-subscriber = "0.3.0"
 
 [build-dependencies]
 slint-build = { path="../../slint/api/rs/build" }
+
+[patch.crates-io]
+slint = { path = "../../slint/api/rs/slint", features = ["backend-winit"] }
+i-slint-backend-winit = { path = "../../slint/internal/backends/winit" }
