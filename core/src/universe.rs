@@ -26,18 +26,12 @@ impl DmxAddress {
     pub fn value(&self) -> usize {
         self.0
     }
-}
 
-impl Add<usize> for DmxAddress {
-    type Output = Option<DmxAddress>;
-    fn add(self, rhs: usize) -> Self::Output {
+    pub fn checked_add(self, rhs: usize) -> Option<DmxAddress> {
         DmxAddress::new(self.0 + rhs)
     }
-}
 
-impl Sub for DmxAddress {
-    type Output = Option<usize>;
-    fn sub(self, rhs: Self) -> Self::Output {
+    pub fn checked_sub(self, rhs: Self) -> Option<usize> {
         self.0.checked_sub(rhs.0)
     }
 }

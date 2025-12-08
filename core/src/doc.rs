@@ -206,7 +206,7 @@ impl Doc {
         for adr in occupied_addresses {
             if let Some(_) = self.fixture_by_address_index.insert(
                 (fixture.universe_id(), adr),
-                (fixture.id(), (adr - fixture.address()).unwrap()),
+                (fixture.id(), adr.checked_sub(fixture.address()).unwrap()),
             ) {
                 warn!("there must be logic error in address validation");
             }
@@ -347,7 +347,7 @@ impl Doc {
                     old_fixture_id: *old_fixture_id,
                     old_offset: *old_offset,
                     new_fixture_id: fixture.id(),
-                    new_offset: (*adr - fixture.address()).unwrap(), //TODO: use Err()
+                    new_offset: adr.checked_sub(fixture.address()).unwrap(), //TODO: use Err()
                 });
             }
         }
