@@ -8,16 +8,12 @@ edition = "2024"
 [dependencies]
 tsukuyomi-core = { path="../core" }
 
-slint = { version="1.14.1", features = ["backend-winit"] }
-i-slint-backend-winit = "1.14.1"
+slint = { workspace=true }
+i-slint-backend-winit = { workspace=true }
 
 uuid = { workspace=true }
 tracing = { workspace=true }
 tracing-subscriber = "0.3.0"
 
 [build-dependencies]
-slint-build = { path="../../slint/api/rs/build" }
-
-[patch.crates-io]
-slint = { path = "../../slint/api/rs/slint", features = ["backend-winit"] }
-i-slint-backend-winit = { path = "../../slint/internal/backends/winit" }
+slint-build = { workspace=true }

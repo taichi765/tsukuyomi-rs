@@ -12,3 +12,12 @@ version = "0.1.0"
 uuid = { version="1.19.0", features=["v4"] }
 tracing = "0.1"
 thiserror = "2.0.17"
+
+slint = { version="1.15.0", features = ["backend-winit"] }
+i-slint-backend-winit = "1.15.0"
+slint-build = "1.15.0"
+
+[patch.crates-io]
+slint = { path = "../slint/api/rs/slint" }
+i-slint-backend-winit = { path = "../slint/internal/backends/winit" }
+slint-build = { path="../slint/api/rs/build" }
