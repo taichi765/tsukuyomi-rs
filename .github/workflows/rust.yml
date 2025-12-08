@@ -15,8 +15,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: checkout main repo
+      uses: actions/checkout@v4
+      with: 
+        path: tsukuyomi-rs
+    - name: checkout slint repo
+      uses: actions/checkout@v4
+      with:
+        repository: taichi765/slint
+        path: slint
     - name: Build
+      working-directory: tsukuyomi-rs
       run: cargo build --verbose
     - name: Run tests
+      working-directory: tsukuyomi-rs
       run: cargo test --verbose
