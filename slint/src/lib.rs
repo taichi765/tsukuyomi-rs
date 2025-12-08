@@ -56,7 +56,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
 
     let mut command_manager = CommandManager::new();
 
-    // TODO: depending on the order of initizalization, it would cause crash.
+    // TODO: depending on the order of initialization, it would cause crash.
     for i in 1..5 {
         command_manager
             .execute(
@@ -65,17 +65,14 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
             )
             .unwrap();
     }
-    println!("added 4 universes");
     let (commands, fixture_id) = create_some_presets();
     setup_fader_view(&ui, command_tx.clone(), fixture_id);
-    println!("initialized fader view");
     let mut update_2d_preview = setup_2d_preview(
         &ui,
         Arc::clone(&doc),
         &mut command_manager,
         command_tx.clone(),
     );
-    println!("initizalized 2d preview");
 
     commands.into_iter().for_each(|cmd| {
         command_manager

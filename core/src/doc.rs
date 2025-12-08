@@ -6,7 +6,7 @@ use std::{
     sync::{RwLock, Weak},
 };
 
-use tracing::{trace, warn};
+use tracing::warn;
 
 use crate::{
     engine::OutputPluginId,
@@ -93,7 +93,7 @@ impl Doc {
         let channel_offset =
             mode.channel_order()
                 .get(channel)
-                .unwrap()
+                .unwrap()// FIXME: unwrap
                 .ok_or(ResolveError::ChannelNotFound {
                     fixture_def: fixture.fixture_def(),
                     mode: fixture.fixture_mode().into(),
@@ -109,7 +109,7 @@ impl Doc {
             fixture.universe_id(),
             ResolvedAddress {
                 merge_mode,
-                address: DmxAddress::new(fixture.address().value() + channel_offset).unwrap(),
+                address: DmxAddress::new(fixture.address().value() + channel_offset).unwrap(),//FIXME: unwrap
             },
         ))
     }
@@ -245,6 +245,7 @@ impl Doc {
                 .fixture_by_address_index
                 .remove(&(fixture.universe_id(), adr))
             {
+                // FIXME: unwrap
                 if old_id != *id || offset != adr.checked_sub(fixture.address()).unwrap() {
                     warn!(address=?adr,fixture_id=?id,?old_id,?offset,"address index had unexpected value");
                 }
@@ -300,7 +301,6 @@ impl Doc {
             .ok_or(OutputMapError::UniverseNotFound(universe_id))?;
         let is_inserted = setting.output_plugins.insert(plugin);
         if is_inserted {
-            trace!("notifying setting change");
             self.notify(DocEvent::UniverseSettingsChanged);
         }
         Ok(is_inserted)
@@ -361,7 +361,6 @@ impl Doc {
 
     /// Notifies event to all observers
     fn notify(&mut self, event: DocEvent) {
-        trace!("observers: {}", self.observers.len());
         self.observers.retain(|weak_ob| {
             if let Some(ob) = weak_ob.upgrade() {
                 ob.write().unwrap().on_doc_event(&event);

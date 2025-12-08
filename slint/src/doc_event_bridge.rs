@@ -1,6 +1,5 @@
 use std::sync::mpsc::Sender;
 
-use tracing::trace;
 use tsukuyomi_core::doc::{DocEvent, DocObserver};
 use tsukuyomi_core::engine::EngineCommand;
 
@@ -14,7 +13,6 @@ impl DocObserver for DocEventBridge {
         match event {
             DocEvent::UniverseSettingsChanged => {
                 self.send(EngineCommand::OutputMapChanged);
-                trace!("sent update command")
             }
             DocEvent::UniverseAdded(id) => self.send(EngineCommand::UniverseAdded(*id)),
             DocEvent::UniverseRemoved(id) => self.send(EngineCommand::UniverseRemoved(*id)),

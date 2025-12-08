@@ -8,7 +8,6 @@ use std::{
 };
 
 use slint::{Brush, Color, ComponentHandle, Model, ModelRc, ToSharedString, VecModel, Weak};
-use tracing::{debug, debug_span};
 use tsukuyomi_core::{
     command_manager::CommandManager,
     commands::doc_commands,
@@ -119,9 +118,6 @@ impl PreviewController {
     }
 
     fn update_fixture_map(&mut self, id: FixtureId, fixture: &Fixture) {
-        let _span = debug_span!("preview: update_fixture_map").entered();
-        debug!("called");
-        debug!("got read lock");
         let ui = self.ui_handle.unwrap();
         let mut fixtures: HashMap<FixtureId, FixtureEntityData> =
             modelrc_to_map(ui.global::<Preview2DLogic>().get_fixture_list());
@@ -141,7 +137,7 @@ impl PreviewController {
     }
 
     fn handle_messages(&mut self) {
-        // TODO
+        // FIXME: unwrap
         while let Ok(msg) = self.msg_rx.lock().unwrap().try_recv() {
             match msg {
                 PreviewMessage::DmxFrame {
@@ -157,9 +153,7 @@ impl PreviewController {
 
         let doc = self.doc.read();
         for (address, value) in dmx_data.iter().enumerate() {
-            let Some(&(fixture_id, offset)) = self
-                .doc
-                .read()
+            let Some(&(fixture_id, offset)) = doc
                 .get_fixture_by_address(&universe_id, DmxAddress::new(address).unwrap())
             //FIXME: キャッシュ
             else {
@@ -169,9 +163,9 @@ impl PreviewController {
             let def = doc.get_fixture_def(&fixture.fixture_def()).unwrap();
             let mode = def.modes().get(fixture.fixture_mode()).unwrap();
             let channel_name = mode.get_channel_by_offset(offset).unwrap();
-            let chanel = def.channel_templates().get(channel_name).unwrap();
+            let channel = def.channel_templates().get(channel_name).unwrap();
 
-            match chanel.kind() {
+            match channel.kind() {
                 ChannelKind::Dimmer => set_color(fixture_id, &mut fixture_color_map, 0, *value),
                 ChannelKind::Red => set_color(fixture_id, &mut fixture_color_map, 1, *value),
                 ChannelKind::Blue => set_color(fixture_id, &mut fixture_color_map, 2, *value),
@@ -188,7 +182,6 @@ impl PreviewController {
         }
         let fixture_vec: Vec<FixtureEntityData> =
             fixture_map.into_iter().map(|(_, data)| data).collect();
-        println!("{:?}", fixture_vec);
         ui.global::<Preview2DLogic>()
             .set_fixture_list(Rc::new(VecModel::from(fixture_vec)).into());
     }
@@ -196,7 +189,6 @@ impl PreviewController {
 
 impl DocObserver for PreviewController {
     fn on_doc_event(&mut self, event: &DocEvent) {
-        debug!("event recieved");
         match event {
             DocEvent::FixtureInserted(id, fixture) => {
                 self.update_fixture_map(*id, fixture);
@@ -219,7 +211,6 @@ fn set_color(
     index: usize,
     value: u8,
 ) {
-    debug!(index, value);
     if let Some(color) = map.get_mut(&fixture_id) {
         match index {
             0 => color.0 = value,
@@ -242,11 +233,10 @@ fn set_color(
 }
 
 fn calc_color(dimmer: u8, r: u8, g: u8, b: u8) -> Brush {
-    let ratio = dimmer as f32 / 255 as f32;
+    let ratio = dimmer as f32 / 255.0;
     let r = (r as f32 * ratio) as u8;
     let g = (g as f32 * ratio) as u8;
     let b = (b as f32 * ratio) as u8;
-    debug!(dimmer, r, g, b);
     Brush::SolidColor(Color::from_rgb_u8(r, g, b))
 }
 
@@ -255,7 +245,7 @@ fn modelrc_to_map(value: ModelRc<FixtureEntityData>) -> HashMap<FixtureId, Fixtu
         .iter()
         .map(|f| {
             (
-                FixtureId::from(Uuid::parse_str(f.fixture_id.as_str()).unwrap()),
+                FixtureId::from(Uuid::parse_str(f.fixture_id.as_str()).unwrap()),//FIXME: unwrap
                 f,
             )
         })

@@ -6,12 +6,10 @@ use tsukuyomi_core::{engine::EngineCommand, fixture::FixtureId};
 use uuid::Uuid;
 
 pub fn setup_fader_view(ui: &AppWindow, command_tx: Sender<EngineCommand>, fixture_id: FixtureId) {
-    dbg!(fixture_id);
     ui.global::<FaderLogic>()
         .set_selected_fixture(fixture_id.to_shared_string());
     ui.global::<FaderLogic>().on_value_changed(
         move |fixture_id: SharedString, channel: SharedString, value: i32| {
-            println!("value changed!");
             command_tx
                 .send(EngineCommand::SetLiveValue {
                     fixture_id: FixtureId::from(Uuid::parse_str(&fixture_id).unwrap()),

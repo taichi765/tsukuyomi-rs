@@ -142,8 +142,6 @@ mod fixture_def {
 }
 
 mod plugin {
-    use tracing::trace;
-
     use crate::{commands::DocCommand, doc::Doc, engine::OutputPluginId, universe::UniverseId};
 
     pub struct AddOutput {
@@ -164,7 +162,6 @@ mod plugin {
         fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
             doc.add_output(self.universe_id, self.plugin)
                 .map_err(|e| format!("{e:?}: {:?}", self.universe_id))?;
-            trace!("added output plugin");
             Ok(())
         }
 
