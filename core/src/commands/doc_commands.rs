@@ -76,7 +76,7 @@ mod fixture {
             if let Some(f) = self.fixture.take() {
                 let is_updated = doc.insert_fixture(f).map_err(|e| e.to_string())?.is_some();
                 if is_updated {
-                    return Err("updated".into());
+                    return Err("fixture with same id was present and it was replaced".into());
                 }
                 Ok(())
             } else {
