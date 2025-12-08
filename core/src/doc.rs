@@ -204,11 +204,11 @@ impl Doc {
             .map_err(|e| FixtureInsertError::AddressValidateError(e))?;
 
         for adr in occupied_addresses {
-            if let None = self.fixture_by_address_index.insert(
+            if let Some(_) = self.fixture_by_address_index.insert(
                 (fixture.universe_id(), adr),
                 (fixture.id(), (adr - fixture.address()).unwrap()),
             ) {
-                warn!("address index is invalid"); //TODO: improve message
+                warn!("there must be logic error in address validation");
             }
         }
 
