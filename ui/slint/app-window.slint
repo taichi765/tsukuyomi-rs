@@ -96,7 +96,7 @@ export component AppWindow inherits Window {
     content := VerticalLayout {
         //alignment: LayoutAlignment.start;
 
-        if !is-macos:TitleBar {
+        if Platform.os!=OperatingSystemType.macos:TitleBar {
             minimize => root.minimize();
             toggle-fullscreen => root.toggle-fullscreen();
             close => root.close();
