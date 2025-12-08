@@ -123,13 +123,13 @@ impl Doc {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum DocEvent {
     UniverseSettingsChanged,
     UniverseAdded(UniverseId),
     UniverseRemoved(UniverseId),
     /// Also emitted when [`Fixture`] is updated
-    FixtureInserted(FixtureId),
+    FixtureInserted(FixtureId, Fixture),
     FixtureRemoved(FixtureId),
     /// Also emitted when [`FixtureDef`] is updated
     FixtureDefInserted(FixtureDefId),
@@ -213,9 +213,9 @@ impl Doc {
         }
 
         let id = fixture.id();
-        let opt = self.fixtures.insert(id, fixture);
+        let opt = self.fixtures.insert(id, fixture.clone());
 
-        self.notify(DocEvent::FixtureInserted(id));
+        self.notify(DocEvent::FixtureInserted(id, fixture));
         Ok(opt)
     }
 
