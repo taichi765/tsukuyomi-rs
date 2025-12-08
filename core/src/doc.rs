@@ -238,14 +238,16 @@ impl Doc {
                 }))?;
         let occupied_addresses = fixture
             .occupied_addresses(fixture_def)
-            .map_err(|e| FixtureRemoveError::ModeNotFound(e))?;
+            .map_err(|e| FixtureRemoveError::ModeNotFound(e))?; // FIXME: .expect()でもいいかも?
 
         for adr in occupied_addresses {
-            if let Some((_old_id, _offset)) = self
+            if let Some((old_id, offset)) = self
                 .fixture_by_address_index
                 .remove(&(fixture.universe_id(), adr))
             {
-                warn!("the states of address index was invalid");
+                if old_id != *id || offset != adr.checked_sub(fixture.address()).unwrap() {
+                    warn!(address=?adr,fixture_id=?id,?old_id,?offset,"address index had unexpected value");
+                }
             } else {
                 warn!("the states of address index was invalid");
             }

@@ -68,7 +68,7 @@ pub(crate) enum ValidateError {
 /// Internal error type for [`AddressValidateError`]
 #[derive(Debug, Error)]
 #[error(
-    "address conflicted: channel {old_offset} of fixture {old_fixture_id:?}
+    "address conflicted: channel {old_offset} of fixture {old_fixture_id:?}\
     and channel {new_offset} of fixture {new_fixture_id:?}"
 )]
 pub(crate) struct AddressConflictedError {
