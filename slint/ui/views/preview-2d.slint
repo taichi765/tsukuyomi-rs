@@ -2,16 +2,27 @@ import { Palette } from "std-widgets.slint";
 import { MiddleText } from "../parts/texts.slint";
 
 export struct FixtureEntityData {
+    fixture-id:string,
     x:length,
     y:length,
-    color:brush}
-
-export global Preview2DLogic {
-    in property <[FixtureEntityData]> fixture-list:[{ x:1px, y:1px, color:rgb(255,0,0) }, { x:70px, y:60px, color:rgb(0,0,255) }];
+    color:brush
 }
 
-component FixtureEntity inherits Rectangle {
-    //in property <brush> color;
+export global Preview2DLogic {
+    in property <[FixtureEntityData]> fixture-list:[
+        {
+            fixture-id:"",
+            x:1px,
+            y:1px,
+            color:rgb(255,0,0)
+        },
+        {
+            fixture-id:"",
+            x:70px,
+            y:60px,
+            color:rgb(0,0,255)
+        }
+    ];
 }
 
 export component Preview2D inherits Rectangle {
@@ -26,10 +37,10 @@ export component Preview2D inherits Rectangle {
                 x: fixture.x;
                 y: fixture.y;
                 selected: false;
-                width: 15px;
-                height: 15px;
+                width: 70px;
+                height: 70px;
                 background: fixture.color;
-                //border-radius: 25px;
+                border-radius: self.width/2;
 
                 states [
                     active when selected: {

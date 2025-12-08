@@ -9,12 +9,13 @@ export struct FaderValues {
 
 export global FaderLogic {
     in-out property <FaderValues> values;
+    in property <string> selected-fixture;
     callback value-changed(string, string, int);
     // fixture-id, channel, value
 }
 
 export component FadersView inherits Rectangle {
-    in property <string> fixture-id;
+    in property <string> fixture-id<=>FaderLogic.selected-fixture;//TODO: bottom-panel経由で受け取る
     property <FaderValues> values <=> FaderLogic.values;
 
     VerticalLayout {
@@ -34,7 +35,7 @@ export component FadersView inherits Rectangle {
                         height: 65%;
                         changed(value) => {
                             root.values.dimmer = round(value);
-                            FaderLogic.value-changed(fixture-id,"dimmer",value);
+                            FaderLogic.value-changed(fixture-id,"Dimmer",value);
                         }
                     }
 
