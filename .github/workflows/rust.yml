@@ -18,12 +18,20 @@ jobs:
     - name: checkout main repo
       uses: actions/checkout@v4
       with: 
-        path: tsukuyomi-rs
+        path: tsukuyomi-rs-repo
     - name: checkout slint repo
       uses: actions/checkout@v4
       with:
         repository: taichi765/slint
         path: slint
+    - name: Debug list workspace
+      run: |
+        echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+        pwd
+        ls -la
+        ls -la . || true
+        ls -la tsukuyomi-rs || true
+        ls -la ./tsukuyomi-rs/tsukuyomi-rs || true
     - name: Build
       run: cargo build --verbose
     - name: Run tests
