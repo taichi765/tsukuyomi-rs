@@ -1,6 +1,5 @@
 import { Button, TabWidget, Palette, StandardButton } from "std-widgets.slint";
-import { FixturesTab } from "fixtures-tab.slint";
-import { FunctionsTab } from "functions-tab.slint";
+import { EditorTab } from "editor-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
 import { Preview2D } from "views/preview-2d.slint";
 import { FadersView } from "views/faders-view.slint";
@@ -10,13 +9,13 @@ import {
     BorderHorz,
     Theme,
 } from "styling.slint";
-import { TopBar } from "top-bar.slint";
 import { TimeLineTab } from "timeline-tab.slint";
 import { ToolTipArea } from "parts/tooltip.slint";
-import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
 import { TitleBar } from "titlebar.slint";
 import { MiddleText } from "parts/texts.slint";
 
+import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
+import { SideBar } from "side-bar.slint";
 
 export { Preview2DLogic } from "./views/preview-2d.slint";
 export { FaderLogic } from "./views/faders-view.slint";
@@ -38,65 +37,85 @@ export component AppWindow inherits Window {
     callback toggle-fullscreen();
     callback close();
 
-
-    if Platform.os==OperatingSystemType.macos:MenuBar {
+    if Platform.os == OperatingSystemType.macos:MenuBar {
         Menu {
             title: @tr("File");
             MenuItem {
                 title: @tr("New");
-                activated => {};
+                activated => {
+                };
             }
+
             MenuItem {
                 title: @tr("Open");
-                activated => {};
+                activated => {
+                };
             }
+
             MenuItem {
                 title: @tr("Open Recentry");
-                activated => {};
+                activated => {
+                };
             }
-            MenuSeparator {}
+
+            MenuSeparator { }
+
             MenuItem {
                 title: @tr("Save");
-                activated =>{showSaveDialog=true;};
+                activated => {
+                    showSaveDialog = true;
+                };
             }
+
             MenuItem {
                 title: @tr("Save As");
-                activated => {};
+                activated => {
+                };
             }
         }
+
         Menu {
             title: @tr("Edit");
             MenuItem {
                 title: @tr("Undo");
-                activated => {};
+                activated => {
+                };
             }
+
             MenuItem {
                 title: @tr("Redo");
-                activated => {};
+                activated => {
+                };
             }
+
             MenuItem {
                 title: @tr("Copy");
-                activated => {};
+                activated => {
+                };
             }
+
             MenuItem {
                 title: @tr("Paste");
-                activated => {};
+                activated => {
+                };
             }
         }
+
         Menu {
             title: @tr("Help");
             MenuItem {
                 title: @tr("About");
-                activated => {};
+                activated => {
+                };
             }
         }
-
     }
 
-    content := VerticalLayout {
+    visual-elements := VerticalLayout {
         //alignment: LayoutAlignment.start;
 
-        if Platform.os!=OperatingSystemType.macos:TitleBar {
+        if Platform.os != OperatingSystemType.macos:TitleBar {
+            height: 32px;
             minimize => root.minimize();
             toggle-fullscreen => root.toggle-fullscreen();
             close => root.close();
@@ -104,48 +123,47 @@ export component AppWindow inherits Window {
             //TODO: バケツリレー
         }
 
-        //TopBar {}
-        main-pane := TabWidget {
-            //height: 70%;
-            width: 100%;
-            //orientation: Orientation.vertical;
-            Tab {
-                title: @tr("Fixtures");
-                FixturesTab { }
-            }
+        content := VerticalLayout {
+            left := SideBar { }
 
-            Tab {
-                title: @tr("Functions");
-                FunctionsTab { }
-            }
+            center := VerticalLayout {
+                main-pane := TabWidget {
+                    //height: 70%;
+                    width: 100%;
+                    Tab {
+                        title: @tr("Editor");
+                        EditorTab { }
+                    }
 
-            Tab {
-                title: @tr("TimeLine");
-                TimeLineTab { }
-            }
+                    Tab {
+                        title: @tr("TimeLine");
+                        TimeLineTab { }
+                    }
 
-            Tab {
-                title: @tr("Virtual Console");
-                VirtualConsoleTab { }
-            }
-        }
+                    Tab {
+                        title: @tr("Virtual Console");
+                        VirtualConsoleTab { }
+                    }
+                }
 
-        BorderVert { }
+                BorderVert { }
 
-        bottom-panel := Rectangle {
-            //drop-shadow-blur: 0.2rem;
-            //drop-shadow-color: Palette.background;
-            //height: 30%;
+                bottom-panel := Rectangle {
+                    //drop-shadow-blur: 0.2rem;
+                    //drop-shadow-color: Palette.background;
+                    //height: 30%;
+                }
 
-            HorizontalLayout {
-                //height: 30%;
-                //HorizontalSplit {}
+                HorizontalLayout {
+                    //height: 30%;
+                    //HorizontalSplit {}
 
-                Preview2D { }
+                    Preview2D { }
 
-                BorderHorz { }
+                    BorderHorz { }
 
-                FadersView { }
+                    FadersView { }
+                }
             }
         }
     }
@@ -155,8 +173,6 @@ export component AppWindow inherits Window {
             root.start_drag();
         }
     }*/
-
-
 
     save-dialog := Dialog {
         visible: root.showSaveDialog;

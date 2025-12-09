@@ -1,5 +1,6 @@
 import { Palette, StyleMetrics, TabWidget, Slider } from "std-widgets.slint";
 import { PlaneText, MiddleText } from "../parts/texts.slint";
+import { Icons } from "../styling.slint";
 
 export struct FaderValues {
     dimmer: int,
@@ -14,8 +15,32 @@ export global FaderLogic {
     // fixture-id, channel, value
 }
 
+component Fader {
+    in property <image> icon;
+    in property <length> slider-height;
+    callback value-changed(float);
+    VerticalLayout {
+        Image {
+            source: icon;
+        }
+
+        slider := Slider {
+            orientation: Orientation.vertical;
+            minimum: 0;
+            maximum: 255;
+            height: root.slider-height;
+            changed(value) => value-changed(value);
+        }
+
+        PlaneText {
+            text: round(slider.value);
+        }
+    }
+}
+
 export component FadersView inherits Rectangle {
-    in property <string> fixture-id<=>FaderLogic.selected-fixture;//TODO: bottom-panel経由で受け取る
+    in property <string> fixture-id <=> FaderLogic.selected-fixture;
+    //TODO: bottom-panel経由で受け取る
     property <FaderValues> values <=> FaderLogic.values;
 
     VerticalLayout {
@@ -27,29 +52,42 @@ export component FadersView inherits Rectangle {
             orientation: Orientation.vertical;
             Tab {
                 title: @tr("Dimmer");
-                VerticalLayout {
-                    slider := Slider {
-                        orientation: Orientation.vertical;
-                        minimum: 0;
-                        maximum: 255;
-                        height: 65%;
-                        changed(value) => {
-                            root.values.dimmer = round(value);
-                            FaderLogic.value-changed(fixture-id,"Dimmer",value);
-                        }
-                    }
-
-                    Text {
-                        text: round(slider.value);
+                Fader {
+                    icon: Icons.dimmer;
+                    slider-height: parent.height * 0.8;
+                    value-changed(value) => {
+                        root.values.dimmer = round(value);
+                        FaderLogic.value-changed(fixture-id, "Dimmer",value);
                     }
                 }
             }
 
             Tab {
                 title: @tr("Color");
-                Rectangle {
-                    PlaneText {
-                        text: "color";
+                property <length> slider-height: self.height * 0.8;
+                HorizontalLayout {
+                    Fader {
+                        slider-height: 80px;
+                        value-changed(value) => {
+                            root.values.color-r = round(value);
+                            FaderLogic.value-changed(fixture-id, "Red",value);
+                        }
+                    }
+
+                    Fader {
+                        //slider-height: slider-height;
+                        value-changed(value) => {
+                            root.values.color-g = round(value);
+                            FaderLogic.value-changed(fixture-id, "Green",value);
+                        }
+                    }
+
+                    Fader {
+                        //slider-height: slider-height;
+                        value-changed(value) => {
+                            root.values.color-b = round(value);
+                            FaderLogic.value-changed(fixture-id, "Blue",value);
+                        }
                     }
                 }
             }

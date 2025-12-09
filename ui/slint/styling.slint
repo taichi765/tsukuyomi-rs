@@ -21,16 +21,20 @@ export global FontSettings {
 
 export global Icons {
     out property <image> default:@image-url("../assets/icons/icon.svg");
+
+    // Material
     out property <image> dark-mode:@image-url("../assets/icons/dark_mode.png");
     out property <image> light-mode:@image-url("../assets/icons/light_mode.png");
     out property <image> arrow-right:@image-url("../assets/icons/arrow_right_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
     out property <image> arrow-drop-down:@image-url("../assets/icons/arrow_drop_down_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
+    out property <image> dimmer: @image-url("../assets/icons/backlight_low_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
+    out property <image> fixture: @image-url("../assets/icons/nest_cam_wall_mount_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
+
+    // Fluent
     out property <image> minimize:@image-url("../assets/icons/fluent_segoe_chrome_minimize.svg");
     out property <image> maximize:@image-url("../assets/icons/fluent_segoe_chrome_maximize.svg");
     out property <image> close:@image-url("../assets/icons/fluent_segoe_chrome_close.svg");
 }
-
-
 
 // FIXME: orientationプロパティを持たせる
 export component BorderHorz inherits Rectangle {
