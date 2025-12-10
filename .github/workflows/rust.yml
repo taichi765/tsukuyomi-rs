@@ -11,8 +11,11 @@ env:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "windows-2022", "macos-14"]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
 
     steps:
     - name: checkout main repo
@@ -32,3 +35,8 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
       working-directory: ./tsukuyomi-rs-repo
+    - name: Upload a build artifact
+      uses: actions/upload-artifact@v5
+      with:
+        name: ${{matrix.os}}
+        path: ./tsukuyomi-rs-repo/target/debug/tsukuyomi-ui
