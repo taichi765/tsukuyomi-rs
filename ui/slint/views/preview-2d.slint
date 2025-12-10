@@ -5,23 +5,12 @@ export struct FixtureEntityData {
     fixture-id:string,
     x:length,
     y:length,
-    color:brush
-}
+    color:brush}
 
-export global Preview2DLogic {
+export global Preview2DStore {
     in property <[FixtureEntityData]> fixture-list:[
-        {
-            fixture-id:"",
-            x:1px,
-            y:1px,
-            color:rgb(255,0,0)
-        },
-        {
-            fixture-id:"",
-            x:70px,
-            y:60px,
-            color:rgb(0,0,255)
-        }
+        { fixture-id:"", x:1px, y:1px, color:rgb(255,0,0) },
+        { fixture-id:"", x:70px, y:60px, color:rgb(0,0,255) }
     ];
 }
 
@@ -32,7 +21,7 @@ export component Preview2D inherits Rectangle {
         }
 
         body := Rectangle {
-            for fixture in Preview2DLogic.fixture-list: fixture-rect := Rectangle {
+            for fixture in Preview2DStore.fixture-list: fixture-rect := Rectangle {
                 property <bool> selected;
                 x: fixture.x;
                 y: fixture.y;
@@ -40,7 +29,7 @@ export component Preview2D inherits Rectangle {
                 width: 70px;
                 height: 70px;
                 background: fixture.color;
-                border-radius: self.width/2;
+                border-radius: self.width / 2;
 
                 states [
                     active when selected: {
