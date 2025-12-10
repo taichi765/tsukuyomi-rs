@@ -8,10 +8,10 @@ export struct FixtureData {
 export struct FixtureListModel {
     manufacturer:string,
     fixtures:[FixtureData],
-    expanded:bool,  
+    expanded:bool,
 }
 
-export global FixtureListViewLogic {
+export global FixtureListStore {
     in property <[FixtureListModel]> fixtures:[
         {
             manufacturer:"Stage Evolution",
@@ -25,7 +25,7 @@ export global FixtureListViewLogic {
 export component FixtureListView inherits Rectangle {
     VerticalLayout {
         alignment: LayoutAlignment.start;
-        for map in FixtureListViewLogic.fixtures: Rectangle {
+        for map in FixtureListStore.fixtures: Rectangle {
             VerticalLayout {
                 header := Rectangle {
                     HorizontalLayout {

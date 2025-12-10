@@ -8,7 +8,7 @@ export struct FaderValues {
     color-g: int,
     color-b: int}
 
-export global FaderLogic {
+export global FadersStore {
     in-out property <FaderValues> values;
     in property <string> selected-fixture;
     callback value-changed(string, string, int);
@@ -39,9 +39,9 @@ component Fader {
 }
 
 export component FadersView inherits Rectangle {
-    in property <string> fixture-id <=> FaderLogic.selected-fixture;
+    in property <string> fixture-id <=> FadersStore.selected-fixture;
     //TODO: bottom-panel経由で受け取る
-    property <FaderValues> values <=> FaderLogic.values;
+    property <FaderValues> values <=> FadersStore.values;
 
     VerticalLayout {
         MiddleText {
@@ -57,7 +57,7 @@ export component FadersView inherits Rectangle {
                     slider-height: parent.height * 0.8;
                     value-changed(value) => {
                         root.values.dimmer = round(value);
-                        FaderLogic.value-changed(fixture-id, "Dimmer",value);
+                        FadersStore.value-changed(fixture-id, "Dimmer",value);
                     }
                 }
             }
@@ -70,7 +70,7 @@ export component FadersView inherits Rectangle {
                         slider-height: 80px;
                         value-changed(value) => {
                             root.values.color-r = round(value);
-                            FaderLogic.value-changed(fixture-id, "Red",value);
+                            FadersStore.value-changed(fixture-id, "Red",value);
                         }
                     }
 
@@ -78,7 +78,7 @@ export component FadersView inherits Rectangle {
                         //slider-height: slider-height;
                         value-changed(value) => {
                             root.values.color-g = round(value);
-                            FaderLogic.value-changed(fixture-id, "Green",value);
+                            FadersStore.value-changed(fixture-id, "Green",value);
                         }
                     }
 
@@ -86,7 +86,7 @@ export component FadersView inherits Rectangle {
                         //slider-height: slider-height;
                         value-changed(value) => {
                             root.values.color-b = round(value);
-                            FaderLogic.value-changed(fixture-id, "Blue",value);
+                            FadersStore.value-changed(fixture-id, "Blue",value);
                         }
                     }
                 }

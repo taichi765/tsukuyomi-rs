@@ -1,14 +1,14 @@
 use std::sync::mpsc::Sender;
 
-use crate::{AppWindow, FaderLogic};
+use crate::{AppWindow, FadersStore};
 use slint::{ComponentHandle, SharedString, ToSharedString};
 use tsukuyomi_core::{engine::EngineCommand, fixture::FixtureId};
 use uuid::Uuid;
 
 pub fn setup_fader_view(ui: &AppWindow, command_tx: Sender<EngineCommand>, fixture_id: FixtureId) {
-    ui.global::<FaderLogic>()
+    ui.global::<FadersStore>()
         .set_selected_fixture(fixture_id.to_shared_string());
-    ui.global::<FaderLogic>().on_value_changed(
+    ui.global::<FadersStore>().on_value_changed(
         move |fixture_id: SharedString, channel: SharedString, value: i32| {
             command_tx
                 .send(EngineCommand::SetLiveValue {

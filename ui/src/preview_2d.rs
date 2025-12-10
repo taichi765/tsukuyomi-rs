@@ -21,7 +21,7 @@ use tsukuyomi_core::{
 };
 use uuid::Uuid;
 
-use crate::{AppWindow, FixtureEntityData, Preview2DLogic};
+use crate::{AppWindow, FixtureEntityData, Preview2DStore};
 
 /// Returns closure to update preview, which should be called in [slint::Timer]
 pub fn setup_2d_preview(
@@ -59,7 +59,7 @@ pub fn setup_2d_preview(
         .unwrap();
 
     // Reset dummy properties
-    ui.global::<Preview2DLogic>()
+    ui.global::<Preview2DStore>()
         .set_fixture_list(Rc::new(VecModel::from(Vec::new())).into());
     return move || {
         controller.write().unwrap().handle_messages();
@@ -120,7 +120,7 @@ impl PreviewController {
     fn update_fixture_map(&mut self, id: FixtureId, fixture: &Fixture) {
         let ui = self.ui_handle.unwrap();
         let mut fixtures: HashMap<FixtureId, FixtureEntityData> =
-            modelrc_to_map(ui.global::<Preview2DLogic>().get_fixture_list());
+            modelrc_to_map(ui.global::<Preview2DStore>().get_fixture_list());
 
         fixtures.insert(
             id,
@@ -132,7 +132,7 @@ impl PreviewController {
             },
         );
         let fixtures_model: Vec<FixtureEntityData> = fixtures.into_iter().map(|(_, v)| v).collect();
-        ui.global::<Preview2DLogic>()
+        ui.global::<Preview2DStore>()
             .set_fixture_list(Rc::new(VecModel::from(fixtures_model)).into());
     }
 
@@ -153,8 +153,8 @@ impl PreviewController {
 
         let doc = self.doc.read();
         for (address, value) in dmx_data.iter().enumerate() {
-            let Some(&(fixture_id, offset)) = doc
-                .get_fixture_by_address(&universe_id, DmxAddress::new(address).unwrap())
+            let Some(&(fixture_id, offset)) =
+                doc.get_fixture_by_address(&universe_id, DmxAddress::new(address).unwrap())
             //FIXME: キャッシュ
             else {
                 continue;
@@ -175,14 +175,14 @@ impl PreviewController {
         }
         let ui = self.ui_handle.unwrap();
 
-        let mut fixture_map = modelrc_to_map(ui.global::<Preview2DLogic>().get_fixture_list());
+        let mut fixture_map = modelrc_to_map(ui.global::<Preview2DStore>().get_fixture_list());
         for (id, (dimmer, r, g, b)) in fixture_color_map {
             let data = fixture_map.get_mut(&id).unwrap();
             data.color = calc_color(dimmer, r, g, b);
         }
         let fixture_vec: Vec<FixtureEntityData> =
             fixture_map.into_iter().map(|(_, data)| data).collect();
-        ui.global::<Preview2DLogic>()
+        ui.global::<Preview2DStore>()
             .set_fixture_list(Rc::new(VecModel::from(fixture_vec)).into());
     }
 }
@@ -245,7 +245,7 @@ fn modelrc_to_map(value: ModelRc<FixtureEntityData>) -> HashMap<FixtureId, Fixtu
         .iter()
         .map(|f| {
             (
-                FixtureId::from(Uuid::parse_str(f.fixture_id.as_str()).unwrap()),//FIXME: unwrap
+                FixtureId::from(Uuid::parse_str(f.fixture_id.as_str()).unwrap()), //FIXME: unwrap
                 f,
             )
         })
