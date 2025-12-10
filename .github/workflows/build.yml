@@ -36,8 +36,15 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
       working-directory: ./tsukuyomi-rs-repo
-    - name: Upload a build artifact
+    - name: Upload a build artifact(windows)
       uses: actions/upload-artifact@v5
       with:
         name: ${{matrix.os}}
+        if: ${{matrix.os=='windows-2022'}}
+        path: ./tsukuyomi-rs-repo/target/debug/tsukuyomi-ui.exe
+    - name: Upload a build artifact(ubuntu/macos)
+      uses: actions/upload-artifact@v5
+      with:
+        name: ${{matrix.os}}
+        if: ${{matrix.os!='windows-2022'}}
         path: ./tsukuyomi-rs-repo/target/debug/tsukuyomi-ui
