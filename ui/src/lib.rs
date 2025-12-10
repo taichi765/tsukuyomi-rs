@@ -2,16 +2,17 @@ pub mod bottom_panel_bridge;
 pub mod doc_event_bridge;
 pub mod fader_view_bridge;
 pub mod preview_2d;
+pub mod preview_3d;
 
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, RwLock, Weak, mpsc};
-use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
 use i_slint_backend_winit::WinitWindowAccessor;
 
+use slint::wgpu_27::{WGPUConfiguration, WGPUSettings};
 use slint::{Timer, TimerMode};
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -20,14 +21,12 @@ use tsukuyomi_core::commands::doc_commands;
 use tsukuyomi_core::engine::{Engine, EngineCommand, EngineMessage};
 use tsukuyomi_core::fixture::FixtureId;
 use tsukuyomi_core::fixture_def::ChannelKind;
-use tsukuyomi_core::functions::FunctionId;
 use tsukuyomi_core::{
     commands,
     commands::DocCommand,
     doc::{Doc, DocObserver},
     fixture::{Fixture, MergeMode},
     fixture_def::{ChannelDef, FixtureDef, FixtureMode},
-    functions::{FunctionData, FunctionDataGetters, SceneValue, StaticSceneData},
     readonly::ReadOnly,
     universe::{DmxAddress, UniverseId},
 };
@@ -35,6 +34,7 @@ use tsukuyomi_core::{
 use crate::doc_event_bridge::DocEventBridge;
 use crate::fader_view_bridge::setup_fader_view;
 use crate::preview_2d::setup_2d_preview;
+use crate::preview_3d::setup_3d_preview;
 // TODO: tsukuyomi_core::prelude使いたい
 
 slint::include_modules!();
@@ -73,6 +73,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
         &mut command_manager,
         command_tx.clone(),
     );
+    setup_3d_preview(&ui);
 
     commands.into_iter().for_each(|cmd| {
         command_manager
@@ -99,7 +100,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
 fn setup_engine(
     doc: Arc<RwLock<Doc>>,
 ) -> (
-    JoinHandle<()>,
+    std::thread::JoinHandle<()>,
     Sender<EngineCommand>,
     Receiver<EngineMessage>,
     Arc<RwLock<DocEventBridge>>,
@@ -113,7 +114,7 @@ fn setup_engine(
 
     let engine = Engine::new(ReadOnly::new(doc), command_rx, error_tx);
 
-    let engine_handle = thread::Builder::new()
+    let engine_handle = std::thread::Builder::new()
         .name("tsukuyomi-engine".into())
         .spawn(move || engine.start_loop())
         .unwrap();
@@ -121,6 +122,11 @@ fn setup_engine(
 }
 
 fn setup_window() -> Result<AppWindow, Box<dyn Error>> {
+    slint::BackendSelector::new()
+        .require_wgpu_27(WGPUConfiguration::Automatic(WGPUSettings::default()))
+        .select()
+        .expect("unable to create Slint backend WGPU based renderer");
+
     let ui = AppWindow::new()?;
     // TODO: language switch(preferences)
     slint::select_bundled_translation("en".into()).unwrap();

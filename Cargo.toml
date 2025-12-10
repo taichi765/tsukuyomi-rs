@@ -12,8 +12,9 @@ version = "0.1.0"
 uuid = { version="1.19.0", features=["v4"] }
 tracing = "0.1"
 thiserror = "2.0.17"
+wgpu = "27.0.1"
 
-slint = { version="1.15.0", features = ["backend-winit"] }
+slint = { version="1.15.0", features = ["backend-winit", "unstable-wgpu-27"] }
 i-slint-backend-winit = "1.15.0"
 slint-build = "1.15.0"
 
