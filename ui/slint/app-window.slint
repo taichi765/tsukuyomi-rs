@@ -32,6 +32,7 @@ export component AppWindow inherits Window {
     full-screen: true;
     default-font-family: "Inter";
     property <bool> showSaveDialog;
+    in property <image> texture <=> image.source;
     callback start_drag();
     callback minimize();
     callback toggle-fullscreen();
@@ -124,7 +125,7 @@ export component AppWindow inherits Window {
         }
 
         content := VerticalLayout {
-            left := SideBar { }
+            //left := SideBar { }
 
             center := VerticalLayout {
                 main-pane := TabWidget {
@@ -143,6 +144,11 @@ export component AppWindow inherits Window {
                     Tab {
                         title: @tr("Virtual Console");
                         VirtualConsoleTab { }
+                    }
+
+                    Tab {
+                        title: @tr("3D Preview");
+                        image := Image { }
                     }
                 }
 
