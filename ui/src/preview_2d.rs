@@ -44,7 +44,7 @@ pub fn setup_2d_preview(
 
     command_tx
         .send(EngineCommand::AddPlugin(Box::new(plugin)))
-        .expect("failed to send commad to engine"); // FIXME: error handling
+        .expect("failed to send command to engine"); // FIXME: error handling
 
     let doc_commands: Vec<Box<dyn DocCommand>> = vec![Box::new(doc_commands::AddOutput::new(
         UniverseId::new(1), //FIXME: hard coding
