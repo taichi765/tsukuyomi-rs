@@ -24,6 +24,7 @@ pub struct DocHandle {
     event_bus: DocEventBus,
 }
 
+// TODO: 通知するときとしない時の条件を一貫させる
 impl DocHandle {
     pub fn new(doc: Arc<RwLock<DocStore>>, event_bus: DocEventBus) -> Self {
         Self {
@@ -230,7 +231,7 @@ pub struct DocStore {
     fixture_by_address_index: HashMap<(UniverseId, DmxAddress), (FixtureId, usize)>,
 }
 
-/* ---------- publics, readonly ---------- */
+/* ---------- public, readonly ---------- */
 impl DocStore {
     pub fn new() -> Self {
         Self {
@@ -320,7 +321,7 @@ impl DocStore {
     }
 }
 
-/* ---------- privates, mutables ---------- */
+/* ---------- private, mutable ---------- */
 impl DocStore {
     /// Same as [std::collections::HashMap::remove()]
     fn add_function(&mut self, function: FunctionData) -> Option<FunctionData> {
@@ -455,7 +456,7 @@ impl DocStore {
     }
 }
 
-/* ---------- privates ---------- */
+/* ---------- helpers ---------- */
 impl DocStore {
     /// Validates that the fixture does not conflict with existing [Fixture]s' address.
     fn validate_fixture_address(
