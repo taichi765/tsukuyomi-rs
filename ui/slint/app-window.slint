@@ -1,3 +1,5 @@
+import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
+
 import { Button, TabWidget, Palette, StandardButton } from "std-widgets.slint";
 import { EditorTab } from "editor-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
@@ -5,17 +7,15 @@ import { Preview2D } from "views/preview-2d.slint";
 import { FadersView } from "views/faders-view.slint";
 import {
     Icons,
-    BorderVert,
     BorderHorz,
+    BorderVert,
     Theme,
 } from "styling.slint";
 import { TimeLineTab } from "timeline-tab.slint";
 import { ToolTipArea } from "parts/tooltip.slint";
 import { TitleBar } from "titlebar.slint";
 import { MiddleText } from "parts/texts.slint";
-
-import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
-import { SideBar } from "side-bar.slint";
+import { LeftPanel } from "panel-left.slint";
 
 export { Preview2DStore } from "./views/preview-2d.slint";
 export { FadersStore } from "./views/faders-view.slint";
@@ -113,24 +113,31 @@ export component AppWindow inherits Window {
     }
 
     visual-elements := VerticalLayout {
-        //alignment: LayoutAlignment.start;
+        if Platform.os != OperatingSystemType.macos:title-bar := VerticalLayout {
+            TitleBar {
+                height: 32px;
+                minimize => root.minimize();
+                toggle-fullscreen => root.toggle-fullscreen();
+                close => root.close();
+                show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
+                //TODO: バケツリレー
+            }
 
-        if Platform.os != OperatingSystemType.macos:TitleBar {
-            height: 32px;
-            minimize => root.minimize();
-            toggle-fullscreen => root.toggle-fullscreen();
-            close => root.close();
-            show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
-            //TODO: バケツリレー
+            BorderHorz { }
         }
 
-        content := VerticalLayout {
-            //left := SideBar { }
+        content := HorizontalLayout {
+            left := Rectangle {
+                LeftPanel {
+                    show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
+                }
+            }
+
+            BorderVert { }
 
             center := VerticalLayout {
                 main-pane := TabWidget {
                     //height: 70%;
-                    width: 100%;
                     Tab {
                         title: @tr("Editor");
                         EditorTab { }
@@ -152,7 +159,7 @@ export component AppWindow inherits Window {
                     }
                 }
 
-                BorderVert { }
+                BorderHorz { }
 
                 bottom-panel := Rectangle {
                     //drop-shadow-blur: 0.2rem;
@@ -166,9 +173,9 @@ export component AppWindow inherits Window {
 
                     Preview2D { }
 
-                    BorderHorz { }
+                    BorderVert { }
 
-                    FadersView { }
+                    //FadersView { }
                 }
             }
         }

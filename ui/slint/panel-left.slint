@@ -1,0 +1,24 @@
+import { LeftSideBar } from "left-side-bar.slint";
+import { FixtureListView } from "views/fixture-list-view.slint";
+import { BorderVert } from "styling.slint";
+export component LeftPanel inherits Rectangle {
+    property <int> current-index <=> side-var.current-index;
+    callback show-tooltip(has-hover: bool, x: length, y: length, msg: string);
+
+    HorizontalLayout {
+        side-var := LeftSideBar {
+            show-tooltip(has-hover, x, y, msg) => root.show-tooltip(has-hover, x, y, msg);
+        }
+
+        BorderVert { }
+
+        content := Rectangle {
+            if current-index == 0:FixtureListView { }
+            if current-index == 1:Rectangle {
+                Text {
+                    text: "this is function list view!";
+                }
+            }
+        }
+    }
+}

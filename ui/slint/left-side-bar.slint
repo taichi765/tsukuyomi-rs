@@ -1,0 +1,74 @@
+import { Icons, BorderVert } from "styling.slint";
+import { TabWidget, Palette } from "std-widgets.slint";
+import { FixtureListView } from "views/fixture-list-view.slint";
+
+component SideBarItem inherits Rectangle {
+    in property <image> icon;
+    in property <string> tooltip;
+    in property <bool> is-selected;
+    callback clicked();
+    callback show-tooltip(has-hover: bool, x: length, y: length, msg: string);
+
+    width: 50px;
+    height: 50px;
+    HorizontalLayout {
+        if is-selected:BorderVert {
+            background: Palette.selection-background;
+        }
+        margin-left := Rectangle {
+            width: is-selected ? 10px : 12px;
+        }
+
+        VerticalLayout {
+            padding-top: 12px;
+            padding-bottom: 12px;
+
+            Image {
+                source: icon;
+                width: 26px;
+                height: 26px;
+            }
+        }
+
+        margin-right := Rectangle {
+            width: 12px;
+        }
+    }
+
+    TouchArea {
+        clicked => root.clicked();
+        changed has-hover => {
+            show-tooltip(self.has-hover, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y, tooltip);
+        }
+    }
+}
+
+export component LeftSideBar inherits Rectangle {
+    out property <int> current-index;
+    callback show-tooltip(has-hover: bool, x: length, y: length, msg: string);
+
+    width: 50px;
+
+    VerticalLayout {
+        alignment: LayoutAlignment.start;
+        fixture-def := SideBarItem {
+            icon: Icons.fixture;
+            is-selected: current-index == 0;
+            tooltip: @tr("Fixture definitions");
+            clicked => {
+                current-index = 0;
+            }
+            show-tooltip(has-hover, x, y, msg) => root.show-tooltip(has-hover, x, y, msg);
+        }
+
+        functions := SideBarItem {
+            icon: Icons.function;
+            is-selected: current-index == 1;
+            tooltip: @tr("Functions");
+            clicked => {
+                current-index = 1;
+            }
+            show-tooltip(has-hover, x, y, msg) => root.show-tooltip(has-hover, x, y, msg);
+        }
+    }
+}

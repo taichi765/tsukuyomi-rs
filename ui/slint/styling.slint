@@ -29,6 +29,7 @@ export global Icons {
     out property <image> arrow-drop-down:@image-url("../assets/icons/arrow_drop_down_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
     out property <image> dimmer: @image-url("../assets/icons/backlight_low_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
     out property <image> fixture: @image-url("../assets/icons/nest_cam_wall_mount_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
+    out property <image> function: @image-url("../assets/icons/function_24dp_E6E1E5_FILL0_wght400_GRAD0_opsz24.svg");
 
     // Fluent
     out property <image> minimize:@image-url("../assets/icons/fluent_segoe_chrome_minimize.svg");
@@ -37,12 +38,12 @@ export global Icons {
 }
 
 // FIXME: orientationプロパティを持たせる
-export component BorderHorz inherits Rectangle {
+export component BorderVert inherits Rectangle {
     width: 2px;
     background: Palette.border;
 }
 
-export component BorderVert inherits Rectangle {
+export component BorderHorz inherits Rectangle {
     height: 2px;
     background: Palette.border;
 }
