@@ -2,7 +2,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use tracing::{error, info, trace, warn};
 use uuid::Uuid;
 
-use crate::doc::Doc;
+use crate::doc::DocStore;
 use crate::fixture::FixtureId;
 use crate::functions::{FunctionCommand, FunctionId, FunctionRuntime};
 use crate::plugins::Plugin;
@@ -23,7 +23,7 @@ declare_id_newtype!(OutputPluginId);
 // TODO: unwrap, expectを減らす
 /// Orchestrates [`FunctionRuntime`]s
 pub struct Engine {
-    doc: ReadOnly<Doc>,
+    doc: ReadOnly<DocStore>,
     command_rx: Receiver<EngineCommand>,
     message_tx: Sender<EngineMessage>,
 
@@ -38,7 +38,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(
-        doc: ReadOnly<Doc>,
+        doc: ReadOnly<DocStore>,
         command_rx: Receiver<EngineCommand>,
         message_tx: Sender<EngineMessage>,
     ) -> Self {

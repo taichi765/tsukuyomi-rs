@@ -7,7 +7,7 @@ pub use universe::*;
 mod function {
     use crate::{
         commands::DocCommand,
-        doc::Doc,
+        doc::DocHandle,
         functions::{FunctionData, FunctionId},
     };
 
@@ -28,7 +28,7 @@ mod function {
     }
 
     impl DocCommand for AddFunction {
-        fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn apply(&mut self, doc: &DocHandle) -> Result<(), String> {
             if let Some(f) = self.function.take() {
                 if let Some(_) = doc.add_function(f) {
                     Ok(()) // FIXME: DocCommandでUpdateとCreateは分けるべき？
@@ -39,7 +39,7 @@ mod function {
                 Err("function is already moved".into())
             }
         }
-        fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn revert(&mut self, doc: &DocHandle) -> Result<(), String> {
             if let Some(f) = doc.remove_function(&self.function_id) {
                 self.function = Some(f);
                 Ok(())
@@ -53,7 +53,7 @@ mod function {
 mod fixture {
     use crate::{
         commands::DocCommand,
-        doc::Doc,
+        doc::DocHandle,
         fixture::{Fixture, FixtureId},
     };
 
@@ -72,7 +72,7 @@ mod fixture {
     }
 
     impl DocCommand for AddFixture {
-        fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn apply(&mut self, doc: &DocHandle) -> Result<(), String> {
             if let Some(f) = self.fixture.take() {
                 let is_updated = doc.insert_fixture(f).map_err(|e| e.to_string())?.is_some();
                 if is_updated {
@@ -84,7 +84,7 @@ mod fixture {
             }
         }
 
-        fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn revert(&mut self, doc: &DocHandle) -> Result<(), String> {
             match doc.remove_fixture(&self.fixture_id) {
                 Ok(opt) => {
                     if let Some(f) = opt {
@@ -103,7 +103,7 @@ mod fixture {
 mod fixture_def {
     use crate::{
         commands::DocCommand,
-        doc::Doc,
+        doc::DocHandle,
         fixture_def::{FixtureDef, FixtureDefId},
     };
 
@@ -122,7 +122,7 @@ mod fixture_def {
     }
 
     impl DocCommand for AddFixtureDef {
-        fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn apply(&mut self, doc: &DocHandle) -> Result<(), String> {
             if let Some(def) = self.fixture_def.take() {
                 doc.insert_fixture_def(def);
                 Ok(())
@@ -130,7 +130,7 @@ mod fixture_def {
                 Err("fixture definition is already moved".into())
             }
         }
-        fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn revert(&mut self, doc: &DocHandle) -> Result<(), String> {
             if let Some(def) = doc.remove_fixture_def(&self.fixture_def_id) {
                 self.fixture_def = Some(def);
                 Ok(())
@@ -142,7 +142,9 @@ mod fixture_def {
 }
 
 mod plugin {
-    use crate::{commands::DocCommand, doc::Doc, engine::OutputPluginId, universe::UniverseId};
+    use crate::{
+        commands::DocCommand, doc::DocHandle, engine::OutputPluginId, universe::UniverseId,
+    };
 
     pub struct AddOutput {
         universe_id: UniverseId,
@@ -159,13 +161,13 @@ mod plugin {
     }
 
     impl DocCommand for AddOutput {
-        fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn apply(&mut self, doc: &DocHandle) -> Result<(), String> {
             doc.add_output(self.universe_id, self.plugin)
                 .map_err(|e| format!("{e:?}: {:?}", self.universe_id))?;
             Ok(())
         }
 
-        fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn revert(&mut self, doc: &DocHandle) -> Result<(), String> {
             doc.remove_output(&self.universe_id, &self.plugin)
                 .map_err(|e| format!("{e:?}"))?;
             Ok(())
@@ -174,7 +176,7 @@ mod plugin {
 }
 
 mod universe {
-    use crate::{commands::DocCommand, doc::Doc, universe::UniverseId};
+    use crate::{commands::DocCommand, doc::DocHandle, universe::UniverseId};
 
     pub struct AddUniverse {
         id: UniverseId,
@@ -187,11 +189,11 @@ mod universe {
     }
 
     impl DocCommand for AddUniverse {
-        fn apply(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn apply(&mut self, doc: &DocHandle) -> Result<(), String> {
             doc.add_universe(self.id); //FIXME: SomeだったときErrを返すべきか？
             Ok(())
         }
-        fn revert(&mut self, doc: &mut Doc) -> Result<(), String> {
+        fn revert(&mut self, doc: &DocHandle) -> Result<(), String> {
             doc.remove_universe(&self.id); //FIXME: NoneだったときにErrを返すべきか？
             Ok(())
         }

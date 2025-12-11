@@ -42,14 +42,14 @@ pub struct ModeNotFound {
 }
 
 #[derive(Debug, Error)]
-pub(crate) enum OutputMapError {
+pub enum OutputMapError {
     #[error("there was no universe {0:?}")]
     UniverseNotFound(UniverseId),
 }
 
 /// Error type for [super::Doc::insert_fixture()]
 #[derive(Debug, Error)]
-pub(crate) enum FixtureInsertError {
+pub enum FixtureInsertError {
     #[error(transparent)]
     FixtureDefNotFound(#[from] FixtureDefNotFound),
     #[error(transparent)]
@@ -60,7 +60,7 @@ pub(crate) enum FixtureInsertError {
 
 /// Error type for [super::Doc::validate_fixture_address_uniqueness()]
 #[derive(Debug, Error)]
-pub(crate) enum ValidateError {
+pub enum ValidateError {
     #[error("{} address conflicted",.0.len())]
     AddressConflicted(Vec<AddressConflictedError>),
 }
@@ -71,7 +71,7 @@ pub(crate) enum ValidateError {
     "address conflicted: channel {old_offset} of fixture {old_fixture_id:?}\
     and channel {new_offset} of fixture {new_fixture_id:?}"
 )]
-pub(crate) struct AddressConflictedError {
+pub struct AddressConflictedError {
     pub address: DmxAddress,
     pub old_fixture_id: FixtureId,
     pub old_offset: usize,
@@ -80,7 +80,7 @@ pub(crate) struct AddressConflictedError {
 }
 
 #[derive(Debug, Error)]
-pub(crate) enum FixtureRemoveError {
+pub enum FixtureRemoveError {
     #[error(transparent)]
     FixtureDefNotFound(#[from] FixtureDefNotFound),
     #[error(transparent)]

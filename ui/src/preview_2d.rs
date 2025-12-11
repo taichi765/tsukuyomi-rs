@@ -9,9 +9,8 @@ use std::{
 
 use slint::{Brush, Color, ComponentHandle, Model, ModelRc, ToSharedString, VecModel, Weak};
 use tsukuyomi_core::{
-    command_manager::CommandManager,
-    commands::doc_commands,
-    doc::{Doc, DocEvent, DocObserver},
+    commands::{DocCommand, doc_commands},
+    doc::{DocEvent, DocEventBus, DocObserver, DocStore},
     engine::{EngineCommand, OutputPluginId},
     fixture::{Fixture, FixtureId},
     fixture_def::ChannelKind,
@@ -26,20 +25,18 @@ use crate::{AppWindow, FixtureEntityData, Preview2DStore};
 /// Returns closure to update preview, which should be called in [slint::Timer]
 pub fn setup_2d_preview(
     ui: &AppWindow,
-    doc: Arc<RwLock<Doc>>,
-    command_manager: &mut CommandManager,
+    doc: ReadOnly<DocStore>,
+    event_bus: &mut DocEventBus,
     command_tx: Sender<EngineCommand>,
-) -> impl FnMut() -> () + 'static {
+) -> (Vec<Box<dyn DocCommand>>, impl FnMut() -> () + 'static) {
     let (msg_tx, msg_rx) = mpsc::channel::<PreviewMessage>();
     let controller = Arc::new(RwLock::new(PreviewController::new(
-        ReadOnly::new(Arc::clone(&doc)),
+        doc,
         ui.as_weak(),
         Mutex::new(msg_rx),
     )));
 
-    doc.write()
-        .unwrap()
-        .subscribe(Arc::downgrade(&controller) as _);
+    event_bus.subscribe(Arc::downgrade(&controller) as _);
 
     // TODO: シリアライズからの復元
     let plugin = PreviewPlugin::new(msg_tx);
@@ -47,23 +44,19 @@ pub fn setup_2d_preview(
 
     command_tx
         .send(EngineCommand::AddPlugin(Box::new(plugin)))
-        .unwrap();
-    command_manager
-        .execute(
-            Box::new(doc_commands::AddOutput::new(
-                UniverseId::new(1), //FIXME: hard coding
-                p_id,
-            )),
-            &mut doc.write().unwrap(),
-        )
-        .unwrap();
+        .expect("failed to send commad to engine"); // FIXME: error handling
+
+    let doc_commands: Vec<Box<dyn DocCommand>> = vec![Box::new(doc_commands::AddOutput::new(
+        UniverseId::new(1), //FIXME: hard coding
+        p_id,
+    ))];
 
     // Reset dummy properties
     ui.global::<Preview2DStore>()
         .set_fixture_list(Rc::new(VecModel::from(Vec::new())).into());
-    return move || {
+    (doc_commands, move || {
         controller.write().unwrap().handle_messages();
-    };
+    })
 }
 
 /// Just sends message to [PreviewController] when [`Engine`][tsukuyomi_core::engine::Engine] ticked
@@ -99,14 +92,14 @@ impl Plugin for PreviewPlugin {
 
 /// Controls actual Preview UI
 struct PreviewController {
-    doc: ReadOnly<Doc>,
+    doc: ReadOnly<DocStore>,
     ui_handle: Weak<AppWindow>,
     msg_rx: Mutex<Receiver<PreviewMessage>>,
 }
 
 impl PreviewController {
     fn new(
-        doc: ReadOnly<Doc>,
+        doc: ReadOnly<DocStore>,
         ui_handle: Weak<AppWindow>,
         msg_rx: Mutex<Receiver<PreviewMessage>>,
     ) -> Self {
@@ -190,8 +183,9 @@ impl PreviewController {
 impl DocObserver for PreviewController {
     fn on_doc_event(&mut self, event: &DocEvent) {
         match event {
-            DocEvent::FixtureInserted(id, fixture) => {
-                self.update_fixture_map(*id, fixture);
+            DocEvent::FixtureInserted(id) => {
+                let fixture = self.doc.read().get_fixture(id).unwrap().to_owned(); // FIXME: unwrap, clone
+                self.update_fixture_map(*id, &fixture);
             }
             _ => (),
         }

@@ -1,4 +1,3 @@
-pub mod bottom_panel_bridge;
 pub mod doc_event_bridge;
 pub mod fader_view_bridge;
 pub mod preview_2d;
@@ -18,13 +17,14 @@ use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 use tsukuyomi_core::command_manager::CommandManager;
 use tsukuyomi_core::commands::doc_commands;
+use tsukuyomi_core::doc::{DocEventBus, DocHandle, DocStore};
 use tsukuyomi_core::engine::{Engine, EngineCommand, EngineMessage};
 use tsukuyomi_core::fixture::FixtureId;
 use tsukuyomi_core::fixture_def::ChannelKind;
 use tsukuyomi_core::{
     commands,
     commands::DocCommand,
-    doc::{Doc, DocObserver},
+    doc::DocObserver,
     fixture::{Fixture, MergeMode},
     fixture_def::{ChannelDef, FixtureDef, FixtureMode},
     readonly::ReadOnly,
@@ -40,45 +40,45 @@ use crate::preview_3d::setup_3d_preview;
 slint::include_modules!();
 
 pub fn run_main() -> Result<(), Box<dyn Error>> {
+    // Initialize logger
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .finish();
-
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let doc = Arc::new(RwLock::new(Doc::new()));
-    // HACK: Initialize engine and bridge before changing Doc.
-    // If Doc is changed before engine initialized, number of universe would be
-    // unsynchronized.
-    let (engine_handle, command_tx, error_rx, _bridge) = setup_engine(Arc::clone(&doc));
+    // HACK: depending on the order of initialization, it would cause crash.
+    let doc = Arc::new(RwLock::new(DocStore::new()));
+    let mut event_bus = DocEventBus::new();
+
+    // HACK: Initialize all observers before changing Doc.
+    // If Doc is changed before engine initialized, states in observers(and engine) would be invalid.
+    let (engine_handle, command_tx, error_rx, _bridge) =
+        setup_engine(ReadOnly::new(Arc::clone(&doc)), &mut event_bus);
 
     let ui = setup_window().expect("failed to setup ui");
 
-    let mut command_manager = CommandManager::new();
+    let mut doc_commands = Vec::new();
 
-    // TODO: depending on the order of initialization, it would cause crash.
     for i in 1..5 {
-        command_manager
-            .execute(
-                Box::new(doc_commands::AddUniverse::new(UniverseId::new(i))),
-                &mut doc.write().unwrap(),
-            )
-            .unwrap();
+        doc_commands.push(Box::new(doc_commands::AddUniverse::new(UniverseId::new(i))) as _);
     }
-    let (commands, fixture_id) = create_some_presets();
+
+    let (mut dc, fixture_id) = create_some_presets();
+    doc_commands.append(&mut dc);
+
     setup_fader_view(&ui, command_tx.clone(), fixture_id);
-    let mut update_2d_preview = setup_2d_preview(
+    let (mut dc, mut update_2d_preview) = setup_2d_preview(
         &ui,
-        Arc::clone(&doc),
-        &mut command_manager,
+        ReadOnly::new(Arc::clone(&doc)),
+        &mut event_bus,
         command_tx.clone(),
     );
+    doc_commands.append(&mut dc);
     setup_3d_preview(&ui);
 
-    commands.into_iter().for_each(|cmd| {
-        command_manager
-            .execute(cmd, &mut doc.write().unwrap())
-            .unwrap();
+    let mut command_manager = CommandManager::new(DocHandle::new(doc, event_bus));
+    doc_commands.into_iter().for_each(|cmd| {
+        command_manager.execute(cmd).unwrap();
     });
 
     let timer = Timer::default();
@@ -98,7 +98,8 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
 }
 
 fn setup_engine(
-    doc: Arc<RwLock<Doc>>,
+    doc: ReadOnly<DocStore>,
+    event_bus: &mut DocEventBus,
 ) -> (
     std::thread::JoinHandle<()>,
     Sender<EngineCommand>,
@@ -109,10 +110,10 @@ fn setup_engine(
     let (error_tx, error_rx) = mpsc::channel::<EngineMessage>();
 
     let bridge = Arc::new(RwLock::new(DocEventBridge::new(command_tx.clone())));
-    let weak: Weak<RwLock<dyn DocObserver>> = Arc::downgrade(&bridge) as _;
-    doc.write().unwrap().subscribe(weak);
+    let bridge_weak: Weak<RwLock<dyn DocObserver>> = Arc::downgrade(&bridge) as _;
+    event_bus.subscribe(bridge_weak);
 
-    let engine = Engine::new(ReadOnly::new(doc), command_rx, error_tx);
+    let engine = Engine::new(doc, command_rx, error_tx);
 
     let engine_handle = std::thread::Builder::new()
         .name("tsukuyomi-engine".into())
