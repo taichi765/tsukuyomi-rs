@@ -1,8 +1,8 @@
-use std::sync::{Arc, RwLock};
-
-use super::helpers::{TestObserver, make_fixture, make_fixture_def_with_mode, make_function};
+use super::helpers::{
+    make_doc_handle_with_observer, make_fixture, make_fixture_def_with_mode, make_function,
+};
 use crate::{
-    doc::{Doc, DocEvent, DocObserver},
+    doc::DocEvent,
     engine::OutputPluginId,
     fixture::MergeMode,
     fixture_def::ChannelKind,
@@ -22,14 +22,8 @@ where
 }
 
 #[test]
-fn events_sequence_contains_expected_order() {
-    let mut doc = Doc::new();
-
-    let observer = Arc::new(RwLock::new(TestObserver::new()));
-    {
-        let obs: Arc<RwLock<dyn DocObserver>> = Arc::clone(&observer) as _;
-        doc.subscribe(Arc::downgrade(&obs));
-    }
+fn doc_handle_events_sequence_contains_expected_order() {
+    let (handle, _doc_store, observer) = make_doc_handle_with_observer();
 
     // 1) Insert FixtureDef
     let def = make_fixture_def_with_mode(
@@ -41,34 +35,36 @@ fn events_sequence_contains_expected_order() {
         ChannelKind::Dimmer,
     );
     let def_id = def.id();
-    doc.insert_fixture_def(def);
+    handle.insert_fixture_def(def);
 
     // 2) Add Function
     let func = make_function("Func1");
     let func_id = func.id();
-    doc.add_function(func);
+    handle.add_function(func);
 
     // 3) Add Universe
     let uni_id = UniverseId::new(1);
-    doc.add_universe(uni_id);
+    handle.add_universe(uni_id);
 
     // 4) Insert Fixture
     let fxt = make_fixture("Fx1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("should work");
+    handle.insert_fixture(fxt).expect("should work");
 
     // 5) Add Output (emits UniverseSettingsChanged)
     let plugin_id = OutputPluginId::new();
-    doc.add_output(uni_id, plugin_id).unwrap();
+    handle.add_output(uni_id, plugin_id).unwrap();
 
     // 6) Remove Fixture
-    doc.remove_fixture(&fxt_id);
+    handle
+        .remove_fixture(&fxt_id)
+        .expect("fixture removal should succeed");
 
     // 7) Remove FixtureDef
-    doc.remove_fixture_def(&def_id);
+    handle.remove_fixture_def(&def_id);
 
     // 8) Remove Universe
-    doc.remove_universe(&uni_id);
+    handle.remove_universe(&uni_id);
 
     let events = observer.read().unwrap().events.clone();
 
@@ -102,7 +98,7 @@ fn events_sequence_contains_expected_order() {
     cur = find_event_idx(
         &events,
         cur,
-        |e| matches!(e, DocEvent::FixtureInserted(id,_) if *id == fxt_id),
+        |e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id),
     )
     .expect("FixtureInserted not found")
         + 1;
@@ -135,4 +131,51 @@ fn events_sequence_contains_expected_order() {
         |e| matches!(e, DocEvent::UniverseRemoved(id) if *id == uni_id),
     )
     .expect("UniverseRemoved not found");
+}
+
+#[test]
+fn doc_handle_notifies_observer_after_lock_released() {
+    // This test verifies that observers can safely read from DocStore
+    // during on_doc_event callback without causing deadlock.
+    // The key behavior is that DocHandle releases the write lock before notifying.
+
+    use std::sync::{Arc, RwLock};
+
+    use crate::doc::{DocEventBus, DocHandle, DocObserver, DocStore};
+
+    struct ReadingObserver {
+        doc_store: Arc<RwLock<DocStore>>,
+        read_succeeded: bool,
+    }
+
+    impl DocObserver for ReadingObserver {
+        fn on_doc_event(&mut self, _event: &DocEvent) {
+            // Try to acquire a read lock - this should succeed if the write lock is released
+            if let Ok(_guard) = self.doc_store.try_read() {
+                self.read_succeeded = true;
+            }
+        }
+    }
+
+    let doc_store = Arc::new(RwLock::new(DocStore::new()));
+    let mut event_bus = DocEventBus::new();
+
+    let observer = Arc::new(RwLock::new(ReadingObserver {
+        doc_store: Arc::clone(&doc_store),
+        read_succeeded: false,
+    }));
+    let obs: Arc<RwLock<dyn DocObserver>> = Arc::clone(&observer) as _;
+    event_bus.subscribe(Arc::downgrade(&obs));
+
+    let handle = DocHandle::new(Arc::clone(&doc_store), event_bus);
+
+    // Trigger an event
+    let uni_id = UniverseId::new(1);
+    handle.add_universe(uni_id);
+
+    // Verify that the observer was able to read from DocStore during the callback
+    assert!(
+        observer.read().unwrap().read_succeeded,
+        "Observer should be able to read from DocStore during on_doc_event"
+    );
 }
