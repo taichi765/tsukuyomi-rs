@@ -20,10 +20,9 @@ pub fn setup_3d_preview(ui: &AppWindow) {
             slint::RenderingState::BeforeRendering => {
                 if let Some(renderer) = renderer.as_mut() {
                     let texture = renderer.render();
-                    ui_handle
-                        .unwrap()
-                        .set_texture(Image::try_from(texture).unwrap());
-                    ui_handle.unwrap().window().request_redraw();
+                    let ui = ui_handle.unwrap();
+                    ui.set_texture(Image::try_from(texture).unwrap());
+                    ui.window().request_redraw();
                 }
             }
             slint::RenderingState::AfterRendering => {}
@@ -46,7 +45,7 @@ impl PreviewRenderer {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
-                width: 500,
+                width: 500, //TODO: take parameter, dynamic
                 height: 300,
                 depth_or_array_layers: 1,
             },
@@ -96,6 +95,6 @@ impl PreviewRenderer {
         }
         self.queue.submit(std::iter::once(encoder.finish()));
 
-        self.texture.clone()
+        self.texture.clone() //FIXME: unneccesary clone?
     }
 }
