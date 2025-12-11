@@ -3,7 +3,7 @@ pub use errors::*;
 
 use std::{
     collections::{HashMap, HashSet},
-    sync::{RwLock, Weak},
+    sync::{Arc, RwLock, Weak},
 };
 
 use tracing::warn;
@@ -13,52 +13,152 @@ use crate::{
     fixture::{Fixture, FixtureId, MergeMode},
     fixture_def::{FixtureDef, FixtureDefId},
     functions::{FunctionData, FunctionId},
+    readonly::ReadOnly,
     universe::{DmxAddress, UniverseId},
 };
 
-/// Single source of true
-pub struct Doc {
-    fixtures: HashMap<FixtureId, Fixture>,
-    fixture_defs: HashMap<FixtureDefId, FixtureDef>,
-    functions: HashMap<FunctionId, FunctionData>,
-    universe_settings: HashMap<UniverseId, UniverseSetting>,
-    observers: Vec<Weak<RwLock<dyn DocObserver>>>,
-
-    fixture_by_address_index: HashMap<(UniverseId, DmxAddress), (FixtureId, usize)>,
+/// Handle to [DocStore].
+/// Manages write lock and event.
+pub struct DocHandle {
+    inner: Arc<RwLock<DocStore>>,
+    event_bus: DocEventBus,
 }
 
-/* ---------- public, readonly ---------- */
-impl Doc {
-    pub fn new() -> Self {
+impl DocHandle {
+    pub fn new(doc: Arc<RwLock<DocStore>>, event_bus: DocEventBus) -> Self {
         Self {
-            fixtures: HashMap::new(),
-            fixture_defs: HashMap::new(),
-            functions: HashMap::new(),
-            universe_settings: HashMap::new(),
-            observers: Vec::new(),
-
-            fixture_by_address_index: HashMap::new(),
+            inner: doc,
+            event_bus,
         }
     }
 
-    /* ---------- publics ---------- */
-    /// Same as [std::collections::HashMap::get()]
-    pub fn get_function_data(&self, id: &FunctionId) -> Option<&FunctionData> {
-        self.functions.get(id)
+    pub fn event_bus_mut(&mut self) -> &mut DocEventBus {
+        &mut self.event_bus
     }
 
-    /// Same as [std::collections::HashMap::get()]
-    pub fn get_fixture(&self, id: &FixtureId) -> Option<&Fixture> {
-        self.fixtures.get(id)
+    pub fn as_readonly(&self) -> ReadOnly<DocStore> {
+        ReadOnly::new(Arc::clone(&self.inner))
     }
 
-    /// Same as [std::collections::HashMap::get()]
-    pub fn get_fixture_def(&self, id: &FixtureDefId) -> Option<&FixtureDef> {
-        self.fixture_defs.get(id)
+    pub fn add_function(&self, function: FunctionData) -> Option<FunctionData> {
+        let id = function.id();
+        let opt = {
+            let mut guard = self.inner.write().unwrap();
+            guard.add_function(function)
+        };
+        self.event_bus.notify(DocEvent::FunctionInserted(id));
+        opt
     }
 
-    pub fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {
-        &self.universe_settings
+    pub fn remove_function(&self, id: &FunctionId) -> Option<FunctionData> {
+        let opt = {
+            let mut guard = self.inner.write().unwrap();
+            guard.remove_function(id)
+        };
+        self.event_bus.notify(DocEvent::FunctionRemoved(*id));
+        opt
+    }
+
+    pub fn insert_fixture_def(&self, fixture_def: FixtureDef) -> Option<FixtureDef> {
+        let id = fixture_def.id();
+        let opt = {
+            let mut guard = self.inner.write().unwrap();
+            guard.insert_fixture_def(fixture_def)
+        };
+        self.event_bus.notify(DocEvent::FixtureDefInserted(id));
+        opt
+    }
+
+    pub fn remove_fixture_def(&self, id: &FixtureDefId) -> Option<FixtureDef> {
+        let opt = {
+            let mut guard = self.inner.write().unwrap();
+            guard.remove_fixture_def(id)
+        };
+        self.event_bus.notify(DocEvent::FixtureDefRemoved(*id));
+        opt
+    }
+
+    pub fn insert_fixture(&self, fixture: Fixture) -> Result<Option<Fixture>, FixtureInsertError> {
+        let id = fixture.id();
+        let result = {
+            let mut guard = self.inner.write().unwrap();
+            guard.insert_fixture(fixture)
+        };
+        if let Ok(_) = result {
+            self.event_bus.notify(DocEvent::FixtureInserted(id));
+        }
+        result
+    }
+
+    pub fn remove_fixture(&self, id: &FixtureId) -> Result<Option<Fixture>, FixtureRemoveError> {
+        let result = {
+            let mut guard = self.inner.write().unwrap();
+            guard.remove_fixture(id)
+        };
+        if let Ok(_) = result {
+            self.event_bus.notify(DocEvent::FixtureRemoved(*id));
+        }
+        result
+    }
+
+    pub fn add_universe(&self, id: UniverseId) -> Option<UniverseSetting> {
+        let opt = {
+            let mut guard = self.inner.write().unwrap();
+            guard.add_universe(id)
+        };
+        self.event_bus.notify(DocEvent::UniverseAdded(id));
+        opt
+    }
+
+    pub fn remove_universe(&self, id: &UniverseId) -> Option<UniverseSetting> {
+        let opt = {
+            let mut guard = self.inner.write().unwrap();
+            guard.remove_universe(id)
+        };
+        self.event_bus.notify(DocEvent::UniverseRemoved(*id));
+        opt
+    }
+
+    pub fn add_output(
+        &self,
+        universe_id: UniverseId,
+        plugin: OutputPluginId,
+    ) -> Result<bool, OutputMapError> {
+        let result = {
+            let mut guard = self.inner.write().unwrap();
+            guard.add_output(universe_id, plugin)
+        };
+        if let Ok(_) = result {
+            self.event_bus.notify(DocEvent::UniverseSettingsChanged);
+        }
+        result
+    }
+
+    pub fn remove_output(
+        &self,
+        universe_id: &UniverseId,
+        plugin: &OutputPluginId,
+    ) -> Result<bool, OutputMapError> {
+        let result = {
+            let mut guard = self.inner.write().unwrap();
+            guard.remove_output(universe_id, plugin)
+        };
+        if let Ok(_) = result {
+            self.event_bus.notify(DocEvent::UniverseSettingsChanged);
+        }
+        result
+    }
+}
+
+pub struct DocEventBus {
+    observers: Vec<Weak<RwLock<dyn DocObserver>>>,
+}
+
+impl DocEventBus {
+    pub fn new() -> Self {
+        Self {
+            observers: Vec::new(),
+        }
     }
 
     // TODO: イベント種類を指定できるようにする
@@ -66,60 +166,15 @@ impl Doc {
         self.observers.push(observer);
     }
 
-    pub fn resolve_address(
-        &self,
-        fixture_id: FixtureId,
-        channel: &str,
-    ) -> Result<(UniverseId, ResolvedAddress), ResolveError> {
-        let fixture = self
-            .fixtures
-            .get(&fixture_id)
-            .ok_or(ResolveError::FixtureNotFound(FixtureNotFound(fixture_id)))?;
-
-        let fixture_def = self.fixture_defs.get(&fixture.fixture_def()).ok_or(
-            ResolveError::FixtureDefNotFound(FixtureDefNotFound {
-                fixture_id: fixture.id(),
-                fixture_def_id: fixture.fixture_def(),
-            }),
-        )?;
-        let mode =
-            fixture_def
-                .modes()
-                .get(fixture.fixture_mode())
-                .ok_or(ResolveError::ModeNotFound(ModeNotFound {
-                    fixture_def: fixture.fixture_def(),
-                    mode: fixture.fixture_mode().into(),
-                }))?;
-        let channel_offset =
-            mode.channel_order()
-                .get(channel)
-                .unwrap()// FIXME: unwrap
-                .ok_or(ResolveError::ChannelNotFound {
-                    fixture_def: fixture.fixture_def(),
-                    mode: fixture.fixture_mode().into(),
-                    channel: channel.into(),
-                })?;
-
-        let merge_mode = fixture_def
-            .channel_templates()
-            .get(channel)
-            .unwrap() // TODO: should return Err
-            .merge_mode();
-        Ok((
-            fixture.universe_id(),
-            ResolvedAddress {
-                merge_mode,
-                address: DmxAddress::new(fixture.address().value() + channel_offset).unwrap(),//FIXME: unwrap
-            },
-        ))
-    }
-
-    pub fn get_fixture_by_address(
-        &self,
-        universe_id: &UniverseId,
-        address: DmxAddress,
-    ) -> Option<&(FixtureId, usize)> {
-        self.fixture_by_address_index.get(&(*universe_id, address))
+    fn notify(&self, event: DocEvent) {
+        // FIXME: 死んだObserverの削除は後でやるべきかも？
+        self.observers.iter().for_each(|weak_ob| {
+            if let Some(ob) = weak_ob.upgrade() {
+                ob.write().unwrap().on_doc_event(&event);
+            } else {
+                warn!("failed to upgrade weak reference");
+            }
+        });
     }
 }
 
@@ -129,7 +184,7 @@ pub enum DocEvent {
     UniverseAdded(UniverseId),
     UniverseRemoved(UniverseId),
     /// Also emitted when [`Fixture`] is updated
-    FixtureInserted(FixtureId, Fixture),
+    FixtureInserted(FixtureId),
     FixtureRemoved(FixtureId),
     /// Also emitted when [`FixtureDef`] is updated
     FixtureDefInserted(FixtureDefId),
@@ -165,29 +220,122 @@ pub struct ResolvedAddress {
     pub address: DmxAddress,
 }
 
-/* ---------- pub(crate), mutables ---------- */
-impl Doc {
+/// Single source of true
+pub struct DocStore {
+    fixtures: HashMap<FixtureId, Fixture>,
+    fixture_defs: HashMap<FixtureDefId, FixtureDef>,
+    functions: HashMap<FunctionId, FunctionData>,
+    universe_settings: HashMap<UniverseId, UniverseSetting>,
+
+    fixture_by_address_index: HashMap<(UniverseId, DmxAddress), (FixtureId, usize)>,
+}
+
+/* ---------- publics, readonly ---------- */
+impl DocStore {
+    pub fn new() -> Self {
+        Self {
+            fixtures: HashMap::new(),
+            fixture_defs: HashMap::new(),
+            functions: HashMap::new(),
+            universe_settings: HashMap::new(),
+
+            fixture_by_address_index: HashMap::new(),
+        }
+    }
+
+    /* ---------- publics ---------- */
+    /// Same as [std::collections::HashMap::get()]
+    pub fn get_function_data(&self, id: &FunctionId) -> Option<&FunctionData> {
+        self.functions.get(id)
+    }
+
+    /// Same as [std::collections::HashMap::get()]
+    pub fn get_fixture(&self, id: &FixtureId) -> Option<&Fixture> {
+        self.fixtures.get(id)
+    }
+
+    /// Same as [std::collections::HashMap::get()]
+    pub fn get_fixture_def(&self, id: &FixtureDefId) -> Option<&FixtureDef> {
+        self.fixture_defs.get(id)
+    }
+
+    pub fn universe_settings(&self) -> &HashMap<UniverseId, UniverseSetting> {
+        &self.universe_settings
+    }
+
+    pub fn resolve_address(
+        &self,
+        fixture_id: FixtureId,
+        channel: &str,
+    ) -> Result<(UniverseId, ResolvedAddress), ResolveError> {
+        let fixture = self
+            .fixtures
+            .get(&fixture_id)
+            .ok_or(ResolveError::FixtureNotFound(FixtureNotFound(fixture_id)))?;
+
+        let fixture_def = self.fixture_defs.get(&fixture.fixture_def()).ok_or(
+            ResolveError::FixtureDefNotFound(FixtureDefNotFound {
+                fixture_id: fixture.id(),
+                fixture_def_id: fixture.fixture_def(),
+            }),
+        )?;
+        let mode =
+            fixture_def
+                .modes()
+                .get(fixture.fixture_mode())
+                .ok_or(ResolveError::ModeNotFound(ModeNotFound {
+                    fixture_def: fixture.fixture_def(),
+                    mode: fixture.fixture_mode().into(),
+                }))?;
+        let channel_offset = mode
+            .channel_order()
+            .get(channel)
+            .unwrap() // FIXME: unwrap
+            .ok_or(ResolveError::ChannelNotFound {
+                fixture_def: fixture.fixture_def(),
+                mode: fixture.fixture_mode().into(),
+                channel: channel.into(),
+            })?;
+
+        let merge_mode = fixture_def
+            .channel_templates()
+            .get(channel)
+            .unwrap() // TODO: should return Err
+            .merge_mode();
+        Ok((
+            fixture.universe_id(),
+            ResolvedAddress {
+                merge_mode,
+                address: DmxAddress::new(fixture.address().value() + channel_offset).unwrap(), //FIXME: unwrap
+            },
+        ))
+    }
+
+    pub fn get_fixture_by_address(
+        &self,
+        universe_id: &UniverseId,
+        address: DmxAddress,
+    ) -> Option<&(FixtureId, usize)> {
+        self.fixture_by_address_index.get(&(*universe_id, address))
+    }
+}
+
+/* ---------- privates, mutables ---------- */
+impl DocStore {
     /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn add_function(&mut self, function: FunctionData) -> Option<FunctionData> {
+    fn add_function(&mut self, function: FunctionData) -> Option<FunctionData> {
         let id = function.id();
-        let opt = self.functions.insert(id, function);
-        self.notify(DocEvent::FunctionInserted(id));
-        opt
+        self.functions.insert(id, function)
     }
 
     /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn remove_function(&mut self, id: &FunctionId) -> Option<FunctionData> {
-        let opt = self.functions.remove(id);
-        self.notify(DocEvent::FunctionRemoved(*id));
-        opt
+    fn remove_function(&mut self, id: &FunctionId) -> Option<FunctionData> {
+        self.functions.remove(id)
     }
 
     // TODO: FixtureDefが変更されたときに不変条件が崩れないようにする
     /// TODO: update this comment Same as [std::collections::HashMap::remove()]
-    pub(crate) fn insert_fixture(
-        &mut self,
-        fixture: Fixture,
-    ) -> Result<Option<Fixture>, FixtureInsertError> {
+    fn insert_fixture(&mut self, fixture: Fixture) -> Result<Option<Fixture>, FixtureInsertError> {
         // FIXME: signature is complicated. Using enum(Outcome::Created/Updated) would be good.
         let def_id = fixture.fixture_def();
         let fixture_def =
@@ -215,15 +363,11 @@ impl Doc {
         let id = fixture.id();
         let opt = self.fixtures.insert(id, fixture.clone());
 
-        self.notify(DocEvent::FixtureInserted(id, fixture));
         Ok(opt)
     }
 
     /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn remove_fixture(
-        &mut self,
-        id: &FixtureId,
-    ) -> Result<Option<Fixture>, FixtureRemoveError> {
+    fn remove_fixture(&mut self, id: &FixtureId) -> Result<Option<Fixture>, FixtureRemoveError> {
         if !self.fixtures.contains_key(id) {
             return Ok(None);
         }
@@ -255,42 +399,33 @@ impl Doc {
         }
 
         let old = self.fixtures.remove(id).unwrap();
-        self.notify(DocEvent::FixtureRemoved(*id));
         Ok(Some(old))
     }
 
     /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn insert_fixture_def(&mut self, fixture_def: FixtureDef) -> Option<FixtureDef> {
+    fn insert_fixture_def(&mut self, fixture_def: FixtureDef) -> Option<FixtureDef> {
         let id = fixture_def.id();
-        let opt = self.fixture_defs.insert(id, fixture_def);
-        self.notify(DocEvent::FixtureDefInserted(id));
-        opt
+        self.fixture_defs.insert(id, fixture_def)
     }
 
     /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn remove_fixture_def(&mut self, id: &FixtureDefId) -> Option<FixtureDef> {
+    fn remove_fixture_def(&mut self, id: &FixtureDefId) -> Option<FixtureDef> {
         // TODO: このFixtureDefを参照しているFixtureの処理
-        let opt = self.fixture_defs.remove(id);
-        self.notify(DocEvent::FixtureDefRemoved(*id));
-        opt
+        self.fixture_defs.remove(id)
     }
 
     /// Returns `Some(old_setting)` or `None`
-    pub(crate) fn add_universe(&mut self, id: UniverseId) -> Option<UniverseSetting> {
-        let opt = self.universe_settings.insert(id, UniverseSetting::new());
-        self.notify(DocEvent::UniverseAdded(id));
-        opt
+    fn add_universe(&mut self, id: UniverseId) -> Option<UniverseSetting> {
+        self.universe_settings.insert(id, UniverseSetting::new())
     }
 
     /// Same as [std::collections::HashMap::remove()]
-    pub(crate) fn remove_universe(&mut self, id: &UniverseId) -> Option<UniverseSetting> {
-        let opt = self.universe_settings.remove(id);
-        self.notify(DocEvent::UniverseRemoved(*id));
-        opt
+    fn remove_universe(&mut self, id: &UniverseId) -> Option<UniverseSetting> {
+        self.universe_settings.remove(id)
     }
 
     /// Returns `true` when plugin already exists.
-    pub(crate) fn add_output(
+    fn add_output(
         &mut self,
         universe_id: UniverseId,
         plugin: OutputPluginId,
@@ -300,14 +435,12 @@ impl Doc {
             .get_mut(&universe_id)
             .ok_or(OutputMapError::UniverseNotFound(universe_id))?;
         let is_inserted = setting.output_plugins.insert(plugin);
-        if is_inserted {
-            self.notify(DocEvent::UniverseSettingsChanged);
-        }
+
         Ok(is_inserted)
     }
 
     /// Returns `true` when plugin was not in the list.
-    pub(crate) fn remove_output(
+    fn remove_output(
         &mut self,
         universe_id: &UniverseId,
         plugin: &OutputPluginId,
@@ -317,15 +450,13 @@ impl Doc {
             .get_mut(&universe_id)
             .ok_or(OutputMapError::UniverseNotFound(*universe_id))?;
         let is_removed = setting.output_plugins.remove(&plugin);
-        if is_removed {
-            self.notify(DocEvent::UniverseRemoved(*universe_id));
-        }
+
         Ok(is_removed)
     }
 }
 
 /* ---------- privates ---------- */
-impl Doc {
+impl DocStore {
     /// Validates that the fixture does not conflict with existing [Fixture]s' address.
     fn validate_fixture_address(
         &self,
@@ -357,19 +488,6 @@ impl Doc {
         } else {
             return Err(ValidateError::AddressConflicted(conflicts));
         }
-    }
-
-    /// Notifies event to all observers
-    fn notify(&mut self, event: DocEvent) {
-        self.observers.retain(|weak_ob| {
-            if let Some(ob) = weak_ob.upgrade() {
-                ob.write().unwrap().on_doc_event(&event);
-                true
-            } else {
-                warn!("failed to upgrade weak reference");
-                false
-            }
-        });
     }
 }
 
