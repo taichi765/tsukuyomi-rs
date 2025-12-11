@@ -2,15 +2,15 @@ use std::collections::HashMap;
 
 use super::helpers::{make_fixture, make_fixture_def_with_mode};
 use crate::{
-    doc::{Doc, FixtureDefNotFound, FixtureNotFound, ModeNotFound, ResolveError},
-    fixture::{Fixture, FixtureId, MergeMode},
-    fixture_def::{ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
+    doc::{DocStore, FixtureNotFound, ResolveError},
+    fixture::{FixtureId, MergeMode},
+    fixture_def::{ChannelKind, FixtureDef, FixtureMode},
     universe::{DmxAddress, UniverseId},
 };
 
 #[test]
 fn resolve_success_single_channel() {
-    let mut doc = Doc::new();
+    let mut doc = DocStore::new();
 
     // Prepare a def with ModeA -> "Dimmer" at offset 7, LTP
     let def = make_fixture_def_with_mode(
@@ -49,7 +49,7 @@ fn resolve_success_single_channel() {
 
 #[test]
 fn resolve_error_fixture_not_found() {
-    let doc = Doc::new();
+    let doc = DocStore::new();
 
     let missing = FixtureId::new();
     let err = doc
@@ -60,7 +60,7 @@ fn resolve_error_fixture_not_found() {
 
 #[test]
 fn resolve_error_channel_not_found_entry_present_but_none() {
-    let mut doc = Doc::new();
+    let mut doc = DocStore::new();
 
     // Build a def with a mode "ModeA" where "Dimmer" key exists but value is None
     let mut def = FixtureDef::new(String::from("Manufacturer"), String::from("ModelX"));

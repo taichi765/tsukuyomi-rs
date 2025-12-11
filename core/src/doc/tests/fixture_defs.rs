@@ -1,14 +1,16 @@
-use super::helpers::{make_fixture, make_fixture_def_with_mode};
+use super::helpers::{make_doc_handle_with_observer, make_fixture, make_fixture_def_with_mode};
 use crate::{
-    doc::{Doc, FixtureDefNotFound, ResolveError},
+    doc::{DocEvent, DocStore, FixtureDefNotFound, ResolveError},
     fixture::MergeMode,
     fixture_def::ChannelKind,
     universe::{DmxAddress, UniverseId},
 };
 
+/* ==================== DocStore direct tests ==================== */
+
 #[test]
-fn insert_fixture_def_emits_event_and_allows_resolution() {
-    let mut doc = Doc::new();
+fn insert_fixture_def_allows_resolution() {
+    let mut doc = DocStore::new();
 
     // prepare a fixture def with one mode and one channel
     let def = make_fixture_def_with_mode(
@@ -47,8 +49,8 @@ fn insert_fixture_def_emits_event_and_allows_resolution() {
 }
 
 #[test]
-fn remove_fixture_def_emits_event_and_breaks_resolution() {
-    let mut doc = Doc::new();
+fn remove_fixture_def_breaks_resolution() {
+    let mut doc = DocStore::new();
 
     // prepare and insert fixture def
     let def = make_fixture_def_with_mode(
@@ -87,7 +89,7 @@ fn remove_fixture_def_emits_event_and_breaks_resolution() {
 
 #[test]
 fn remove_nonexistent_fixture_def_returns_none() {
-    let mut doc = Doc::new();
+    let mut doc = DocStore::new();
 
     // random UUID via a dummy def: create and drop to get a valid id, then remove twice
     let def = make_fixture_def_with_mode(
@@ -106,4 +108,67 @@ fn remove_nonexistent_fixture_def_returns_none() {
 
     // removing again should return None
     assert!(doc.remove_fixture_def(&def_id).is_none());
+}
+
+/* ==================== DocHandle event notification tests ==================== */
+
+#[test]
+fn doc_handle_insert_fixture_def_emits_event() {
+    let (handle, _doc_store, observer) = make_doc_handle_with_observer();
+
+    // prepare a fixture def
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        5,
+        MergeMode::LTP,
+        ChannelKind::Dimmer,
+    );
+    let def_id = def.id();
+
+    // insert
+    let old = handle.insert_fixture_def(def);
+    assert!(old.is_none());
+
+    // event emitted
+    {
+        let obs = observer.read().unwrap();
+        assert!(
+            obs.events
+                .iter()
+                .any(|e| matches!(e, DocEvent::FixtureDefInserted(id) if *id == def_id))
+        );
+    }
+}
+
+#[test]
+fn doc_handle_remove_fixture_def_emits_event() {
+    let (handle, _doc_store, observer) = make_doc_handle_with_observer();
+
+    // prepare and insert fixture def
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeA",
+        "Dimmer",
+        0,
+        MergeMode::HTP,
+        ChannelKind::Dimmer,
+    );
+    let def_id = def.id();
+    handle.insert_fixture_def(def);
+
+    // remove fixture def
+    let removed = handle.remove_fixture_def(&def_id);
+    assert!(removed.is_some());
+
+    // event emitted
+    {
+        let obs = observer.read().unwrap();
+        assert!(
+            obs.events
+                .iter()
+                .any(|e| matches!(e, DocEvent::FixtureDefRemoved(id) if *id == def_id))
+        );
+    }
 }

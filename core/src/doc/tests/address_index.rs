@@ -1,6 +1,6 @@
 use super::helpers::{make_def_with_two_channels, make_fixture};
 use crate::{
-    doc::{Doc, FixtureDefNotFound, FixtureInsertError},
+    doc::{DocStore, FixtureDefNotFound, FixtureInsertError},
     fixture::Fixture,
     fixture_def::FixtureDef,
     universe::{DmxAddress, UniverseId},
@@ -8,7 +8,7 @@ use crate::{
 
 #[test]
 fn get_fixture_by_address_returns_fixture_and_offset_for_each_occupied_address() {
-    let mut doc = Doc::new();
+    let mut doc = DocStore::new();
 
     // Prepare def with two channels and ModeA
     let def = make_def_with_two_channels();
@@ -39,7 +39,7 @@ fn get_fixture_by_address_returns_fixture_and_offset_for_each_occupied_address()
     assert_eq!(*id, fxt_id);
     assert_eq!(*offset, 0);
 
-    // Expect address index contains base+3 offset 3
+    // Expect address index contains base+1 offset 1
     let got1 = doc.get_fixture_by_address(&uni_id, DmxAddress::new(base_addr + 1).unwrap());
     assert!(got1.is_some());
 
@@ -54,7 +54,7 @@ fn get_fixture_by_address_returns_fixture_and_offset_for_each_occupied_address()
 
 #[test]
 fn address_index_is_cleared_when_fixture_is_removed() {
-    let mut doc = Doc::new();
+    let mut doc = DocStore::new();
 
     // Prepare and insert def
     let def = make_def_with_two_channels();
@@ -104,7 +104,7 @@ fn address_index_is_cleared_when_fixture_is_removed() {
 
 #[test]
 fn address_index_is_not_populated_when_insert_fixture_errors() {
-    let mut doc = Doc::new();
+    let mut doc = DocStore::new();
 
     // Universe present, but no fixture def inserted
     let uni_id = UniverseId::new(2);

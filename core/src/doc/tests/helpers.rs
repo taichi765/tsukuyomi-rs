@@ -1,7 +1,10 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use crate::{
-    doc::{DocEvent, DocObserver},
+    doc::{DocEvent, DocEventBus, DocHandle, DocObserver, DocStore},
     fixture::{Fixture, MergeMode},
     fixture_def::{ChannelDef, ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
     functions::{FunctionData, StaticSceneData},
@@ -20,6 +23,21 @@ impl DocObserver for TestObserver {
     fn on_doc_event(&mut self, event: &DocEvent) {
         self.events.push(event.clone());
     }
+}
+
+/// Creates a new DocHandle with an observer already subscribed.
+/// Returns the DocHandle, the underlying DocStore, and the observer for event verification.
+pub(crate) fn make_doc_handle_with_observer()
+-> (DocHandle, Arc<RwLock<DocStore>>, Arc<RwLock<TestObserver>>) {
+    let doc_store = Arc::new(RwLock::new(DocStore::new()));
+    let mut event_bus = DocEventBus::new();
+
+    let observer = Arc::new(RwLock::new(TestObserver::new()));
+    let obs: Arc<RwLock<dyn DocObserver>> = Arc::clone(&observer) as _;
+    event_bus.subscribe(Arc::downgrade(&obs));
+
+    let handle = DocHandle::new(Arc::clone(&doc_store), event_bus);
+    (handle, doc_store, observer)
 }
 
 /// Build a minimal FixtureDef with a single mode and a single channel entry.
