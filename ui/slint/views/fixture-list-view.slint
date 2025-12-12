@@ -2,17 +2,18 @@ import { Icons } from "../styling.slint";
 import { Palette } from "std-widgets.slint";
 import { PlaneText, MiddleText } from "../parts/texts.slint";
 
-export struct FixtureData {
+export struct FixtureModel {
+    id:string,
     name:string}
 
-export struct FixtureListModel {
+export struct ManufacturerModel {
     manufacturer:string,
-    fixtures:[FixtureData],
+    fixtures:[FixtureModel],
     expanded:bool,
 }
 
 export global FixtureListStore {
-    in property <[FixtureListModel]> fixtures:[
+    in property <[ManufacturerModel]> model:[
         {
             manufacturer:"Stage Evolution",
             fixtures:[{ name:"HPAR64-9" }, { name:"ORION WH" }, { name:"IM-MH90S" }],
@@ -23,20 +24,22 @@ export global FixtureListStore {
 }
 
 export component FixtureListView inherits Rectangle {
+    out property <string> selected-fixture-id;
     VerticalLayout {
         alignment: LayoutAlignment.start;
-        for map in FixtureListStore.fixtures: Rectangle {
+        for manufacturer-model in FixtureListStore.model: Rectangle {
             VerticalLayout {
                 header := Rectangle {
                     HorizontalLayout {
                         Image {
-                            source: map.expanded ? Icons.arrow-drop-down : Icons.arrow-right;
-                            width: 1.5rem;
-                            height: 1.5rem;
+                            source: manufacturer-model.expanded ? Icons.arrow-drop-down : Icons.arrow-right;
+                            width: 22px;
+                            height: 22px;
+                            vertical-alignment: center;
                         }
 
                         MiddleText {
-                            text: map.manufacturer;
+                            text: manufacturer-model.manufacturer;
                         }
                     }
 
@@ -44,27 +47,54 @@ export component FixtureListView inherits Rectangle {
                         width: parent.width;
                         height: parent.height;
                         clicked => {
-                            debug("clicked");
-                            map.expanded = !map.expanded
+                            manufacturer-model.expanded = !manufacturer-model.expanded
                         }
                     }
                 }
 
-                if map.expanded:VerticalLayout {
+                if manufacturer-model.expanded:VerticalLayout {
                     alignment: LayoutAlignment.start;
-                    for fixture in map.fixtures: HorizontalLayout {
-                        alignment: LayoutAlignment.start;
-                        spacer := Rectangle {
-                            width: 2rem;
+                    for fixture in manufacturer-model.fixtures: item := Rectangle {
+                        HorizontalLayout {
+                            alignment: LayoutAlignment.start;
+                            spacer := Rectangle {
+                                width: 2rem;
+                            }
+
+                            PlaneText {
+                                text: fixture.name;
+                            }
                         }
 
-                        PlaneText {
-                            text: fixture.name;
+                        TouchArea {
+                            clicked => {
+                                item.background = Palette.alternate-background;
+                                selected-fixture-id = fixture.id;
+                            }
                         }
-                        /*DragArea{
-                            mime-type:"text/plain";
-                            data:fixture.name;
-                        }*/
+
+                        DragArea {
+                            mime-type: "text/plain";
+                            data: fixture.id;
+                        }
+
+                        ContextMenuArea {
+                            Menu {
+                                MenuItem {
+                                    title: @tr("Rename fixture definition");
+                                    activated => {
+                                        debug("rename requested");
+                                    }
+                                }
+
+                                MenuItem {
+                                    title: @tr("Remove fixture definition");
+                                    activated => {
+                                        debug("remove requested");
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

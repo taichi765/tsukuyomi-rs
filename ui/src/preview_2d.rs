@@ -163,7 +163,7 @@ impl PreviewController {
                 ChannelKind::Red => set_color(fixture_id, &mut fixture_color_map, 1, *value),
                 ChannelKind::Blue => set_color(fixture_id, &mut fixture_color_map, 2, *value),
                 ChannelKind::Green => set_color(fixture_id, &mut fixture_color_map, 3, *value),
-                ChannelKind::White => todo!(),
+                _ => todo!(),
             }
         }
         let ui = self.ui_handle.unwrap();

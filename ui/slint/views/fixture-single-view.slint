@@ -1,0 +1,15 @@
+import { PlaneText } from "../parts/texts.slint";
+export component FixtureSingleView inherits Rectangle {
+    in property <string> fixture-id;
+    Text {
+        text: fixture-id;
+    }
+
+    HorizontalLayout {
+        PlaneText {
+            text: @tr("Universe");
+        }
+
+        TextInput { }
+    }
+}

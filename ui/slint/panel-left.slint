@@ -15,13 +15,7 @@ export component LeftPanel inherits Rectangle {
         BorderVert { }
 
         if current-index != -1: content := Rectangle {
-            if current-index == 0:fixture-panel := VerticalLayout {
-                FixtureListView { }
-
-                BorderHorz { }
-
-                FixtureView { }
-            }
+            if current-index == 0:fixture-panel := FixtureView { }
             if current-index == 1:function-panel := Rectangle {
                 Text {
                     text: "this is function list view!";

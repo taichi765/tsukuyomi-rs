@@ -1,5 +1,6 @@
 pub mod doc_event_bridge;
 pub mod fader_view_bridge;
+pub mod fixture_list_view;
 pub mod preview_2d;
 pub mod preview_3d;
 
@@ -33,6 +34,7 @@ use tsukuyomi_core::{
 
 use crate::doc_event_bridge::DocEventBridge;
 use crate::fader_view_bridge::setup_fader_view;
+use crate::fixture_list_view::setup_fixture_list_view;
 use crate::preview_2d::setup_2d_preview;
 use crate::preview_3d::setup_3d_preview;
 // TODO: tsukuyomi_core::prelude使いたい
@@ -75,6 +77,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
     );
     doc_commands.append(&mut dc);
     setup_3d_preview(&ui);
+    let _controller = setup_fixture_list_view(&ui, ReadOnly::new(Arc::clone(&doc)), &mut event_bus);
 
     let mut command_manager = CommandManager::new(DocHandle::new(doc, event_bus));
     doc_commands.into_iter().for_each(|cmd| {
@@ -190,16 +193,62 @@ fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
     let fixture_id = fixture.id();
     commands.push(Box::new(commands::doc_commands::AddFixture::new(fixture)));
 
-    /*let mut scene = StaticSceneData::new("My Scene");
-    let mut sv = SceneValue::new();
-    sv.insert("Dimmer".into(), 200);
-    sv.insert("Red".into(), 100);
-    scene.insert_value(fixture_id, sv);
-    let scene_id = scene.id();
+    {
+        let mut fixture_def =
+            FixtureDef::new("Stage Evolution".to_string(), "HPAR64-9".to_string());
+        {
+            fixture_def.insert_channel(
+                "Dimmer",
+                ChannelDef::new(MergeMode::HTP, ChannelKind::Dimmer),
+            );
+            fixture_def.insert_channel("Red", ChannelDef::new(MergeMode::HTP, ChannelKind::Red));
+            fixture_def
+                .insert_channel("Green", ChannelDef::new(MergeMode::HTP, ChannelKind::Green));
+            fixture_def.insert_channel("Blue", ChannelDef::new(MergeMode::HTP, ChannelKind::Blue));
+            fixture_def
+                .insert_channel("White", ChannelDef::new(MergeMode::HTP, ChannelKind::White));
+            fixture_def.insert_channel(
+                "Warm White",
+                ChannelDef::new(MergeMode::HTP, ChannelKind::WarmWhite),
+            );
+            fixture_def
+                .insert_channel("Amber", ChannelDef::new(MergeMode::HTP, ChannelKind::Amber));
+            fixture_def.insert_channel("UV", ChannelDef::new(MergeMode::HTP, ChannelKind::UV));
+            fixture_def.insert_channel(
+                "Color Macro",
+                ChannelDef::new(MergeMode::HTP, ChannelKind::Custom),
+            );
+            fixture_def.insert_channel(
+                "Auto Program",
+                ChannelDef::new(MergeMode::HTP, ChannelKind::Custom),
+            );
+            fixture_def.insert_channel(
+                "Program Speed",
+                ChannelDef::new(MergeMode::HTP, ChannelKind::Custom),
+            );
+            fixture_def.insert_channel(
+                "Color Temprature",
+                ChannelDef::new(MergeMode::HTP, ChannelKind::Custom),
+            );
+        }
+        let mut channel_order: HashMap<String, Option<usize>> = HashMap::new();
+        channel_order.insert("Dimmer".into(), Some(0));
+        channel_order.insert("Red".into(), Some(0));
+        channel_order.insert("Green".into(), Some(0));
+        channel_order.insert("Blue".into(), Some(0));
+        channel_order.insert("White".into(), Some(0));
+        channel_order.insert("Warm White".into(), Some(0));
+        channel_order.insert("Amber".into(), Some(0));
+        channel_order.insert("UV".into(), Some(0));
+        channel_order.insert("Color Macro".into(), Some(0));
+        channel_order.insert("Auto Program".into(), Some(0));
+        channel_order.insert("Program Speed".into(), Some(0));
+        channel_order.insert("Color Temprature".into(), Some(0));
+        let mode = FixtureMode::new(channel_order);
+        fixture_def.insert_mode("13ch", mode);
 
-    commands.push(Box::new(commands::doc_commands::AddFunction::new(
-        FunctionData::StaticScene(scene),
-    )));*/
+        commands.push(Box::new(doc_commands::AddFixtureDef::new(fixture_def)));
+    }
 
     (commands, fixture_id)
 }
