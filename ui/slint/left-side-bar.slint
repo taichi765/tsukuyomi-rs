@@ -38,6 +38,7 @@ component SideBarItem inherits Rectangle {
     TouchArea {
         clicked => root.clicked();
         changed has-hover => {
+            root.background = self.has-hover ? Palette.alternate-background : Palette.background;
             show-tooltip(self.has-hover, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y, tooltip);
         }
     }
@@ -56,7 +57,7 @@ export component LeftSideBar inherits Rectangle {
             is-selected: current-index == 0;
             tooltip: @tr("Fixture definitions");
             clicked => {
-                current-index = 0;
+                current-index = current-index == 0 ? -1 : 0;
             }
             show-tooltip(has-hover, x, y, msg) => root.show-tooltip(has-hover, x, y, msg);
         }
@@ -66,7 +67,7 @@ export component LeftSideBar inherits Rectangle {
             is-selected: current-index == 1;
             tooltip: @tr("Functions");
             clicked => {
-                current-index = 1;
+                current-index = current-index == 1 ? -1 : 1;
             }
             show-tooltip(has-hover, x, y, msg) => root.show-tooltip(has-hover, x, y, msg);
         }

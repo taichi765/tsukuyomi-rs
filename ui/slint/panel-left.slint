@@ -1,7 +1,9 @@
 import { LeftSideBar } from "left-side-bar.slint";
 import { FixtureListView } from "views/fixture-list-view.slint";
-import { BorderVert } from "styling.slint";
+import { BorderVert, BorderHorz } from "styling.slint";
+import { FixtureView } from "views/fixture-view.slint";
 export component LeftPanel inherits Rectangle {
+    // current-indexが-1のとき何も表示しない
     property <int> current-index <=> side-var.current-index;
     callback show-tooltip(has-hover: bool, x: length, y: length, msg: string);
 
@@ -12,9 +14,15 @@ export component LeftPanel inherits Rectangle {
 
         BorderVert { }
 
-        content := Rectangle {
-            if current-index == 0:FixtureListView { }
-            if current-index == 1:Rectangle {
+        if current-index != -1: content := Rectangle {
+            if current-index == 0:fixture-panel := VerticalLayout {
+                FixtureListView { }
+
+                BorderHorz { }
+
+                FixtureView { }
+            }
+            if current-index == 1:function-panel := Rectangle {
                 Text {
                     text: "this is function list view!";
                 }
