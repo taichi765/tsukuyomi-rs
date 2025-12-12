@@ -158,24 +158,26 @@ fn setup_window() -> Result<AppWindow, Box<dyn Error>> {
 fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
     let mut commands: Vec<Box<dyn DocCommand>> = Vec::new();
 
-    let mut fixture_def = FixtureDef::new("Test Manufacturer".into(), "Test Model".into());
-    fixture_def.insert_channel(
-        "Dimmer".into(),
-        ChannelDef::new(MergeMode::HTP, ChannelKind::Dimmer),
-    );
-    fixture_def.insert_channel(
-        "Red".into(),
-        ChannelDef::new(MergeMode::HTP, ChannelKind::Red),
-    );
-    let mut channel_order: HashMap<String, Option<usize>> = HashMap::new();
-    channel_order.insert("Dimmer".into(), Some(0));
-    channel_order.insert("Red".into(), Some(1));
-    let mode = FixtureMode::new(channel_order);
-    fixture_def.insert_mode("Mode 1".into(), mode);
-    let fixture_def_id = fixture_def.id();
-    commands.push(Box::new(commands::doc_commands::AddFixtureDef::new(
-        fixture_def,
-    )));
+    let fixture_def_id = {
+        let mut fixture_def = FixtureDef::new("Test Manufacturer", "Test Model");
+        fixture_def.insert_channel(
+            "Dimmer",
+            ChannelDef::new(MergeMode::HTP, ChannelKind::Dimmer),
+        );
+        fixture_def.insert_channel("Red", ChannelDef::new(MergeMode::HTP, ChannelKind::Red));
+        let mut channel_order: HashMap<String, Option<usize>> = HashMap::new();
+        channel_order.insert("Dimmer".into(), Some(0));
+        channel_order.insert("Red".into(), Some(1));
+        let mode = FixtureMode::new(channel_order);
+        fixture_def.insert_mode("Mode 1", mode);
+
+        let id = fixture_def.id();
+
+        commands.push(Box::new(commands::doc_commands::AddFixtureDef::new(
+            fixture_def,
+        )));
+        id
+    };
 
     let fixture = Fixture::new(
         "Fixture",

@@ -13,11 +13,12 @@ pub struct FixtureDef {
 }
 
 impl FixtureDef {
-    pub fn new(manufacturer: String, model: String) -> Self {
+    // TODO: すべての関数でimpl Into<String>を使うようにする
+    pub fn new(manufacturer: impl Into<String>, model: impl Into<String>) -> Self {
         Self {
             id: FixtureDefId::new(),
-            manufacturer,
-            model,
+            manufacturer: manufacturer.into(),
+            model: model.into(),
             modes: HashMap::new(),
             channel_templates: HashMap::new(),
         }
@@ -44,13 +45,21 @@ impl FixtureDef {
     }
 
     /// Same as [std::collections::HashMap::insert()]
-    pub fn insert_mode(&mut self, name: String, mode: FixtureMode) -> Option<FixtureMode> {
-        self.modes.insert(name, mode)
+    pub fn insert_mode(
+        &mut self,
+        name: impl Into<String>,
+        mode: FixtureMode,
+    ) -> Option<FixtureMode> {
+        self.modes.insert(name.into(), mode)
     }
 
     /// Same as [std::collections::HashMap::insert()]
-    pub fn insert_channel(&mut self, name: String, channel: ChannelDef) -> Option<ChannelDef> {
-        self.channel_templates.insert(name, channel)
+    pub fn insert_channel(
+        &mut self,
+        name: impl Into<String>,
+        channel: ChannelDef,
+    ) -> Option<ChannelDef> {
+        self.channel_templates.insert(name.into(), channel)
     }
 }
 
@@ -111,4 +120,9 @@ pub enum ChannelKind {
     Blue,
     Green,
     White,
+    WarmWhite,
+    ColdWhite,
+    Amber,
+    UV,
+    Custom, // TODO: open-fixture-library互換にする
 }
