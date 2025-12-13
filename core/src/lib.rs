@@ -41,9 +41,13 @@ macro_rules! declare_id_newtype {
 
 pub mod readonly {
     use std::sync::{Arc, RwLock, RwLockReadGuard};
+    /// Read-only access to [`Arc<RwLock<T>>`].
     pub struct ReadOnly<T>(Arc<RwLock<T>>);
 
     impl<T> Clone for ReadOnly<T> {
+        /// Cheap clone(same as [`Arc::clone()`]).
+        ///
+        /// `ReadOnly::clone(&self)` is recommended over `self.clone()` as same as [`Arc::clone()`].
         fn clone(&self) -> Self {
             ReadOnly(Arc::clone(&self.0))
         }
