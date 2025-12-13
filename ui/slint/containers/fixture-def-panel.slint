@@ -1,0 +1,46 @@
+import {
+    FixtureListView,
+    ManufacturerModel,
+} from "../views/fixture-list-view.slint";
+import { BorderHorz } from "../styling.slint";
+import { FixtureSingleView } from "../views/fixture-single-view.slint";
+
+export global FixtureListStore {
+    in property <[ManufacturerModel]> model:[
+        // dummy model
+        {
+            manufacturer:"Stage Evolution",
+            fixtures:[{ name:"HPAR64-9" }, { name:"ORION WH" }, { name:"IM-MH90S" }],
+            expanded:false
+        },
+        { manufacturer:"IM-Relax", fixtures:[{ name:"IM-MH90S" }], expanded:false }
+    ];
+    callback patch(universe: string, address: int, fixture-id: string, mode: string);
+    callback get-modes(fixture-def-id: string) -> [string];
+}
+
+export component FixtureDefPanel inherits VerticalLayout {
+    property <string> selected-fixture-id <=> list-view.selected-fixture-id;
+    property <[string]> fixture-modes-cache;
+
+    changed selected-fixture-id => {
+        fixture-modes-cache = FixtureListStore.get-modes(selected-fixture-id);
+    }
+
+    list-view := FixtureListView {
+        manufacturers: FixtureListStore.model;
+    }
+
+    BorderHorz { }
+
+    if selected-fixture-id != "":FixtureSingleView {
+        fixture-id: selected-fixture-id;
+        universes: ["Universe 1", "Universe 2"];
+        modes: fixture-modes-cache;
+
+        //TODO: hard code
+        patch(universe, address, fixture-id, mode) => {
+            FixtureListStore.patch(universe, address, fixture-id, mode);
+        }
+    }
+}
