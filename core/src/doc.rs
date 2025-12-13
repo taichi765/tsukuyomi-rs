@@ -2,7 +2,9 @@ mod errors;
 pub use errors::*;
 
 use std::{
+    cell::RefCell,
     collections::{HashMap, HashSet},
+    rc::Rc,
     sync::{Arc, RwLock, Weak},
 };
 
@@ -20,21 +22,21 @@ use crate::{
 /// Handle to [DocStore].
 /// Manages write lock and event.
 pub struct DocHandle {
+    /// DocStore is shared across the threads([`Engine`][crate::engine::Engine] has [`ReadOnly<DocStore>`]),
+    /// so we use [`Arc`].
     inner: Arc<RwLock<DocStore>>,
-    event_bus: DocEventBus,
+    /// [`DocEventBus`] is only used within the main thread, so [`Rc`] is enough.
+    /// [`Engine`][crate::engine::Engine] watches [`DocStore`] via [`EngineCommand`] and [`DocEventBridge`].
+    event_bus: Rc<RefCell<DocEventBus>>,
 }
 
 // TODO: 通知するときとしない時の条件を一貫させる
 impl DocHandle {
-    pub fn new(doc: Arc<RwLock<DocStore>>, event_bus: DocEventBus) -> Self {
+    pub fn new(doc: Arc<RwLock<DocStore>>, event_bus: Rc<RefCell<DocEventBus>>) -> Self {
         Self {
             inner: doc,
             event_bus,
         }
-    }
-
-    pub fn event_bus_mut(&mut self) -> &mut DocEventBus {
-        &mut self.event_bus
     }
 
     pub fn as_readonly(&self) -> ReadOnly<DocStore> {
@@ -47,7 +49,9 @@ impl DocHandle {
             let mut guard = self.inner.write().unwrap();
             guard.add_function(function)
         };
-        self.event_bus.notify(DocEvent::FunctionInserted(id));
+        self.event_bus
+            .borrow_mut()
+            .notify(DocEvent::FunctionInserted(id));
         opt
     }
 
@@ -56,7 +60,9 @@ impl DocHandle {
             let mut guard = self.inner.write().unwrap();
             guard.remove_function(id)
         };
-        self.event_bus.notify(DocEvent::FunctionRemoved(*id));
+        self.event_bus
+            .borrow_mut()
+            .notify(DocEvent::FunctionRemoved(*id));
         opt
     }
 
@@ -66,7 +72,9 @@ impl DocHandle {
             let mut guard = self.inner.write().unwrap();
             guard.insert_fixture_def(fixture_def)
         };
-        self.event_bus.notify(DocEvent::FixtureDefInserted(id));
+        self.event_bus
+            .borrow_mut()
+            .notify(DocEvent::FixtureDefInserted(id));
         opt
     }
 
@@ -75,7 +83,9 @@ impl DocHandle {
             let mut guard = self.inner.write().unwrap();
             guard.remove_fixture_def(id)
         };
-        self.event_bus.notify(DocEvent::FixtureDefRemoved(*id));
+        self.event_bus
+            .borrow_mut()
+            .notify(DocEvent::FixtureDefRemoved(*id));
         opt
     }
 
@@ -86,7 +96,9 @@ impl DocHandle {
             guard.insert_fixture(fixture)
         };
         if let Ok(_) = result {
-            self.event_bus.notify(DocEvent::FixtureInserted(id));
+            self.event_bus
+                .borrow_mut()
+                .notify(DocEvent::FixtureInserted(id));
         }
         result
     }
@@ -97,7 +109,9 @@ impl DocHandle {
             guard.remove_fixture(id)
         };
         if let Ok(_) = result {
-            self.event_bus.notify(DocEvent::FixtureRemoved(*id));
+            self.event_bus
+                .borrow_mut()
+                .notify(DocEvent::FixtureRemoved(*id));
         }
         result
     }
@@ -107,7 +121,9 @@ impl DocHandle {
             let mut guard = self.inner.write().unwrap();
             guard.add_universe(id)
         };
-        self.event_bus.notify(DocEvent::UniverseAdded(id));
+        self.event_bus
+            .borrow_mut()
+            .notify(DocEvent::UniverseAdded(id));
         opt
     }
 
@@ -116,7 +132,9 @@ impl DocHandle {
             let mut guard = self.inner.write().unwrap();
             guard.remove_universe(id)
         };
-        self.event_bus.notify(DocEvent::UniverseRemoved(*id));
+        self.event_bus
+            .borrow_mut()
+            .notify(DocEvent::UniverseRemoved(*id));
         opt
     }
 
@@ -130,7 +148,9 @@ impl DocHandle {
             guard.add_output(universe_id, plugin)
         };
         if let Ok(_) = result {
-            self.event_bus.notify(DocEvent::UniverseSettingsChanged);
+            self.event_bus
+                .borrow_mut()
+                .notify(DocEvent::UniverseSettingsChanged);
         }
         result
     }
@@ -145,7 +165,9 @@ impl DocHandle {
             guard.remove_output(universe_id, plugin)
         };
         if let Ok(_) = result {
-            self.event_bus.notify(DocEvent::UniverseSettingsChanged);
+            self.event_bus
+                .borrow_mut()
+                .notify(DocEvent::UniverseSettingsChanged);
         }
         result
     }

@@ -4,8 +4,10 @@ pub mod fixture_list_view;
 pub mod preview_2d;
 pub mod preview_3d;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::error::Error;
+use std::rc::Rc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, RwLock, Weak, mpsc};
 use std::time::Duration;
@@ -77,11 +79,23 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
     );
     doc_commands.append(&mut dc);
     setup_3d_preview(&ui);
-    let _controller = setup_fixture_list_view(&ui, ReadOnly::new(Arc::clone(&doc)), &mut event_bus);
 
-    let mut command_manager = CommandManager::new(DocHandle::new(doc, event_bus));
+    let event_bus = Rc::new(RefCell::new(DocEventBus::new()));
+
+    let command_manager = Rc::new(RefCell::new(CommandManager::new(DocHandle::new(
+        Arc::clone(&doc),
+        Rc::clone(&event_bus),
+    ))));
+
+    let _controller = setup_fixture_list_view(
+        &ui,
+        ReadOnly::clone(&doc),
+        &mut event_bus.borrow_mut(),
+        Rc::clone(&command_manager),
+    );
+
     doc_commands.into_iter().for_each(|cmd| {
-        command_manager.execute(cmd).unwrap();
+        command_manager.borrow_mut().execute(cmd).unwrap();
     });
 
     let timer = Timer::default();

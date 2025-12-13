@@ -1,13 +1,15 @@
 use crate::{commands::DocCommand, doc::DocHandle};
 
+/// Manages history of [`DocCommand`] and provides undo/redo feature.
 pub struct CommandManager {
     commands: Vec<Box<dyn DocCommand>>,
     current_index: usize,
+    /// [`DocHandle`] shouldn't be shared because any changes to [`DocStore`]
+    /// should be managed by [`CommandManager`].
     doc_handle: DocHandle,
 }
 
-// TODO: DocCommand->Eventの生成
-// FIXME: イベント通知とundo/redoで責務が二つある
+// TODO: write unit tests
 impl CommandManager {
     pub fn new(doc_handle: DocHandle) -> Self {
         Self {
@@ -38,7 +40,7 @@ impl CommandManager {
         if self.current_index == self.commands.len() {
             return Err("no command to redo".into());
         }
-        self.commands[self.current_index + 1].apply(&self.doc_handle)?;
+        self.commands[self.current_index + 1].apply(&self.doc_handle)?; // FIXME off-by-one?
         self.current_index += 1;
         Ok(())
     }
