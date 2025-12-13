@@ -57,7 +57,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
     // HACK: Initialize all observers before changing Doc.
     // If Doc is changed before engine initialized, states in observers(and engine) would be invalid.
     let (engine_handle, command_tx, error_rx, _bridge) =
-        setup_engine(ReadOnly::clone(&doc), &mut event_bus);
+        setup_engine(ReadOnly::new(Arc::clone(&doc)), &mut event_bus);
 
     let ui = setup_window().expect("failed to setup ui");
 
@@ -73,7 +73,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
     setup_fader_view(&ui, command_tx.clone(), fixture_id);
     let (mut dc, mut update_2d_preview) = setup_2d_preview(
         &ui,
-        ReadOnly::clone(&doc),
+        ReadOnly::new(Arc::clone(&doc)),
         &mut event_bus,
         command_tx.clone(),
     );
@@ -89,7 +89,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
 
     let _controller = setup_fixture_list_view(
         &ui,
-        ReadOnly::clone(&doc),
+        ReadOnly::new(Arc::clone(&doc)),
         &mut event_bus.borrow_mut(),
         Rc::clone(&command_manager),
     );
