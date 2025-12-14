@@ -80,7 +80,7 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
     doc_commands.append(&mut dc);
     setup_3d_preview(&ui);
 
-    let event_bus = Rc::new(RefCell::new(DocEventBus::new()));
+    let event_bus = Rc::new(RefCell::new(event_bus));
 
     let command_manager = Rc::new(RefCell::new(CommandManager::new(DocHandle::new(
         Arc::clone(&doc),
