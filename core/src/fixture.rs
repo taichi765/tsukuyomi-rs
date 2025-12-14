@@ -26,7 +26,7 @@ pub struct Fixture {
 // TODO: modeが一つ以上あることを保証
 impl Fixture {
     pub fn new(
-        name: &str,
+        name: impl Into<String>,
         universe_id: UniverseId,
         address: DmxAddress,
         fixture_def_id: FixtureDefId,
@@ -34,7 +34,7 @@ impl Fixture {
     ) -> Self {
         Self {
             id: FixtureId::new(),
-            name: String::from(name),
+            name: name.into(),
             universe_id,
             address,
             fixture_def_id,
