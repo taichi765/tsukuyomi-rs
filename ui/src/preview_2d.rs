@@ -8,6 +8,7 @@ use std::{
 };
 
 use slint::{Brush, Color, ComponentHandle, Model, ModelRc, ToSharedString, VecModel, Weak};
+use tracing::debug;
 use tsukuyomi_core::{
     commands::{DocCommand, doc_commands},
     doc::{DocEvent, DocEventBus, DocObserver, DocStore},
@@ -189,6 +190,12 @@ impl DocObserver for PreviewController {
             }
             _ => (),
         }
+    }
+}
+
+impl Drop for PreviewController {
+    fn drop(&mut self) {
+        debug!("PreviewController is dropping");
     }
 }
 

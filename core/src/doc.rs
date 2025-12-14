@@ -190,7 +190,7 @@ impl DocEventBus {
     }
 
     fn notify(&self, event: DocEvent) {
-        // FIXME: 死んだObserverの削除は後でやるべきかも？
+        // FIXME: 死んだObserverの削除をどうするか？retainとかは&mut selfが必要
         self.observers.iter().for_each(|weak_ob| {
             if let Some(ob) = weak_ob.upgrade() {
                 ob.write().unwrap().on_doc_event(&event);

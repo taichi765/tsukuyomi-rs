@@ -5,6 +5,7 @@ use std::{
 };
 
 use slint::{ComponentHandle, Model, ToSharedString, VecModel, Weak};
+use tracing::debug;
 use tsukuyomi_core::{
     command_manager::CommandManager,
     commands::doc_commands,
@@ -70,7 +71,6 @@ pub fn setup_fixture_list_view(
     let doc_clone = ReadOnly::clone(&doc);
     ui.global::<FixtureListStore>()
         .on_get_next_address(move |universe| {
-            println!("max address for {}", universe);
             let universe_id = parse_universe_id(universe.as_str());
             doc_clone
                 .read()
@@ -140,6 +140,12 @@ impl DocObserver for FixtureListViewController {
             DocEvent::FixtureDefRemoved(id) => todo!(),
             _ => (),
         }
+    }
+}
+
+impl Drop for FixtureListViewController {
+    fn drop(&mut self) {
+        debug!("FixtureListViewController is dropping");
     }
 }
 
