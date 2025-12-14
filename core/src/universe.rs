@@ -19,7 +19,7 @@ impl DmxAddress {
     pub const MIN: Self = Self(1);
     pub const MAX: Self = Self(512);
 
-    /// Returns `None` when value is out of bounds(1..=512).
+    /// Returns `None` when value is out of bounds (1..=512).
     /// # Examples
     /// ```
     /// use tsukuyomi_core::universe::DmxAddress;
