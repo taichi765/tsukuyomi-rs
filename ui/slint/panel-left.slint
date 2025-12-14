@@ -5,6 +5,7 @@ import { FixtureDefPanel } from "./containers/fixture-def-panel.slint";
 export component LeftPanel inherits Rectangle {
     // current-indexが-1のとき何も表示しない
     property <int> current-index <=> side-var.current-index;
+    out property <bool> is-expanded:current-index != -1;
     callback show-tooltip(has-hover: bool, x: length, y: length, msg: string);
 
     HorizontalLayout {

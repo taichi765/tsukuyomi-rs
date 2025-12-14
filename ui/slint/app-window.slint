@@ -16,6 +16,7 @@ import { ToolTipArea } from "parts/tooltip.slint";
 import { TitleBar } from "titlebar.slint";
 import { MiddleText } from "parts/texts.slint";
 import { LeftPanel } from "panel-left.slint";
+import { Preview3D } from "views/preview-3d.slint";
 
 export { Preview2DStore } from "./views/preview-2d.slint";
 export { FadersStore } from "./views/faders-view.slint";
@@ -33,7 +34,7 @@ export component AppWindow inherits Window {
     full-screen: true;
     default-font-family: "Inter";
     property <bool> showSaveDialog;
-    in property <image> texture <=> image.source;
+    in property <image> texture;
     callback start_drag();
     callback minimize();
     callback toggle-fullscreen();
@@ -129,6 +130,8 @@ export component AppWindow inherits Window {
 
         content := HorizontalLayout {
             left := LeftPanel {
+                width: self.is-expanded ? content.width * 0.25 : 52px;
+                // FIXME: hard code
                 show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
             }
 
@@ -139,7 +142,10 @@ export component AppWindow inherits Window {
                     //height: 70%;
                     Tab {
                         title: @tr("Editor");
-                        EditorTab { }
+                        EditorTab {
+                            texture: root.texture;
+                            // FIXME: バケツリレー
+                        }
                     }
 
                     Tab {
@@ -151,26 +157,19 @@ export component AppWindow inherits Window {
                         title: @tr("Virtual Console");
                         VirtualConsoleTab { }
                     }
-
-                    Tab {
-                        title: @tr("3D Preview");
-                        image := Image { }
-                    }
                 }
 
                 BorderHorz { }
 
-                bottom-panel := Rectangle {
-                    //drop-shadow-blur: 0.2rem;
-                    //drop-shadow-color: Palette.background;
-                    //height: 30%;
-                }
-
-                HorizontalLayout {
+                bottom-panel := HorizontalLayout {
                     //height: 30%;
                     //HorizontalSplit {}
 
-                    Preview2D { }
+                    Rectangle {
+                        Text {
+                            text: "something?";
+                        }
+                    }
 
                     BorderVert { }
 

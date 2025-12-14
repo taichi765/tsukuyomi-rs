@@ -1,11 +1,28 @@
 import { TabWidget, Palette } from "std-widgets.slint";
 import { UniverseView } from "views/universe-view.slint";
 import { BorderHorz } from "styling.slint";
+import { Preview2D } from "views/preview-2d.slint";
+import { Preview3D } from "views/preview-3d.slint";
 
 export component EditorTab inherits Rectangle {
-    HorizontalLayout {
-        UniverseView {
-            width: 65%;
+    in property <image> texture;
+    TabWidget {
+        Tab {
+            title: @tr("Universe View");
+            UniverseView { }
+        }
+
+        Tab {
+            title: @tr("2D View");
+            Preview2D { }
+        }
+
+        Tab {
+            title: @tr("3D View");
+
+            Preview3D {
+                texture: root.texture;
+            }
         }
     }
 }
