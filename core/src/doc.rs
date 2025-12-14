@@ -341,6 +341,31 @@ impl DocStore {
     ) -> Option<&(FixtureId, usize)> {
         self.fixture_by_address_index.get(&(*universe_id, address))
     }
+
+    /// Returns max address which is occupied by a fixture.
+    ///
+    /// If there's no fixture in the universe, it returns None.
+    pub fn current_max_address(&self, universe: UniverseId) -> Option<DmxAddress> {
+        let max_fixture = self
+            .fixtures
+            .iter()
+            .filter(|(_, fxt)| fxt.universe_id() == universe)
+            .map(|(_, fxt)| fxt)
+            .max_by(|a, b| a.address().cmp(&b.address()));
+        if let Some(max_fixture) = max_fixture {
+            let fixture_def = self.get_fixture_def(&max_fixture.fixture_def()).unwrap();
+            let adr = max_fixture
+                .occupied_addresses(fixture_def)
+                .expect("invariant is broken")
+                .iter()
+                .last()
+                .unwrap() // This unwrap() is safe because occupied addresses can't be empty
+                .to_owned();
+            Some(adr)
+        } else {
+            None
+        }
+    }
 }
 
 /* ---------- private, mutable ---------- */

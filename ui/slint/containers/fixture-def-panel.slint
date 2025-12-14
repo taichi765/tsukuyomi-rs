@@ -17,11 +17,18 @@ export global FixtureListStore {
     ];
     callback patch(universe: string, address: int, fixture-id: string, mode: string);
     callback get-modes(fixture-def-id: string) -> [string];
+    callback get-next-address(universe: string) -> int;
 }
 
 export component FixtureDefPanel inherits VerticalLayout {
     property <string> selected-fixture-id <=> list-view.selected-fixture-id;
     property <[string]> fixture-modes-cache;
+    property <int> next-address-cache;
+
+    init => {
+        // TODO: hard code
+        next-address-cache = FixtureListStore.get-next-address("Universe 1");
+    }
 
     changed selected-fixture-id => {
         fixture-modes-cache = FixtureListStore.get-modes(selected-fixture-id);
@@ -35,12 +42,16 @@ export component FixtureDefPanel inherits VerticalLayout {
 
     if selected-fixture-id != "":FixtureSingleView {
         fixture-id: selected-fixture-id;
+        // TODO: hard code
         universes: ["Universe 1", "Universe 2"];
         modes: fixture-modes-cache;
+        address-default: next-address-cache;
 
-        //TODO: hard code
         patch(universe, address, fixture-id, mode) => {
             FixtureListStore.patch(universe, address, fixture-id, mode);
+        }
+        universe-changed(universe) => {
+            next-address-cache = FixtureListStore.get-next-address(universe);
         }
     }
 }

@@ -1,10 +1,12 @@
 import { Icons } from "../styling.slint";
-import { Palette } from "std-widgets.slint";
+import { Palette, ScrollView } from "std-widgets.slint";
 import { PlaneText, MiddleText } from "../parts/texts.slint";
 
 export struct FixtureModel {
     id:string,
-    name:string}
+    name:string,
+    modes: [string]
+    }
 
 export struct ManufacturerModel {
     manufacturer:string,
@@ -12,87 +14,98 @@ export struct ManufacturerModel {
     expanded:bool,
 }
 
-export global FixtureListStore {
-    in property <[ManufacturerModel]> model:[
-        {
-            manufacturer:"Stage Evolution",
-            fixtures:[{ name:"HPAR64-9" }, { name:"ORION WH" }, { name:"IM-MH90S" }],
-            expanded:false
-        },
-        { manufacturer:"IM-Relax", fixtures:[{ name:"IM-MH90S" }], expanded:false }
-    ];
+component FixtureListItem inherits Rectangle {
+    in property <string> fixture-name;
+    in property <string> fixture-id;
+    in property <bool> selected;
+    callback clicked();
+
+    HorizontalLayout {
+        alignment: LayoutAlignment.start;
+        spacer := Rectangle {
+            width: 2rem;
+        }
+
+        PlaneText {
+            text: fixture-name;
+        }
+    }
+
+    states [
+        selected when selected: {
+            background: Palette.alternate-background;
+        }
+    ]
+
+    TouchArea {
+        clicked => root.clicked();
+    }
+
+    /*DragArea {
+        mime-type: "text/plain";
+        data: fixture-id;
+    }*/
+
+    ContextMenuArea {
+        Menu {
+            MenuItem {
+                title: @tr("Rename fixture definition");
+                activated => {
+                    debug("rename requested");
+                }
+            }
+
+            MenuItem {
+                title: @tr("Remove fixture definition");
+                activated => {
+                    debug("remove requested");
+                }
+            }
+        }
+    }
 }
 
 export component FixtureListView inherits Rectangle {
+    in property <[ManufacturerModel]> manufacturers;
     out property <string> selected-fixture-id;
-    VerticalLayout {
-        alignment: LayoutAlignment.start;
-        for manufacturer-model in FixtureListStore.model: Rectangle {
-            VerticalLayout {
-                header := Rectangle {
-                    HorizontalLayout {
-                        Image {
-                            source: manufacturer-model.expanded ? Icons.arrow-drop-down : Icons.arrow-right;
-                            width: 22px;
-                            height: 22px;
-                            vertical-alignment: center;
-                        }
 
-                        MiddleText {
-                            text: manufacturer-model.manufacturer;
-                        }
-                    }
-
-                    TouchArea {
-                        width: parent.width;
-                        height: parent.height;
-                        clicked => {
-                            manufacturer-model.expanded = !manufacturer-model.expanded
-                        }
-                    }
-                }
-
-                if manufacturer-model.expanded:VerticalLayout {
-                    alignment: LayoutAlignment.start;
-                    for fixture in manufacturer-model.fixtures: item := Rectangle {
+    ScrollView {
+        vertical-scrollbar-policy: ScrollBarPolicy.always-on;
+        VerticalLayout {
+            alignment: LayoutAlignment.start;
+            for manufacturer-model in manufacturers: Rectangle {
+                VerticalLayout {
+                    header := Rectangle {
                         HorizontalLayout {
-                            alignment: LayoutAlignment.start;
-                            spacer := Rectangle {
-                                width: 2rem;
+                            Image {
+                                source: manufacturer-model.expanded ? Icons.arrow-drop-down : Icons.arrow-right;
+                                width: 22px;
+                                height: 22px;
+                                vertical-alignment: center;
                             }
 
-                            PlaneText {
-                                text: fixture.name;
+                            MiddleText {
+                                text: manufacturer-model.manufacturer;
                             }
                         }
 
                         TouchArea {
+                            width: parent.width;
+                            height: parent.height;
                             clicked => {
-                                item.background = Palette.alternate-background;
-                                selected-fixture-id = fixture.id;
+                                manufacturer-model.expanded = !manufacturer-model.expanded
                             }
                         }
+                    }
 
-                        DragArea {
-                            mime-type: "text/plain";
-                            data: fixture.id;
-                        }
-
-                        ContextMenuArea {
-                            Menu {
-                                MenuItem {
-                                    title: @tr("Rename fixture definition");
-                                    activated => {
-                                        debug("rename requested");
-                                    }
-                                }
-
-                                MenuItem {
-                                    title: @tr("Remove fixture definition");
-                                    activated => {
-                                        debug("remove requested");
-                                    }
-                                }
+                    if manufacturer-model.expanded:VerticalLayout {
+                        alignment: LayoutAlignment.start;
+                        for fixture in manufacturer-model.fixtures: item := FixtureListItem {
+                            fixture-name: fixture.name;
+                            fixture-id: fixture.id;
+                            selected: selected-fixture-id == fixture.id;
+                            clicked => {
+                                selected-fixture-id = fixture.id;
                             }
                         }
                     }

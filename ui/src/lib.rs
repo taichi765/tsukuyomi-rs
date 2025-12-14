@@ -192,12 +192,12 @@ fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
 
         commands.push(Box::new(commands::doc_commands::AddFixtureDef::new(
             fixture_def,
-        )));
+        ))); // FIXME: 式の中で副作用があるのは良くない気がする
         id
     };
 
     let fixture = Fixture::new(
-        "Fixture",
+        "Test Fixture",
         UniverseId::new(1),
         DmxAddress::new(0).unwrap(),
         fixture_def_id,

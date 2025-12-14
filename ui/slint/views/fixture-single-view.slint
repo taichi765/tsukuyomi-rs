@@ -1,15 +1,70 @@
 import { PlaneText } from "../parts/texts.slint";
-export component FixtureSingleView inherits Rectangle {
+import { LineEdit, ComboBox, Button, SpinBox } from "std-widgets.slint";
+
+export component FixtureSingleView inherits VerticalLayout {
     in property <string> fixture-id;
+    in property <[string]> universes;
+    in property <[string]> modes;
+    in property <int> address-default;
+    callback patch(universe: string, address: int, fixture-id: string, mode: string);
+    callback universe-changed(universe: string);
+
+    spacing: 10px;
+
     Text {
         text: fixture-id;
     }
 
     HorizontalLayout {
+        height: 26px;
+        alignment: LayoutAlignment.start;
         PlaneText {
             text: @tr("Universe");
         }
 
-        TextInput { }
+        universe-combo := ComboBox {
+            model: universes;
+
+            changed current-value => universe-changed(self.current-value);
+        }
+    }
+
+    HorizontalLayout {
+        height: 26px;
+        alignment: LayoutAlignment.start;
+        PlaneText {
+            text: @tr("Starting address");
+        }
+
+        address-spin := SpinBox {
+            value: address-default;
+            maximum: 512;
+        }
+    }
+
+    HorizontalLayout {
+        height: 26px;
+        alignment: LayoutAlignment.start;
+        PlaneText {
+            text: @tr("Mode");
+        }
+
+        mode-combo := ComboBox {
+            model: modes;
+        }
+    }
+
+    Button {
+        text: @tr("Patch");
+        height: 26px;
+        clicked => patch(
+            universe-combo.current-value,
+            address-spin.value,
+            fixture-id,
+            mode-combo.current-value);
+    }
+
+    spacer := Rectangle {
+        height: 10px;
     }
 }
