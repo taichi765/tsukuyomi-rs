@@ -142,9 +142,7 @@ mod fixture_def {
 }
 
 mod plugin {
-    use crate::{
-        commands::DocCommand, doc::DocHandle, engine::OutputPluginId, universe::UniverseId,
-    };
+    use crate::{commands::DocCommand, doc::DocHandle, doc::OutputPluginId, universe::UniverseId};
 
     pub struct AddOutput {
         universe_id: UniverseId,

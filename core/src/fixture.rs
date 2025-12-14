@@ -85,7 +85,7 @@ impl Fixture {
         let address_base = self.address();
         let mut addresses = Vec::new();
         for i in 0..footprint {
-            addresses.push(DmxAddress::new(address_base.value() + i).expect("address overflow"));
+            addresses.push(address_base.checked_add(i).expect("address overflow"));
         }
         Ok(addresses)
     }

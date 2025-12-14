@@ -199,7 +199,7 @@ fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
     let fixture = Fixture::new(
         "Test Fixture",
         UniverseId::new(1),
-        DmxAddress::new(0).unwrap(),
+        DmxAddress::new(1).unwrap(),
         fixture_def_id,
         "Mode 1".into(),
     );

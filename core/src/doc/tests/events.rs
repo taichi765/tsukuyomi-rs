@@ -5,7 +5,7 @@ use super::helpers::{
 };
 use crate::{
     doc::DocEvent,
-    engine::OutputPluginId,
+    doc::OutputPluginId,
     fixture::MergeMode,
     fixture_def::ChannelKind,
     universe::{DmxAddress, UniverseId},

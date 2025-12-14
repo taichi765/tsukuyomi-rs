@@ -11,13 +11,13 @@ use slint::{Brush, Color, ComponentHandle, Model, ModelRc, ToSharedString, VecMo
 use tracing::debug;
 use tsukuyomi_core::{
     commands::{DocCommand, doc_commands},
-    doc::{DocEvent, DocEventBus, DocObserver, DocStore},
-    engine::{EngineCommand, OutputPluginId},
-    fixture::{Fixture, FixtureId},
+    doc::{DocEvent, DocEventBus, DocObserver, DocStore, OutputPluginId},
+    engine::EngineCommand,
+    fixture::FixtureId,
     fixture_def::ChannelKind,
-    plugins::Plugin,
+    plugins::{DmxFrame, Plugin},
     readonly::ReadOnly,
-    universe::{DmxAddress, UniverseId},
+    universe::UniverseId,
 };
 use uuid::Uuid;
 
@@ -76,11 +76,11 @@ impl PreviewPlugin {
 }
 
 impl Plugin for PreviewPlugin {
-    fn send_dmx(&self, universe_id: UniverseId, dmx_data: &[u8]) -> Result<(), std::io::Error> {
+    fn send_dmx(&self, universe_id: UniverseId, dmx_data: DmxFrame) -> Result<(), std::io::Error> {
         self.msg_tx
             .send(PreviewMessage::DmxFrame {
                 universe_id,
-                dmx_data: dmx_data.to_owned(), // FIXME: 参照のまま渡せないか？
+                dmx_data,
             })
             .expect("failed to send message from preview plugin to preview controller");
         Ok(())
@@ -111,7 +111,7 @@ impl PreviewController {
         }
     }
 
-    fn update_fixture_map(&mut self, id: FixtureId, fixture: &Fixture) {
+    fn update_fixture_map(&mut self, id: FixtureId) {
         let ui = self.ui_handle.unwrap();
         let mut fixtures: HashMap<FixtureId, FixtureEntityData> =
             modelrc_to_map(ui.global::<Preview2DStore>().get_fixture_list());
@@ -142,13 +142,12 @@ impl PreviewController {
         }
     }
 
-    fn apply_dmx_frame(&self, universe_id: UniverseId, dmx_data: Vec<u8>) {
+    fn apply_dmx_frame(&self, universe_id: UniverseId, dmx_data: DmxFrame) {
         let mut fixture_color_map: HashMap<FixtureId, (u8, u8, u8, u8)> = HashMap::new();
 
         let doc = self.doc.read();
-        for (address, value) in dmx_data.iter().enumerate() {
-            let Some(&(fixture_id, offset)) =
-                doc.get_fixture_by_address(&universe_id, DmxAddress::new(address).unwrap())
+        for (address, value) in dmx_data.iter() {
+            let Some(&(fixture_id, offset)) = doc.get_fixture_by_address(&universe_id, address)
             //FIXME: キャッシュ
             else {
                 continue;
@@ -160,10 +159,10 @@ impl PreviewController {
             let channel = def.channel_templates().get(channel_name).unwrap();
 
             match channel.kind() {
-                ChannelKind::Dimmer => set_color(fixture_id, &mut fixture_color_map, 0, *value),
-                ChannelKind::Red => set_color(fixture_id, &mut fixture_color_map, 1, *value),
-                ChannelKind::Blue => set_color(fixture_id, &mut fixture_color_map, 2, *value),
-                ChannelKind::Green => set_color(fixture_id, &mut fixture_color_map, 3, *value),
+                ChannelKind::Dimmer => set_color(fixture_id, &mut fixture_color_map, 0, value),
+                ChannelKind::Red => set_color(fixture_id, &mut fixture_color_map, 1, value),
+                ChannelKind::Blue => set_color(fixture_id, &mut fixture_color_map, 2, value),
+                ChannelKind::Green => set_color(fixture_id, &mut fixture_color_map, 3, value),
                 _ => todo!(),
             }
         }
@@ -185,8 +184,7 @@ impl DocObserver for PreviewController {
     fn on_doc_event(&mut self, event: &DocEvent) {
         match event {
             DocEvent::FixtureInserted(id) => {
-                let fixture = self.doc.read().get_fixture(id).unwrap().to_owned(); // FIXME: unwrap, clone
-                self.update_fixture_map(*id, &fixture);
+                self.update_fixture_map(*id);
             }
             _ => (),
         }
@@ -202,7 +200,7 @@ impl Drop for PreviewController {
 enum PreviewMessage {
     DmxFrame {
         universe_id: UniverseId,
-        dmx_data: Vec<u8>,
+        dmx_data: DmxFrame,
     },
 }
 

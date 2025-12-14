@@ -2,12 +2,12 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use tracing::{error, info, trace, warn};
 use uuid::Uuid;
 
-use crate::doc::DocStore;
-use crate::fixture::FixtureId;
+use crate::doc::{DocStore, OutputPluginId, ResolvedAddress};
+use crate::fixture::{FixtureId, MergeMode};
 use crate::functions::{FunctionCommand, FunctionId, FunctionRuntime};
-use crate::plugins::Plugin;
+use crate::plugins::{DmxFrame, Plugin};
 use crate::readonly::ReadOnly;
-use crate::universe::{UniverseId, UniverseState};
+use crate::universe::UniverseId;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
@@ -17,8 +17,6 @@ use std::time::Duration;
 //TODO: なんとなくpubにしているものがある pub(crate)とかも活用したい
 
 const TICK_DURATION: Duration = Duration::from_millis(100);
-
-declare_id_newtype!(OutputPluginId);
 
 // TODO: unwrap, expectを減らす
 /// Orchestrates [`FunctionRuntime`]s
@@ -164,7 +162,7 @@ impl Engine {
                     warn!(universe_id = ?u_id, "universe state not created");
                     return;
                 };
-                if let Err(e) = plugin.send_dmx(*u_id, &universe_data.values()) {
+                if let Err(e) = plugin.send_dmx(*u_id, DmxFrame::from(universe_data.values)) {
                     self.message_tx
                         .send(EngineMessage::ErrorOccured(EngineError {
                             context: ErrorContext::SendingDmx {
@@ -201,7 +199,7 @@ impl Engine {
                 let universe = self
                     .universe_states
                     .get_mut(&universe_id)
-                    .expect(format!("universe states not found: {:?}", universe_id).as_str());
+                    .expect(format!("universe states not found: {:?}", universe_id).as_str()); // FIXME: EngineMessageで通知する
                 universe.set_value(address, value);
             }
             Err(e) => {
@@ -301,6 +299,7 @@ pub enum EngineMessage {
     ErrorOccured(EngineError),
 }
 
+// TODO: thiserror使う
 /// The errors occured in [`Engine`]
 #[derive(Debug)]
 pub struct EngineError {
@@ -333,6 +332,32 @@ pub enum ErrorContext {
         universe_id: UniverseId,
         plugin_id: OutputPluginId,
     },
+}
+
+pub(crate) struct UniverseState {
+    values: [u8; 512],
+}
+
+impl UniverseState {
+    pub fn new() -> Self {
+        Self { values: [0; 512] }
+    }
+
+    pub(crate) fn clear(&mut self) {
+        self.values.fill(0);
+    }
+
+    pub(crate) fn set_value(&mut self, resolved_address: ResolvedAddress, value: u8) {
+        let idx = resolved_address.address.value() - 1; // addres -> index conversion
+        match resolved_address.merge_mode {
+            MergeMode::HTP => {
+                if value > self.values[idx] {
+                    self.values[idx] = value
+                }
+            }
+            MergeMode::LTP => self.values[idx] = value,
+        }
+    }
 }
 
 #[cfg(test)]

@@ -1,7 +1,7 @@
 use super::helpers::make_doc_handle_with_observer;
 use crate::{
+    doc::OutputPluginId,
     doc::{DocEvent, DocStore, OutputMapError},
-    engine::OutputPluginId,
     universe::UniverseId,
 };
 
