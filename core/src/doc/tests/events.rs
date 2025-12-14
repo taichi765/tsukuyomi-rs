@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use super::helpers::{
     make_doc_handle_with_observer, make_fixture, make_fixture_def_with_mode, make_function,
 };
@@ -167,7 +169,7 @@ fn doc_handle_notifies_observer_after_lock_released() {
     let obs: Arc<RwLock<dyn DocObserver>> = Arc::clone(&observer) as _;
     event_bus.subscribe(Arc::downgrade(&obs));
 
-    let handle = DocHandle::new(Arc::clone(&doc_store), event_bus);
+    let handle = DocHandle::new(Arc::clone(&doc_store), Rc::new(RefCell::new(event_bus)));
 
     // Trigger an event
     let uni_id = UniverseId::new(1);
