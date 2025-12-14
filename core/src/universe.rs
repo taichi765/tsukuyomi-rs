@@ -1,7 +1,3 @@
-use std::ops::{Add, Sub};
-
-use crate::{doc::ResolvedAddress, fixture::MergeMode};
-
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub struct UniverseId(u8);
 
@@ -15,12 +11,31 @@ impl UniverseId {
     }
 }
 
+/// DmxAddress with bound 1..=512.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct DmxAddress(usize);
 
 impl DmxAddress {
+    pub const MIN: Self = Self(1);
+    pub const MAX: Self = Self(512);
+
+    /// Returns `None` when value is out of bounds (1..=512).
+    /// # Examples
+    /// ```
+    /// use tsukuyomi_core::universe::DmxAddress;
+    ///
+    /// let address1 = DmxAddress::new(0);
+    /// assert!(address1.is_none());
+    ///
+    /// let address2 = DmxAddress::new(512);
+    /// assert!(address2.is_some());
+    /// ```
     pub fn new(value: usize) -> Option<Self> {
-        if value < 512 { Some(Self(value)) } else { None }
+        if Self::MIN.0 <= value && value <= Self::MAX.0 {
+            Some(Self(value))
+        } else {
+            None
+        }
     }
 
     pub fn value(&self) -> usize {
@@ -33,35 +48,5 @@ impl DmxAddress {
 
     pub fn checked_sub(self, rhs: Self) -> Option<usize> {
         self.0.checked_sub(rhs.0)
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct UniverseState {
-    values: [u8; 512],
-}
-
-impl UniverseState {
-    pub fn new() -> Self {
-        Self { values: [0; 512] }
-    }
-
-    pub fn values(&self) -> &[u8] {
-        &self.values
-    }
-
-    pub(crate) fn clear(&mut self) {
-        self.values.fill(0);
-    }
-
-    pub(crate) fn set_value(&mut self, address: ResolvedAddress, value: u8) {
-        match address.merge_mode {
-            MergeMode::HTP => {
-                if value > self.values[address.address.value()] {
-                    self.values[address.address.value()] = value
-                }
-            }
-            MergeMode::LTP => self.values[address.address.value()] = value,
-        }
     }
 }

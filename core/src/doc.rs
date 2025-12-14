@@ -11,13 +11,14 @@ use std::{
 use tracing::warn;
 
 use crate::{
-    engine::OutputPluginId,
     fixture::{Fixture, FixtureId, MergeMode},
     fixture_def::{FixtureDef, FixtureDefId},
     functions::{FunctionData, FunctionId},
     readonly::ReadOnly,
     universe::{DmxAddress, UniverseId},
 };
+
+declare_id_newtype!(OutputPluginId);
 
 /// Handle to [DocStore].
 /// Manages write lock and event.
@@ -329,7 +330,7 @@ impl DocStore {
             fixture.universe_id(),
             ResolvedAddress {
                 merge_mode,
-                address: DmxAddress::new(fixture.address().value() + channel_offset).unwrap(), //FIXME: unwrap
+                address: fixture.address().checked_add(channel_offset).unwrap(), //FIXME: unwrap
             },
         ))
     }
@@ -344,7 +345,8 @@ impl DocStore {
 
     /// Returns max address which is occupied by a fixture.
     ///
-    /// If there's no fixture in the universe, it returns None.
+    /// If there's no fixture in the universe, `None` is returned.
+    /// If universe does not exist in the DocStore, `None` is returned.
     pub fn current_max_address(&self, universe: UniverseId) -> Option<DmxAddress> {
         let max_fixture = self
             .fixtures
@@ -542,6 +544,7 @@ impl DocStore {
 #[cfg(test)]
 mod tests {
     mod address_index;
+    mod current_max_address;
     mod events;
     mod fixture_defs;
     mod fixtures;

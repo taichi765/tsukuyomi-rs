@@ -111,7 +111,7 @@ fn address_index_is_not_populated_when_insert_fixture_errors() {
     doc.add_universe(uni_id);
 
     // Create a fixture referencing a non-existent FixtureDef
-    let dummy_def_id = FixtureDef::new("Dummy".into(), "Missing".into()).id();
+    let dummy_def_id = FixtureDef::new("Dummy", "Missing").id();
     let base = 100;
     let fxt = Fixture::new(
         "FxErr",

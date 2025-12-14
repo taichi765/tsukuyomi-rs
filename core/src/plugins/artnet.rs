@@ -3,7 +3,11 @@ use std::net::{SocketAddr, UdpSocket};
 use artnet_protocol::{ArtCommand, Output};
 use tracing::info;
 
-use crate::{engine::OutputPluginId, plugins::Plugin, universe::UniverseId};
+use crate::{
+    doc::OutputPluginId,
+    plugins::{DmxFrame, Plugin},
+    universe::UniverseId,
+};
 
 const ARTNET_PORT: u16 = 6454;
 
@@ -32,10 +36,10 @@ impl ArtNetPlugin {
 }
 
 impl Plugin for ArtNetPlugin {
-    fn send_dmx(&self, universe_id: UniverseId, dmx_data: &[u8]) -> Result<(), std::io::Error> {
+    fn send_dmx(&self, universe_id: UniverseId, dmx_data: DmxFrame) -> Result<(), std::io::Error> {
         let command = ArtCommand::Output(Output {
             port_address: universe_id.value().into(),
-            data: dmx_data.to_vec().into(),
+            data: dmx_data.as_slice().to_vec().into(),
             ..Default::default()
         });
         let buf = command.write_to_buffer().unwrap();

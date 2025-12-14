@@ -1,5 +1,7 @@
 use std::{
+    cell::RefCell,
     collections::HashMap,
+    rc::Rc,
     sync::{Arc, RwLock},
 };
 
@@ -36,7 +38,7 @@ pub(crate) fn make_doc_handle_with_observer()
     let obs: Arc<RwLock<dyn DocObserver>> = Arc::clone(&observer) as _;
     event_bus.subscribe(Arc::downgrade(&obs));
 
-    let handle = DocHandle::new(Arc::clone(&doc_store), event_bus);
+    let handle = DocHandle::new(Arc::clone(&doc_store), Rc::new(RefCell::new(event_bus)));
     (handle, doc_store, observer)
 }
 
@@ -70,24 +72,24 @@ pub(crate) fn make_fixture_def_with_mode(
 
 pub(crate) fn make_def_with_two_channels() -> FixtureDef {
     // Manufacturer/Model arbitrary for test
-    let mut def = FixtureDef::new("TestMfr".to_string(), "ModelDual".to_string());
+    let mut def = FixtureDef::new("TestMfr", "ModelDual");
 
     // Insert two channel templates: Dimmer (offset 0) and Color (offset 3)
     def.insert_channel(
-        "Dimmer".into(),
+        "Dimmer",
         ChannelDef::new(crate::fixture::MergeMode::LTP, ChannelKind::Dimmer),
     );
     def.insert_channel(
-        "Color".into(),
+        "Color",
         ChannelDef::new(crate::fixture::MergeMode::HTP, ChannelKind::Red),
     );
 
     // Mode order specifies offsets
     let mut order: HashMap<String, Option<usize>> = HashMap::new();
-    order.insert("Dimmer".into(), Some(0));
-    order.insert("Color".into(), Some(1));
+    order.insert("Dimmer".to_string(), Some(0));
+    order.insert("Color".to_string(), Some(1));
     let mode = FixtureMode::new(order);
-    def.insert_mode("ModeA".into(), mode);
+    def.insert_mode("ModeA", mode);
 
     def
 }
