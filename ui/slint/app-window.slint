@@ -1,7 +1,7 @@
 import "../assets/fonts/Inter-VariableFont_opsz,wght.ttf";
 
 import { Button, TabWidget, Palette, StandardButton } from "std-widgets.slint";
-import { EditorTab } from "editor-tab.slint";
+import { EditorTab, EditorTabs } from "editor-tab.slint";
 import { VirtualConsoleTab } from "virtual-console-tab.slint";
 import { Preview2D } from "views/preview-2d.slint";
 import { FadersView } from "views/faders-view.slint";
@@ -27,6 +27,12 @@ export global MenuBarActions {
     callback save-as();
 }
 
+enum TopLevelTabs{
+    Editor,
+    Timeline,
+    VirtualConsole
+}
+
 export component AppWindow inherits Window {
     title: "Tsukuyomi";
     icon: Icons.default;
@@ -35,10 +41,27 @@ export component AppWindow inherits Window {
     default-font-family: "Inter";
     property <bool> showSaveDialog;
     in property <image> texture;
+    out property <TopLevelTabs> current-tab: index-to-tabs-enum(main-pane.current-index);
+    out property <EditorTabs> editor-tab-current-index: editor-tab.current-index;
+
     callback start_drag();
     callback minimize();
     callback toggle-fullscreen();
     callback close();
+
+    pure function index-to-tabs-enum(index: int) -> TopLevelTabs {
+        if index == 0 {
+            return TopLevelTabs.Editor;
+        }
+        if index == 1 {
+            return TopLevelTabs.Timeline;
+        }
+        if index == 2 {
+            return TopLevelTabs.VirtualConsole;
+        }
+        debug("tabs-enum: unknown index");
+        return TopLevelTabs.Editor;
+    }
 
     if Platform.os == OperatingSystemType.macos:MenuBar {
         Menu {
@@ -66,7 +89,7 @@ export component AppWindow inherits Window {
             MenuItem {
                 title: @tr("Save");
                 activated => {
-                    showSaveDialog = true;
+                    show-save-dialog = true;
                 };
             }
 
@@ -130,7 +153,7 @@ export component AppWindow inherits Window {
 
         content := HorizontalLayout {
             left := LeftPanel {
-                width: self.is-expanded ? content.width * 0.25 : 52px;
+                //width: self.is-expanded ? content.width * 0.25 : 52px;
                 // FIXME: hard code
                 show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
             }
@@ -142,7 +165,7 @@ export component AppWindow inherits Window {
                     //height: 70%;
                     Tab {
                         title: @tr("Editor");
-                        EditorTab {
+                        editor-tab := EditorTab {
                             texture: root.texture;
                             // FIXME: バケツリレー
                         }
@@ -186,7 +209,7 @@ export component AppWindow inherits Window {
     }*/
 
     save-dialog := Dialog {
-        visible: root.showSaveDialog;
+        visible: root.show-save-dialog;
         MiddleText {
             text: @tr("Do you want to save before exit?");
         }

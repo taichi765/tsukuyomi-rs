@@ -21,7 +21,7 @@ use tsukuyomi_core::{
 };
 use uuid::Uuid;
 
-use crate::{AppWindow, FixtureEntityData, Preview2DStore};
+use crate::{AppWindow, EditorTabs, FixtureEntityData, Preview2DStore, TopLevelTabs};
 
 /// Returns closure to update preview, which should be called in [slint::Timer]
 pub fn setup_2d_preview(
@@ -131,6 +131,13 @@ impl PreviewController {
     }
 
     fn handle_messages(&mut self) {
+        let ui = self.ui_handle.unwrap();
+        if ui.get_current_tab() != TopLevelTabs::Editor {
+            return;
+        }
+        if ui.get_editor_tab_current_index() != EditorTabs::Preview2D {
+            return;
+        }
         // FIXME: unwrap
         while let Ok(msg) = self.msg_rx.lock().unwrap().try_recv() {
             match msg {

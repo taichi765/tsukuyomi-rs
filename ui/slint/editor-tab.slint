@@ -4,9 +4,31 @@ import { BorderHorz } from "styling.slint";
 import { Preview2D } from "views/preview-2d.slint";
 import { Preview3D } from "views/preview-3d.slint";
 
+export enum EditorTabs{
+    UniverseView,
+    Preview2D,
+    Preview3D
+}
+
 export component EditorTab inherits Rectangle {
     in property <image> texture;
-    TabWidget {
+    out property <EditorTabs> current-index:index-to-editor-tabs-enum(tabs.current-index);
+
+    pure function index-to-editor-tabs-enum(index: int) -> EditorTabs {
+        if index == 0 {
+            return EditorTabs.UniverseView;
+        }
+        if index == 1 {
+            return EditorTabs.Preview2D;
+        }
+        if index == 2 {
+            return EditorTabs.Preview3D;
+        }
+        debug("editor-tabs-enum: unknown index");
+        return EditorTabs.UniverseView;
+    }
+
+    tabs := TabWidget {
         Tab {
             title: @tr("Universe View");
             UniverseView { }
