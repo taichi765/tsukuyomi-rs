@@ -2,8 +2,10 @@ import {
     FixtureListView,
     ManufacturerModel,
 } from "../views/fixture-list-view.slint";
-import { BorderHorz } from "../styling.slint";
+import { BorderHorz, BorderVert } from "../styling.slint";
 import { FixtureSingleView } from "../views/fixture-single-view.slint";
+import { MiddleText } from "../parts/texts.slint";
+import { StandardButton } from "std-widgets.slint";
 
 export global FixtureListStore {
     in property <[ManufacturerModel]> model:[
@@ -15,7 +17,8 @@ export global FixtureListStore {
         },
         { manufacturer:"IM-Relax", fixtures:[{ name:"IM-MH90S" }], expanded:false }
     ];
-    callback patch(universe: string, address: int, fixture-id: string, mode: string);
+    /// Returns error message. Empty when there's no error.
+    callback patch(universe: string, address: int, fixture-id: string, mode: string) -> string;
     callback get-modes(fixture-def-id: string) -> [string];
     callback get-next-address(universe: string) -> int;
 }
@@ -24,6 +27,7 @@ export component FixtureDefPanel inherits VerticalLayout {
     property <string> selected-fixture-id <=> list-view.selected-fixture-id;
     property <[string]> fixture-modes-cache;
     property <int> next-address-cache;
+    callback handle-error-message(message: string);
 
     init => {
         // TODO: hard code
@@ -32,6 +36,10 @@ export component FixtureDefPanel inherits VerticalLayout {
 
     changed selected-fixture-id => {
         fixture-modes-cache = FixtureListStore.get-modes(selected-fixture-id);
+    }
+
+    MiddleText {
+        text: @tr("Fixture Definitions");
     }
 
     list-view := FixtureListView {
@@ -48,7 +56,7 @@ export component FixtureDefPanel inherits VerticalLayout {
         address-default: next-address-cache;
 
         patch(universe, address, fixture-id, mode) => {
-            FixtureListStore.patch(universe, address, fixture-id, mode);
+            root.handle-error-message(FixtureListStore.patch(universe, address, fixture-id, mode));
         }
         universe-changed(universe) => {
             next-address-cache = FixtureListStore.get-next-address(universe);

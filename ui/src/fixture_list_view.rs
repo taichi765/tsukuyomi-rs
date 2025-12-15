@@ -50,10 +50,14 @@ pub fn setup_fixture_list_view(
                 fixture_def_id,
                 mode.to_string(),
             );
-            command_manager
+            if let Err(e) = command_manager
                 .borrow_mut()
                 .execute(Box::new(doc_commands::AddFixture::new(fixture)))
-                .expect("failed to insert fixture"); // FIXME: エラーを返せるか？
+            {
+                e.to_shared_string()
+            } else {
+                "".to_shared_string()
+            }
         });
 
     let ui_handle = ui.as_weak();

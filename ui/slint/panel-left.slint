@@ -7,6 +7,7 @@ export component LeftPanel inherits Rectangle {
     property <int> current-index <=> side-var.current-index;
     out property <bool> is-expanded:current-index != -1;
     callback show-tooltip(has-hover: bool, x: length, y: length, msg: string);
+    callback handle-error-message(message: string);
 
     HorizontalLayout {
         side-var := LeftSideBar {
@@ -16,7 +17,10 @@ export component LeftPanel inherits Rectangle {
         BorderVert { }
 
         if current-index != -1: content := Rectangle {
-            if current-index == 0:fixture-panel := FixtureDefPanel { }
+            if current-index == 0:fixture-panel := FixtureDefPanel {
+                handle-error-message(message) => root.handle-error-message(message);
+                // FIXME: 無駄なバケツリレー
+            }
             if current-index == 1:function-panel := Rectangle {
                 Text {
                     text: "this is function list view!";

@@ -39,7 +39,9 @@ export component AppWindow inherits Window {
     no-frame: true;
     full-screen: true;
     default-font-family: "Inter";
-    property <bool> showSaveDialog;
+
+    property <bool> show-save-dialog;
+    property <string> error-message;
     in property <image> texture;
     out property <TopLevelTabs> current-tab: index-to-tabs-enum(main-pane.current-index);
     out property <EditorTabs> editor-tab-current-index: editor-tab.current-index;
@@ -156,6 +158,9 @@ export component AppWindow inherits Window {
                 //width: self.is-expanded ? content.width * 0.25 : 52px;
                 // FIXME: hard code
                 show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
+                handle-error-message(message) => {
+                    root.error-message = message;
+                }
             }
 
             BorderVert { }
@@ -226,6 +231,20 @@ export component AppWindow inherits Window {
             kind: StandardButtonKind.cancel;
             clicked => {
                 save-dialog.visible = false;
+            }
+        }
+    }
+
+    error-dialog := Dialog {
+        visible: root.error-message != "";
+        MiddleText {
+            text: root.error-message;
+        }
+
+        StandardButton {
+            kind: StandardButtonKind.ok;
+            clicked => {
+                root.error-message = "";
             }
         }
     }
