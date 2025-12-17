@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -18,33 +18,33 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
-    - name: checkout main repo
-      uses: actions/checkout@v4
-      with: 
-        path: tsukuyomi-rs-repo
-    - name: checkout slint repo
-      uses: actions/checkout@v4
-      with:
-        repository: taichi765/slint
-        path: slint
-    - name: Install fontconfig
-      if: ${{matrix.os　==　'ubuntu-latest'}}
-      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
-    - name: Build
-      run: cargo build --verbose
-      working-directory: ./tsukuyomi-rs-repo
-    - name: Run tests
-      run: cargo test --verbose
-      working-directory: ./tsukuyomi-rs-repo
-    - name: Upload a build artifact(windows)
-      uses: actions/upload-artifact@v5
-      with:
-        name: ${{matrix.os}}
+      - name: checkout main repo
+        uses: actions/checkout@v4
+        with:
+          path: tsukuyomi-rs-repo
+      - name: checkout slint repo
+        uses: actions/checkout@v4
+        with:
+          repository: taichi765/slint
+          path: slint
+      - name: Install fontconfig
+        if: ${{matrix.os　==　'ubuntu-latest'}}
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+      - name: Build
+        run: cargo build --release --verbose
+        working-directory: ./tsukuyomi-rs-repo
+      - name: Run tests
+        run: cargo test --verbose
+        working-directory: ./tsukuyomi-rs-repo
+      - name: Upload a build artifact(windows)
         if: ${{matrix.os=='windows-2022'}}
-        path: ./tsukuyomi-rs-repo/target/debug/tsukuyomi-ui.exe
-    - name: Upload a build artifact(ubuntu/macos)
-      uses: actions/upload-artifact@v5
-      with:
-        name: ${{matrix.os}}
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{matrix.os}}
+          path: ./tsukuyomi-rs-repo/target/release/tsukuyomi-ui.exe
+      - name: Upload a build artifact(ubuntu/macos)
         if: ${{matrix.os!='windows-2022'}}
-        path: ./tsukuyomi-rs-repo/target/debug/tsukuyomi-ui
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{matrix.os}}
+          path: ./tsukuyomi-rs-repo/target/release/tsukuyomi-ui
