@@ -48,10 +48,10 @@ fn doc_handle_events_sequence_contains_expected_order() {
     let uni_id = UniverseId::new(1);
     handle.add_universe(uni_id);
 
-    // 4) Insert Fixture
+    // 4) Add Fixture
     let fxt = make_fixture("Fx1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
-    handle.insert_fixture(fxt).expect("should work");
+    handle.add_fixture(fxt).expect("should work");
 
     // 5) Add Output (emits UniverseSettingsChanged)
     let plugin_id = OutputPluginId::new();
@@ -76,17 +76,17 @@ fn doc_handle_events_sequence_contains_expected_order() {
     cur = find_event_idx(
         &events,
         cur,
-        |e| matches!(e, DocEvent::FixtureDefInserted(id) if *id == def_id),
+        |e| matches!(e, DocEvent::FixtureDefAdded(id) if *id == def_id),
     )
-    .expect("FixtureDefInserted not found")
+    .expect("FixtureDefAdded not found")
         + 1;
 
     cur = find_event_idx(
         &events,
         cur,
-        |e| matches!(e, DocEvent::FunctionInserted(id) if *id == func_id),
+        |e| matches!(e, DocEvent::FunctionAdded(id) if *id == func_id),
     )
-    .expect("FunctionInserted not found")
+    .expect("FunctionAdded not found")
         + 1;
 
     cur = find_event_idx(
@@ -100,9 +100,9 @@ fn doc_handle_events_sequence_contains_expected_order() {
     cur = find_event_idx(
         &events,
         cur,
-        |e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id),
+        |e| matches!(e, DocEvent::FixtureAdded(id) if *id == fxt_id),
     )
-    .expect("FixtureInserted not found")
+    .expect("FixtureAdded not found")
         + 1;
 
     cur = find_event_idx(&events, cur, |e| {

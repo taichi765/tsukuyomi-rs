@@ -51,7 +51,7 @@ fn current_max_address_returns_last_occupied_address_for_single_fixture() {
         DmxAddress::new(base_addr).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt).unwrap();
+    doc.add_fixture(fxt).unwrap();
 
     let result = doc.current_max_address(uni_id);
     assert!(result.is_some());
@@ -79,7 +79,7 @@ fn current_max_address_returns_highest_among_multiple_fixtures() {
         DmxAddress::new(10).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt1).unwrap();
+    doc.add_fixture(fxt1).unwrap();
 
     // Second fixture at base address 100 (occupies 100 and 101)
     let fxt2 = make_fixture(
@@ -89,7 +89,7 @@ fn current_max_address_returns_highest_among_multiple_fixtures() {
         DmxAddress::new(100).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt2).unwrap();
+    doc.add_fixture(fxt2).unwrap();
 
     // Third fixture at base address 50 (occupies 50 and 51)
     let fxt3 = make_fixture(
@@ -99,7 +99,7 @@ fn current_max_address_returns_highest_among_multiple_fixtures() {
         DmxAddress::new(50).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt3).unwrap();
+    doc.add_fixture(fxt3).unwrap();
 
     let result = doc.current_max_address(uni_id);
     assert!(result.is_some());
@@ -129,7 +129,7 @@ fn current_max_address_considers_only_specified_universe() {
         DmxAddress::new(200).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt1).unwrap();
+    doc.add_fixture(fxt1).unwrap();
 
     // Fixture in universe 2 at address 50 (occupies 50 and 51)
     let fxt2 = make_fixture(
@@ -139,7 +139,7 @@ fn current_max_address_considers_only_specified_universe() {
         DmxAddress::new(50).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt2).unwrap();
+    doc.add_fixture(fxt2).unwrap();
 
     // Check universe 1
     let result1 = doc.current_max_address(uni1);
@@ -173,7 +173,7 @@ fn current_max_address_updates_after_fixture_removal() {
         "ModeA",
     );
     let fxt1_id = fxt1.id();
-    doc.insert_fixture(fxt1).unwrap();
+    doc.add_fixture(fxt1).unwrap();
 
     // Second fixture at base address 100 (occupies 100 and 101)
     let fxt2 = make_fixture(
@@ -184,7 +184,7 @@ fn current_max_address_updates_after_fixture_removal() {
         "ModeA",
     );
     let fxt2_id = fxt2.id();
-    doc.insert_fixture(fxt2).unwrap();
+    doc.add_fixture(fxt2).unwrap();
 
     // Before removal: max is 101
     assert_eq!(doc.current_max_address(uni_id).unwrap().value(), 101);
@@ -229,7 +229,7 @@ fn current_max_address_with_single_channel_fixture() {
         DmxAddress::new(100).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt).unwrap();
+    doc.add_fixture(fxt).unwrap();
 
     let result = doc.current_max_address(uni_id);
     assert!(result.is_some());
@@ -264,7 +264,7 @@ fn current_max_address_at_dmx_boundary() {
         DmxAddress::new(512).unwrap(),
         "ModeA",
     );
-    doc.insert_fixture(fxt).unwrap();
+    doc.add_fixture(fxt).unwrap();
 
     let result = doc.current_max_address(uni_id);
     assert!(result.is_some());

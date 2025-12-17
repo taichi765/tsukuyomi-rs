@@ -40,7 +40,7 @@ fn insert_fixture_def_allows_resolution() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("should work");
+    doc.add_fixture(fxt).expect("should work");
 
     let (resolved_uni, resolved_addr) = doc.resolve_address(fxt_id, "Dimmer").unwrap();
     assert_eq!(resolved_uni, uni_id);
@@ -70,7 +70,7 @@ fn remove_fixture_def_breaks_resolution() {
 
     let fxt = make_fixture("Fxt1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("should work");
+    doc.add_fixture(fxt).expect("should work");
 
     // now remove fixture def
     let removed = doc.remove_fixture_def(&def_id);
@@ -137,7 +137,7 @@ fn doc_handle_insert_fixture_def_emits_event() {
         assert!(
             obs.events
                 .iter()
-                .any(|e| matches!(e, DocEvent::FixtureDefInserted(id) if *id == def_id))
+                .any(|e| matches!(e, DocEvent::FixtureDefAdded(id) if *id == def_id))
         );
     }
 }

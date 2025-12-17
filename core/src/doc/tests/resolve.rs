@@ -36,7 +36,7 @@ fn resolve_success_single_channel() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("should work");
+    doc.add_fixture(fxt).expect("should work");
 
     // Resolve
     let (resolved_uni, resolved) = doc
@@ -82,7 +82,7 @@ fn resolve_error_channel_not_found_entry_present_but_none() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("should work");
+    doc.add_fixture(fxt).expect("should work");
 
     let err = doc
         .resolve_address(fxt_id, "Dimmer")

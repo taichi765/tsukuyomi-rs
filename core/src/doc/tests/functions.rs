@@ -89,7 +89,7 @@ fn doc_handle_add_function_emits_event() {
         assert!(
             obs.events
                 .iter()
-                .any(|e| matches!(e, DocEvent::FunctionInserted(id) if *id == func_id))
+                .any(|e| matches!(e, DocEvent::FunctionAdded(id) if *id == func_id))
         );
     }
 }
@@ -142,12 +142,12 @@ fn doc_handle_multiple_function_operations_emit_correct_events() {
         let inserted_1 = obs
             .events
             .iter()
-            .filter(|e| matches!(e, DocEvent::FunctionInserted(id) if *id == func1_id))
+            .filter(|e| matches!(e, DocEvent::FunctionAdded(id) if *id == func1_id))
             .count();
         let inserted_2 = obs
             .events
             .iter()
-            .filter(|e| matches!(e, DocEvent::FunctionInserted(id) if *id == func2_id))
+            .filter(|e| matches!(e, DocEvent::FunctionAdded(id) if *id == func2_id))
             .count();
         let removed_1 = obs
             .events

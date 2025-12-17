@@ -1,7 +1,7 @@
 use super::helpers::{make_doc_handle_with_observer, make_fixture, make_fixture_def_with_mode};
 use crate::doc::{
-    DocEvent, DocStore, FixtureDefNotFound, FixtureInsertError, FixtureNotFound,
-    FixtureRemoveError, ModeNotFound, ResolveError,
+    DocEvent, DocStore, FixtureAddError, FixtureDefNotFound, FixtureNotFound, FixtureRemoveError,
+    ModeNotFound, ResolveError,
 };
 use crate::fixture_def::{ChannelKind, FixtureDefId};
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
 /* ==================== DocStore direct tests ==================== */
 
 #[test]
-fn insert_fixture_returns_none_then_some() {
+fn add_fixture_then_update_returns_old_value() {
     let mut doc = DocStore::new();
 
     // prepare dependencies: fixture def + universe
@@ -34,22 +34,19 @@ fn insert_fixture_returns_none_then_some() {
     let fxt = make_fixture("Fxt1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
 
-    // first insert -> Ok(None)
-    let old = doc
-        .insert_fixture(fxt.clone())
-        .expect("fixture insert should succeed");
-    assert!(old.is_none());
+    // add -> Ok(())
+    doc.add_fixture(fxt.clone())
+        .expect("fixture add should succeed");
 
-    // second insert with same id -> Ok(Some(previous))
-    let old2 = doc
-        .insert_fixture(fxt)
-        .expect("fixture re-insert should succeed");
-    assert!(old2.is_some());
-    assert_eq!(old2.unwrap().id(), fxt_id);
+    // update with same id -> Ok(previous)
+    let old = doc
+        .update_fixture(fxt)
+        .expect("fixture update should succeed");
+    assert_eq!(old.id(), fxt_id);
 }
 
 #[test]
-fn insert_fixture_errors_when_fixture_def_missing() {
+fn add_fixture_errors_when_fixture_def_missing() {
     let mut doc = DocStore::new();
 
     // Universe exists
@@ -67,18 +64,18 @@ fn insert_fixture_errors_when_fixture_def_missing() {
     );
 
     let err = doc
-        .insert_fixture(fxt)
+        .add_fixture(fxt)
         .err()
-        .expect("expected insert error due to missing fixture def");
+        .expect("expected add_fixture error due to missing fixture def");
     assert!(matches!(
         err,
-        FixtureInsertError::FixtureDefNotFound(FixtureDefNotFound { fixture_id: _, fixture_def_id })
+        FixtureAddError::FixtureDefNotFound(FixtureDefNotFound { fixture_id: _, fixture_def_id })
         if fixture_def_id == missing_def
     ));
 }
 
 #[test]
-fn insert_fixture_errors_when_mode_not_found_in_def() {
+fn add_fixture_errors_when_mode_not_found_in_def() {
     let mut doc = DocStore::new();
 
     // Prepare a def with only "ModeB"
@@ -107,18 +104,18 @@ fn insert_fixture_errors_when_mode_not_found_in_def() {
     );
 
     let err = doc
-        .insert_fixture(fxt)
+        .add_fixture(fxt)
         .err()
-        .expect("expected insert error due to mode not found");
+        .expect("expected error due to mode not found");
     assert!(matches!(
         err,
-        FixtureInsertError::ModeNotFound (ModeNotFound{ fixture_def, mode })
+        FixtureAddError::ModeNotFound (ModeNotFound{ fixture_def, mode })
         if fixture_def == def_id && mode == "ModeA"
     ));
 }
 
 #[test]
-fn insert_fixture_errors_when_address_validation_fails_due_to_overlap() {
+fn add_fixture_errors_when_address_validation_fails_due_to_overlap() {
     let mut doc = DocStore::new();
 
     // Prepare a def with "ModeA" and a single channel at offset 0 (occupies base address)
@@ -146,10 +143,8 @@ fn insert_fixture_errors_when_address_validation_fails_due_to_overlap() {
         "ModeA",
     );
     let fxt1_id = fxt1.id();
-    let prev = doc
-        .insert_fixture(fxt1)
-        .expect("first fixture insert should succeed");
-    assert!(prev.is_none());
+    doc.add_fixture(fxt1)
+        .expect("first fixture addition should succeed");
     assert!(doc.get_fixture(&fxt1_id).is_some());
 
     // Second fixture tries to occupy the same address -> should fail validation
@@ -161,11 +156,11 @@ fn insert_fixture_errors_when_address_validation_fails_due_to_overlap() {
         "ModeA",
     );
     let err = doc
-        .insert_fixture(fxt2)
+        .add_fixture(fxt2)
         .err()
-        .expect("expected insert error due to address overlap");
+        .expect("expected error due to address overlap");
     // Only check that this maps to AddressValidateError (inner type opaque here)
-    assert!(matches!(err, FixtureInsertError::AddressValidateError(_)));
+    assert!(matches!(err, FixtureAddError::AddressValidateError(_)));
 }
 
 #[test]
@@ -196,7 +191,7 @@ fn remove_fixture_returns_some_then_none() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).expect("should work");
+    doc.add_fixture(fxt).expect("should work");
 
     // remove once -> Ok(Some(...))
     let removed = doc
@@ -240,8 +235,7 @@ fn remove_fixture_errors_when_fixture_def_missing() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt)
-        .expect("fixture insert should succeed");
+    doc.add_fixture(fxt).expect("add_fixture should succeed");
 
     // Remove the fixture_def before removing fixture -> should error
     let _removed_def = doc.remove_fixture_def(&def_id);
@@ -287,8 +281,7 @@ fn resolve_address_fails_after_fixture_removed() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt)
-        .expect("fixture insert should succeed");
+    doc.add_fixture(fxt).expect("add_fixture should succeed");
 
     // resolve works before removal
     let (resolved_uni, resolved) = doc.resolve_address(fxt_id, "Dimmer").unwrap();
@@ -305,7 +298,7 @@ fn resolve_address_fails_after_fixture_removed() {
 /* ==================== DocHandle event notification tests ==================== */
 
 #[test]
-fn doc_handle_insert_fixture_emits_event() {
+fn doc_handle_add_and_update_fixture_emit_events() {
     let (handle, _doc_store, observer) = make_doc_handle_with_observer();
 
     // prepare dependencies: fixture def + universe
@@ -323,44 +316,41 @@ fn doc_handle_insert_fixture_emits_event() {
     let uni_id = UniverseId::new(1);
     handle.add_universe(uni_id);
 
-    // create and insert fixture
+    // create and add fixture
     let fxt = make_fixture("Fxt1", def_id, uni_id, DmxAddress::new(1).unwrap(), "ModeA");
     let fxt_id = fxt.id();
 
-    let old = handle
-        .insert_fixture(fxt.clone())
-        .expect("fixture insert should succeed");
-    assert!(old.is_none());
+    handle
+        .add_fixture(fxt.clone())
+        .expect("fixture add should succeed");
 
-    // event emitted
+    // FixtureAdded event emitted
     {
         let obs = observer.read().unwrap();
         assert!(
             obs.events
                 .iter()
-                .any(|e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id))
+                .any(|e| matches!(e, DocEvent::FixtureAdded(id) if *id == fxt_id))
         );
     }
 
-    // second insert emits event again
-    let old2 = handle
-        .insert_fixture(fxt)
-        .expect("fixture re-insert should succeed");
-    assert!(old2.is_some());
+    // update emits FixtureUpdated
+    handle
+        .update_fixture(fxt)
+        .expect("fixture update should succeed");
 
     {
         let obs = observer.read().unwrap();
-        let count = obs
-            .events
-            .iter()
-            .filter(|e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id))
-            .count();
-        assert!(count >= 2);
+        assert!(
+            obs.events
+                .iter()
+                .any(|e| matches!(e, DocEvent::FixtureUpdated(id) if *id == fxt_id))
+        );
     }
 }
 
 #[test]
-fn doc_handle_insert_fixture_does_not_emit_event_on_error() {
+fn doc_handle_add_fixture_does_not_emit_event_on_error() {
     let (handle, _doc_store, observer) = make_doc_handle_with_observer();
 
     // Universe exists but no fixture def
@@ -378,16 +368,60 @@ fn doc_handle_insert_fixture_does_not_emit_event_on_error() {
     );
     let fxt_id = fxt.id();
 
-    let err = handle.insert_fixture(fxt);
+    let err = handle.add_fixture(fxt);
     assert!(err.is_err());
 
-    // No FixtureInserted event should be emitted
+    // No FixtureAdded event should be emitted
     {
         let obs = observer.read().unwrap();
         assert!(
             !obs.events
                 .iter()
-                .any(|e| matches!(e, DocEvent::FixtureInserted(id) if *id == fxt_id))
+                .any(|e| matches!(e, DocEvent::FixtureAdded(id) if *id == fxt_id))
+        );
+    }
+}
+
+#[test]
+fn doc_handle_update_fixture_does_not_emit_event_on_eroor() {
+    let (handle, _doc_store, observer) = make_doc_handle_with_observer();
+
+    // Universe exists
+    let uni_id = UniverseId::new(1);
+    handle.add_universe(uni_id);
+
+    // Prepare a def with only "ModeB"
+    let def = make_fixture_def_with_mode(
+        "ModelX",
+        "ModeB",
+        "Dimmer",
+        1,
+        MergeMode::HTP,
+        ChannelKind::Dimmer,
+    );
+    let def_id = def.id();
+    handle.insert_fixture_def(def);
+
+    // Fixture requests "ModeA" which is not present
+    let fxt = crate::fixture::Fixture::new(
+        "FxMissingDef",
+        uni_id,
+        DmxAddress::new(1).expect("valid address"),
+        def_id,
+        String::from("ModeA"),
+    );
+    let fxt_id = fxt.id();
+
+    let err = handle.add_fixture(fxt);
+    assert!(err.is_err());
+
+    // No FixtureAdded event should be emitted
+    {
+        let obs = observer.read().unwrap();
+        assert!(
+            !obs.events
+                .iter()
+                .any(|e| matches!(e, DocEvent::FixtureAdded(id) if *id == fxt_id))
         );
     }
 }
@@ -420,7 +454,7 @@ fn doc_handle_remove_fixture_emits_event() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    handle.insert_fixture(fxt).expect("should work");
+    handle.add_fixture(fxt).expect("should work");
 
     // remove once -> Ok(Some(...))
     let removed = handle
@@ -467,7 +501,7 @@ fn doc_handle_remove_fixture_does_not_emit_event_on_error() {
     );
     let fxt_id = fxt.id();
     handle
-        .insert_fixture(fxt)
+        .add_fixture(fxt)
         .expect("fixture insert should succeed");
 
     // Clear previous events

@@ -1,6 +1,6 @@
 use super::helpers::{make_def_with_two_channels, make_fixture};
 use crate::{
-    doc::{DocStore, FixtureDefNotFound, FixtureInsertError},
+    doc::{DocStore, FixtureAddError, FixtureDefNotFound},
     fixture::Fixture,
     fixture_def::FixtureDef,
     universe::{DmxAddress, UniverseId},
@@ -30,7 +30,7 @@ fn get_fixture_by_address_returns_fixture_and_offset_for_each_occupied_address()
     );
     let fxt_id = fxt.id();
 
-    doc.insert_fixture(fxt).unwrap();
+    doc.add_fixture(fxt).unwrap();
 
     // Expect address index contains base+0 offset 0
     let got0 = doc.get_fixture_by_address(&uni_id, DmxAddress::new(base_addr).unwrap());
@@ -75,7 +75,7 @@ fn address_index_is_cleared_when_fixture_is_removed() {
         "ModeA",
     );
     let fxt_id = fxt.id();
-    doc.insert_fixture(fxt).unwrap();
+    doc.add_fixture(fxt).unwrap();
 
     // Sanity: index has entries
     assert!(
@@ -103,7 +103,7 @@ fn address_index_is_cleared_when_fixture_is_removed() {
 }
 
 #[test]
-fn address_index_is_not_populated_when_insert_fixture_errors() {
+fn address_index_is_not_populated_when_add_fixture_errors() {
     let mut doc = DocStore::new();
 
     // Universe present, but no fixture def inserted
@@ -124,10 +124,10 @@ fn address_index_is_not_populated_when_insert_fixture_errors() {
     let fxt_id = fxt.id();
 
     // Insertion should error with FixtureDefNotFound
-    let err = doc.insert_fixture(fxt).expect_err("expected insert error");
+    let err = doc.add_fixture(fxt).expect_err("expected add error");
     assert!(matches!(
         err,
-        FixtureInsertError::FixtureDefNotFound(FixtureDefNotFound{
+        FixtureAddError::FixtureDefNotFound(FixtureDefNotFound{
             fixture_id:f_id,fixture_def_id:d_id
         }) if f_id==fxt_id&&d_id==dummy_def_id
     ));
