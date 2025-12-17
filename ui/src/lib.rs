@@ -1,8 +1,10 @@
 pub mod doc_event_bridge;
 pub mod fader_view_bridge;
 pub mod fixture_list_view;
+pub mod hashmap_model;
 pub mod preview_2d;
 pub mod preview_3d;
+pub mod universe_view;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -39,6 +41,7 @@ use crate::fader_view_bridge::setup_fader_view;
 use crate::fixture_list_view::setup_fixture_list_view;
 use crate::preview_2d::setup_2d_preview;
 use crate::preview_3d::setup_3d_preview;
+use crate::universe_view::setup_universe_view;
 // TODO: tsukuyomi_core::prelude使いたい
 
 slint::include_modules!();
@@ -92,6 +95,11 @@ pub fn run_main() -> Result<(), Box<dyn Error>> {
         ReadOnly::new(Arc::clone(&doc)),
         &mut event_bus.borrow_mut(),
         Rc::clone(&command_manager),
+    );
+    let _controller = setup_universe_view(
+        &ui,
+        ReadOnly::new(Arc::clone(&doc)),
+        &mut event_bus.borrow_mut(),
     );
 
     doc_commands.into_iter().for_each(|cmd| {
