@@ -41,10 +41,10 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: ${{matrix.os}}
-          path: ./tsukuyomi-rs-repo/target/debug/tsukuyomi-ui.exe
+          path: ./tsukuyomi-rs-repo/target/release/tsukuyomi-ui.exe
       - name: Upload a build artifact(ubuntu/macos)
         if: ${{matrix.os!='windows-2022'}}
         uses: actions/upload-artifact@v5
         with:
           name: ${{matrix.os}}
-          path: ./tsukuyomi-rs-repo/target/debug/tsukuyomi-ui
+          path: ./tsukuyomi-rs-repo/target/release/tsukuyomi-ui
