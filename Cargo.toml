@@ -6,7 +6,8 @@ members=[
 resolver="3"
 
 [profile.release]
-debug=true
+debug = true
+panic = "unwind"
 
 [workspace.package]
 version = "0.1.0"
