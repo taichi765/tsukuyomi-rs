@@ -6,8 +6,8 @@ export component FixtureSingleView inherits VerticalLayout {
     in property <[string]> universes;
     in property <[string]> modes;
     in property <int> address-default;
+    out property <string> selected-universe:universe-combo.current-value;
     callback patch(universe: string, address: int, fixture-id: string, mode: string);
-    callback universe-changed(universe: string);
 
     spacing: 10px;
 
@@ -24,8 +24,6 @@ export component FixtureSingleView inherits VerticalLayout {
 
         universe-combo := ComboBox {
             model: universes;
-
-            changed current-value => universe-changed(self.current-value);
         }
     }
 

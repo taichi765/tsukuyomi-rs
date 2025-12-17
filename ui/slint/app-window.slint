@@ -17,10 +17,12 @@ import { TitleBar } from "titlebar.slint";
 import { MiddleText } from "parts/texts.slint";
 import { LeftPanel } from "panel-left.slint";
 import { Preview3D } from "views/preview-3d.slint";
+import { GlobalMessage } from "global-state.slint";
 
 export { Preview2DStore } from "./views/preview-2d.slint";
 export { FadersStore } from "./views/faders-view.slint";
 export { FixtureListStore } from "./containers/fixture-def-panel.slint";
+export { UniverseViewStore } from "./views/universe-view.slint";
 
 export global MenuBarActions {
     callback save();
@@ -41,7 +43,7 @@ export component AppWindow inherits Window {
     default-font-family: "Inter";
 
     property <bool> show-save-dialog;
-    property <string> error-message;
+    property <string> error-message <=> GlobalMessage.error-message;
     in property <image> texture;
     out property <TopLevelTabs> current-tab: index-to-tabs-enum(main-pane.current-index);
     out property <EditorTabs> editor-tab-current-index: editor-tab.current-index;
@@ -158,9 +160,6 @@ export component AppWindow inherits Window {
                 //width: self.is-expanded ? content.width * 0.25 : 52px;
                 // FIXME: hard code
                 show-tooltip(has-hover, x, y, msg) => tooltip.show-tooltip(has-hover, x, y, msg);
-                handle-error-message(message) => {
-                    root.error-message = message;
-                }
             }
 
             BorderVert { }

@@ -6,6 +6,8 @@ import { BorderHorz, BorderVert } from "../styling.slint";
 import { FixtureSingleView } from "../views/fixture-single-view.slint";
 import { MiddleText } from "../parts/texts.slint";
 import { StandardButton } from "std-widgets.slint";
+import { GlobalMessage } from "../global-state.slint";
+
 
 export global FixtureListStore {
     in property <[ManufacturerModel]> model:[
@@ -27,7 +29,6 @@ export component FixtureDefPanel inherits VerticalLayout {
     property <string> selected-fixture-id <=> list-view.selected-fixture-id;
     property <[string]> fixture-modes-cache;
     property <int> next-address-cache;
-    callback handle-error-message(message: string);
 
     init => {
         // TODO: hard code
@@ -55,11 +56,15 @@ export component FixtureDefPanel inherits VerticalLayout {
         modes: fixture-modes-cache;
         address-default: next-address-cache;
 
-        patch(universe, address, fixture-id, mode) => {
-            root.handle-error-message(FixtureListStore.patch(universe, address, fixture-id, mode));
+        changed selected-universe => {
+            next-address-cache = FixtureListStore.get-next-address(self.selected-universe);
         }
-        universe-changed(universe) => {
-            next-address-cache = FixtureListStore.get-next-address(universe);
+
+        patch(universe, address, fixture-id, mode) => {
+            GlobalMessage.error-message = FixtureListStore.patch(universe, address, fixture-id, mode);
+            if GlobalMessage.error-message == "" {
+                next-address-cache = FixtureListStore.get-next-address(self.selected-universe);
+            }
         }
     }
 }
