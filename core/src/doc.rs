@@ -50,9 +50,12 @@ impl DocHandle {
             let mut guard = self.inner.write().unwrap();
             guard.add_function(function)
         };
-        self.event_bus
-            .borrow_mut()
-            .notify(DocEvent::FunctionInserted(id));
+        let event = if let Some(_) = opt {
+            DocEvent::FunctionUpdated(id)
+        } else {
+            DocEvent::FunctionAdded(id)
+        };
+        self.event_bus.borrow_mut().notify(event);
         opt
     }
 
@@ -67,15 +70,19 @@ impl DocHandle {
         opt
     }
 
+    #[deprecated]
     pub fn insert_fixture_def(&self, fixture_def: FixtureDef) -> Option<FixtureDef> {
         let id = fixture_def.id();
         let opt = {
             let mut guard = self.inner.write().unwrap();
             guard.insert_fixture_def(fixture_def)
         };
-        self.event_bus
-            .borrow_mut()
-            .notify(DocEvent::FixtureDefInserted(id));
+        let event = if let Some(_) = opt {
+            DocEvent::FixtureDefUpdated(id)
+        } else {
+            DocEvent::FixtureDefAdded(id)
+        };
+        self.event_bus.borrow_mut().notify(event);
         opt
     }
 
@@ -90,16 +97,48 @@ impl DocHandle {
         opt
     }
 
-    pub fn insert_fixture(&self, fixture: Fixture) -> Result<Option<Fixture>, FixtureInsertError> {
+    #[deprecated]
+    pub fn insert_fixture(&self, fixture: Fixture) -> Result<Option<Fixture>, FixtureAddError> {
         let id = fixture.id();
         let result = {
             let mut guard = self.inner.write().unwrap();
             guard.insert_fixture(fixture)
         };
-        if let Ok(_) = result {
+        if let Ok(opt) = result.as_ref() {
+            let event = if let Some(_) = opt {
+                DocEvent::FixtureUpdated(id)
+            } else {
+                DocEvent::FixtureAdded(id)
+            };
+            self.event_bus.borrow_mut().notify(event);
+        }
+        result
+    }
+
+    pub fn add_fixture(&self, fixture: Fixture) -> Result<(), FixtureAddError> {
+        let id = fixture.id();
+        let result = {
+            let mut guard = self.inner.write().unwrap();
+            guard.add_fixture(fixture)
+        };
+        if result.is_ok() {
             self.event_bus
                 .borrow_mut()
-                .notify(DocEvent::FixtureInserted(id));
+                .notify(DocEvent::FixtureAdded(id));
+        }
+        result
+    }
+
+    pub fn update_fixture(&self, fixture: Fixture) -> Result<Fixture, FixtureUpdateError> {
+        let id = fixture.id();
+        let result = {
+            let mut guard = self.inner.write().unwrap();
+            guard.update_fixture(fixture)
+        };
+        if result.is_ok() {
+            self.event_bus
+                .borrow_mut()
+                .notify(DocEvent::FixtureUpdated(id));
         }
         result
     }
@@ -207,23 +246,26 @@ pub enum DocEvent {
     UniverseSettingsChanged,
     UniverseAdded(UniverseId),
     UniverseRemoved(UniverseId),
-    /// Also emitted when [`Fixture`] is updated
-    FixtureInserted(FixtureId),
+
+    FixtureAdded(FixtureId),
+    FixtureUpdated(FixtureId),
     FixtureRemoved(FixtureId),
-    /// Also emitted when [`FixtureDef`] is updated
-    FixtureDefInserted(FixtureDefId),
+
+    FixtureDefAdded(FixtureDefId),
+    FixtureDefUpdated(FixtureDefId),
     FixtureDefRemoved(FixtureDefId),
-    /// Also emitted when [`FunctionData`] is updated
-    FunctionInserted(FunctionId),
+
+    FunctionAdded(FunctionId),
+    FunctionUpdated(FunctionId),
     FunctionRemoved(FunctionId),
 }
 
-pub trait DocObserver: Send + Sync {
+pub trait DocObserver {
     fn on_doc_event(&mut self, event: &DocEvent);
 }
 
 pub struct UniverseSetting {
-    output_plugins: HashSet<OutputPluginId>, //TODO: Engineへの依存->PluginIdはdoc.rsで定義
+    output_plugins: HashSet<OutputPluginId>,
 }
 
 impl UniverseSetting {
@@ -358,7 +400,7 @@ impl DocStore {
             let fixture_def = self.get_fixture_def(&max_fixture.fixture_def()).unwrap();
             let adr = max_fixture
                 .occupied_addresses(fixture_def)
-                .expect("invariant is broken")
+                .expect("invariant: mode must exist")
                 .iter()
                 .last()
                 .unwrap() // This unwrap() is safe because occupied addresses can't be empty
@@ -375,7 +417,7 @@ impl DocStore {
     /// Same as [std::collections::HashMap::remove()]
     fn add_function(&mut self, function: FunctionData) -> Option<FunctionData> {
         let id = function.id();
-        self.functions.insert(id, function)
+        self.functions.insert(id, function) // TODO: addとupdateをわける
     }
 
     /// Same as [std::collections::HashMap::remove()]
@@ -384,22 +426,22 @@ impl DocStore {
     }
 
     // TODO: FixtureDefが変更されたときに不変条件が崩れないようにする
-    /// TODO: update this comment Same as [std::collections::HashMap::remove()]
-    fn insert_fixture(&mut self, fixture: Fixture) -> Result<Option<Fixture>, FixtureInsertError> {
+    #[deprecated]
+    fn insert_fixture(&mut self, fixture: Fixture) -> Result<Option<Fixture>, FixtureAddError> {
         // FIXME: signature is complicated. Using enum(Outcome::Created/Updated) would be good.
         let def_id = fixture.fixture_def();
         let fixture_def =
             self.get_fixture_def(&def_id)
-                .ok_or(FixtureInsertError::FixtureDefNotFound(FixtureDefNotFound {
+                .ok_or(FixtureAddError::FixtureDefNotFound(FixtureDefNotFound {
                     fixture_id: fixture.id(),
                     fixture_def_id: def_id,
                 }))?;
         let occupied_addresses = fixture
             .occupied_addresses(fixture_def)
-            .map_err(|e| FixtureInsertError::ModeNotFound(e))?;
+            .map_err(|e| FixtureAddError::ModeNotFound(e))?;
 
         self.validate_fixture_address(&fixture, &occupied_addresses)
-            .map_err(|e| FixtureInsertError::AddressValidateError(e))?;
+            .map_err(|e| FixtureAddError::AddressValidateError(e))?;
 
         for adr in occupied_addresses {
             if let Some(_) = self.fixture_by_address_index.insert(
@@ -416,10 +458,79 @@ impl DocStore {
         Ok(opt)
     }
 
+    /// Adds fixture.
+    fn add_fixture(&mut self, fixture: Fixture) -> Result<(), FixtureAddError> {
+        if self.fixtures.contains_key(&fixture.id()) {
+            return Err(FixtureAddError::FixtureAlreadyExists(fixture.id()));
+        }
+
+        let def_id = fixture.fixture_def();
+        let fixture_def =
+            self.get_fixture_def(&def_id)
+                .ok_or(FixtureAddError::FixtureDefNotFound(FixtureDefNotFound {
+                    fixture_id: fixture.id(),
+                    fixture_def_id: def_id,
+                }))?;
+        let occupied_addresses = fixture
+            .occupied_addresses(fixture_def)
+            .map_err(|e| FixtureAddError::ModeNotFound(e))?;
+
+        self.validate_fixture_address(&fixture, &occupied_addresses)
+            .map_err(|e| FixtureAddError::AddressValidateError(e))?;
+
+        for adr in occupied_addresses {
+            if let Some(_) = self.fixture_by_address_index.insert(
+                (fixture.universe_id(), adr),
+                (fixture.id(), adr.checked_sub(fixture.address()).unwrap()),
+            ) {
+                warn!("there must be logic error in address validation");
+            }
+        }
+
+        self.fixtures.insert(fixture.id(), fixture.clone());
+
+        Ok(())
+    }
+
+    /// Updates fixture. Returns `Ok(old_value)`.
+    fn update_fixture(&mut self, fixture: Fixture) -> Result<Fixture, FixtureUpdateError> {
+        if !self.fixtures.contains_key(&fixture.id()) {
+            return Err(FixtureUpdateError::FixtureNotFound(FixtureNotFound(
+                fixture.id(),
+            )));
+        }
+
+        let def_id = fixture.fixture_def();
+        let fixture_def = self
+            .get_fixture_def(&def_id)
+            .expect("invariant: fixture def must exist");
+        let occupied_addresses = fixture
+            .occupied_addresses(fixture_def)
+            .map_err(|e| FixtureUpdateError::ModeNotFound(e))?;
+
+        self.validate_fixture_address(&fixture, &occupied_addresses)
+            .map_err(|e| FixtureUpdateError::AddressValidateError(e))?;
+
+        for adr in occupied_addresses {
+            if let Some(_) = self.fixture_by_address_index.insert(
+                (fixture.universe_id(), adr),
+                (fixture.id(), adr.checked_sub(fixture.address()).unwrap()),
+            ) {
+                warn!("there must be logic error in address validation");
+            }
+        }
+
+        let id = fixture.id();
+        let old = self.fixtures.insert(id, fixture.clone()).unwrap();
+        // this unwrap is safe because we already checked with contains_key()
+
+        Ok(old)
+    }
+
     /// Same as [std::collections::HashMap::remove()]
     fn remove_fixture(&mut self, id: &FixtureId) -> Result<Option<Fixture>, FixtureRemoveError> {
         if !self.fixtures.contains_key(id) {
-            return Ok(None);
+            return Ok(None); // TODO: add_fixture()やupdate_fixture()に合わせるならErr(NotFound)を返すべきか？
         }
         let fixture = self.fixtures.get(id).unwrap();
         let def_id = fixture.fixture_def();
@@ -432,7 +543,7 @@ impl DocStore {
                 }))?;
         let occupied_addresses = fixture
             .occupied_addresses(fixture_def)
-            .map_err(|e| FixtureRemoveError::ModeNotFound(e))?; // FIXME: .expect()でもいいかも?
+            .expect("invariant: mode must exist");
 
         for adr in occupied_addresses {
             if let Some((old_id, offset)) = self
@@ -453,6 +564,7 @@ impl DocStore {
     }
 
     /// Same as [std::collections::HashMap::remove()]
+    #[deprecated]
     fn insert_fixture_def(&mut self, fixture_def: FixtureDef) -> Option<FixtureDef> {
         let id = fixture_def.id();
         self.fixture_defs.insert(id, fixture_def)

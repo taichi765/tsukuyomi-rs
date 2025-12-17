@@ -49,9 +49,21 @@ pub enum OutputMapError {
 
 /// Error type for [super::Doc::insert_fixture()]
 #[derive(Debug, Error)]
-pub enum FixtureInsertError {
+pub enum FixtureAddError {
     #[error(transparent)]
     FixtureDefNotFound(#[from] FixtureDefNotFound),
+    #[error(transparent)]
+    ModeNotFound(#[from] ModeNotFound),
+    #[error(transparent)]
+    AddressValidateError(#[from] ValidateError),
+    #[error("fixture with id {0:?} already exists")]
+    FixtureAlreadyExists(FixtureId),
+}
+
+#[derive(Debug, Error)]
+pub enum FixtureUpdateError {
+    #[error(transparent)]
+    FixtureNotFound(#[from] FixtureNotFound),
     #[error(transparent)]
     ModeNotFound(#[from] ModeNotFound),
     #[error(transparent)]
