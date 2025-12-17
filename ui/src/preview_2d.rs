@@ -190,8 +190,8 @@ impl PreviewController {
 impl DocObserver for PreviewController {
     fn on_doc_event(&mut self, event: &DocEvent) {
         match event {
-            DocEvent::FixtureInserted(id) => {
-                self.update_fixture_map(*id);
+            DocEvent::FixtureAdded(id) => {
+                self.update_fixture_map(*id); // TODO: addとupdateで分ける
             }
             _ => (),
         }

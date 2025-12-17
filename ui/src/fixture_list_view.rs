@@ -102,7 +102,7 @@ impl FixtureListViewController {
 impl DocObserver for FixtureListViewController {
     fn on_doc_event(&mut self, event: &DocEvent) {
         match event {
-            DocEvent::FixtureDefInserted(def_id) => {
+            DocEvent::FixtureDefAdded(def_id) => {
                 let ui = self.ui_handle.unwrap();
                 let store = ui.global::<FixtureListStore>();
                 let doc = self.doc.read();
@@ -141,6 +141,7 @@ impl DocObserver for FixtureListViewController {
 
                 store.set_model(Rc::new(VecModel::from(manufacturers)).into());
             }
+            DocEvent::FixtureDefUpdated(id) => todo!(),
             DocEvent::FixtureDefRemoved(id) => todo!(),
             _ => (),
         }
