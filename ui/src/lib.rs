@@ -179,10 +179,8 @@ fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
             ChannelDef::new(MergeMode::HTP, ChannelKind::Dimmer),
         );
         fixture_def.insert_channel("Red", ChannelDef::new(MergeMode::HTP, ChannelKind::Red));
-        let mut channel_order: HashMap<String, Option<usize>> = HashMap::new();
-        channel_order.insert("Dimmer".into(), Some(0));
-        channel_order.insert("Red".into(), Some(1));
-        let mode = FixtureMode::new(channel_order);
+        let channel_order = vec![("Dimmer".to_string(), 0usize), ("Red".to_string(), 1)];
+        let mode = FixtureMode::new(channel_order.into_iter()).unwrap();
         fixture_def.insert_mode("Mode 1", mode);
 
         let id = fixture_def.id();
@@ -205,8 +203,7 @@ fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
     commands.push(Box::new(commands::doc_commands::AddFixture::new(fixture)));
 
     {
-        let mut fixture_def =
-            FixtureDef::new("Stage Evolution".to_string(), "HPAR64-9".to_string());
+        let mut fixture_def = FixtureDef::new("Stage Evolution", "HPAR64-9");
         {
             fixture_def.insert_channel(
                 "Dimmer",
@@ -242,20 +239,24 @@ fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
                 ChannelDef::new(MergeMode::HTP, ChannelKind::Custom),
             );
         }
-        let mut channel_order: HashMap<String, Option<usize>> = HashMap::new();
-        channel_order.insert("Dimmer".into(), Some(0));
-        channel_order.insert("Red".into(), Some(0));
-        channel_order.insert("Green".into(), Some(0));
-        channel_order.insert("Blue".into(), Some(0));
-        channel_order.insert("White".into(), Some(0));
-        channel_order.insert("Warm White".into(), Some(0));
-        channel_order.insert("Amber".into(), Some(0));
-        channel_order.insert("UV".into(), Some(0));
-        channel_order.insert("Color Macro".into(), Some(0));
-        channel_order.insert("Auto Program".into(), Some(0));
-        channel_order.insert("Program Speed".into(), Some(0));
-        channel_order.insert("Color Temprature".into(), Some(0));
-        let mode = FixtureMode::new(channel_order);
+        let channel_order = vec![
+            ("Dimmer", 0usize),
+            ("Red", 1),
+            ("Green", 2),
+            ("Blue", 3),
+            ("White", 4),
+            ("Warm White", 5),
+            ("Amber", 6),
+            ("UV", 7),
+            ("Color Macro", 8),
+            ("Auto Program", 9),
+            ("Program Speed", 10),
+            ("Color Temprature", 11),
+        ];
+        let channel_order = channel_order
+            .into_iter()
+            .map(|(ch, off)| (ch.to_string(), off));
+        let mode = FixtureMode::new(channel_order).unwrap();
         fixture_def.insert_mode("13ch", mode);
 
         commands.push(Box::new(doc_commands::AddFixtureDef::new(fixture_def)));
