@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::helpers::{make_fixture, make_fixture_def_with_mode};
 use crate::{
     doc::{DocStore, FixtureNotFound, ResolveError},
@@ -59,14 +57,13 @@ fn resolve_error_fixture_not_found() {
 }
 
 #[test]
-fn resolve_error_channel_not_found_entry_present_but_none() {
+fn resolve_error_channel_not_found() {
     let mut doc = DocStore::new();
 
-    // Build a def with a mode "ModeA" where "Dimmer" key exists but value is None
+    // Build a def with a mode "ModeA" that has only "Dimmer" channel
     let mut def = FixtureDef::new(String::from("Manufacturer"), String::from("ModelX"));
-    let mut order: HashMap<String, Option<usize>> = HashMap::new();
-    order.insert(String::from("Dimmer"), None);
-    let mode = FixtureMode::new(order);
+    let order = vec![("Dimmer".to_string(), 0)];
+    let mode = FixtureMode::new(order.into_iter()).unwrap();
     def.insert_mode(String::from("ModeA"), mode);
     let def_id = def.id();
     doc.insert_fixture_def(def);
@@ -84,12 +81,13 @@ fn resolve_error_channel_not_found_entry_present_but_none() {
     let fxt_id = fxt.id();
     doc.add_fixture(fxt).expect("should work");
 
+    // Try to resolve a channel that doesn't exist in the mode
     let err = doc
-        .resolve_address(fxt_id, "Dimmer")
+        .resolve_address(fxt_id, "NonExistentChannel")
         .expect_err("should error");
     assert!(matches!(
         err,
         ResolveError::ChannelNotFound { fixture_def, mode, channel }
-        if fixture_def == def_id && mode == "ModeA" && channel == "Dimmer"
+        if fixture_def == def_id && mode == "ModeA" && channel == "NonExistentChannel"
     ));
 }

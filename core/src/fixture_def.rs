@@ -47,6 +47,7 @@ impl FixtureDef {
         &self.channel_templates
     }
 
+    // TODO: バリデーション
     /// Same as [std::collections::HashMap::insert()]
     pub fn insert_mode(
         &mut self,
@@ -189,4 +190,151 @@ pub enum ChannelKind {
     Amber,
     UV,
     Custom, // TODO: open-fixture-library互換にする
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod fixture_mode_new {
+        use super::*;
+
+        #[test]
+        fn creates_mode_with_single_channel() {
+            let channels = vec![("Dimmer".to_string(), 0)];
+
+            let mode = FixtureMode::new(channels.into_iter()).unwrap();
+
+            assert_eq!(mode.footprint(), 1);
+            assert_eq!(mode.get_offset_by_channel("Dimmer"), Some(0));
+        }
+
+        #[test]
+        fn creates_mode_with_valid_channel_order() {
+            let channels = vec![
+                ("Dimmer".to_string(), 0),
+                ("Red".to_string(), 1),
+                ("Green".to_string(), 2),
+                ("Blue".to_string(), 3),
+            ];
+
+            let mode = FixtureMode::new(channels.into_iter()).unwrap();
+
+            assert_eq!(mode.footprint(), 4);
+            assert_eq!(mode.get_offset_by_channel("Dimmer"), Some(0));
+            assert_eq!(mode.get_offset_by_channel("Red"), Some(1));
+            assert_eq!(mode.get_offset_by_channel("Green"), Some(2));
+            assert_eq!(mode.get_offset_by_channel("Blue"), Some(3));
+            assert_eq!(mode.get_channel_by_offset(0), Some("Dimmer"));
+            assert_eq!(mode.get_channel_by_offset(1), Some("Red"));
+            assert_eq!(mode.get_channel_by_offset(2), Some("Green"));
+            assert_eq!(mode.get_channel_by_offset(3), Some("Blue"));
+        }
+
+        #[test]
+        fn returns_empty_error_when_no_channels() {
+            let channels: Vec<(String, usize)> = vec![];
+
+            let result = FixtureMode::new(channels.into_iter());
+
+            assert!(matches!(result, Err(FixtureModeCreateError::Empty)));
+        }
+
+        #[test]
+        fn returns_duplicated_error_when_channel_name_duplicated() {
+            let channels = vec![("Dimmer".to_string(), 0), ("Dimmer".to_string(), 1)];
+
+            let result = FixtureMode::new(channels.into_iter());
+
+            match result {
+                Err(FixtureModeCreateError::Duplicated { duplicates }) => {
+                    assert_eq!(duplicates.len(), 1);
+                    match &duplicates[0] {
+                        DuplicatedError::ChannelDuplicated { channel, offsets } => {
+                            assert_eq!(channel, "Dimmer");
+                            assert_eq!(offsets, &vec![0, 1]);
+                        }
+                        _ => panic!("Expected ChannelDuplicated error"),
+                    }
+                }
+                _ => panic!("Expected Duplicated error"),
+            }
+        }
+
+        #[test]
+        fn returns_duplicated_error_when_offset_duplicated() {
+            let channels = vec![("Dimmer".to_string(), 0), ("Red".to_string(), 0)];
+
+            let result = FixtureMode::new(channels.into_iter());
+
+            match result {
+                Err(FixtureModeCreateError::Duplicated { duplicates }) => {
+                    assert_eq!(duplicates.len(), 1);
+                    match &duplicates[0] {
+                        DuplicatedError::OffsetDuplicated { offset, channels } => {
+                            assert_eq!(*offset, 0);
+                            assert_eq!(channels, &vec!["Dimmer".to_string(), "Red".to_string()]);
+                        }
+                        _ => panic!("Expected OffsetDuplicated error"),
+                    }
+                }
+                _ => panic!("Expected Duplicated error"),
+            }
+        }
+
+        #[test]
+        fn returns_not_contiguous_error_when_offsets_have_gap() {
+            let channels = vec![
+                ("Dimmer".to_string(), 0),
+                ("Red".to_string(), 2), // gap: offset 1 is missing
+            ];
+
+            let result = FixtureMode::new(channels.into_iter());
+
+            assert!(matches!(result, Err(FixtureModeCreateError::NotContiguous)));
+        }
+
+        #[test]
+        fn returns_not_contiguous_error_when_offset_does_not_start_from_zero() {
+            let channels = vec![("Dimmer".to_string(), 1), ("Red".to_string(), 2)];
+
+            let result = FixtureMode::new(channels.into_iter());
+
+            assert!(matches!(result, Err(FixtureModeCreateError::NotContiguous)));
+        }
+
+        #[test]
+        fn returns_none_for_unknown_channel() {
+            let channels = vec![("Dimmer".to_string(), 0)];
+            let mode = FixtureMode::new(channels.into_iter()).unwrap();
+
+            assert_eq!(mode.get_offset_by_channel("Unknown"), None);
+        }
+
+        #[test]
+        fn returns_none_for_unknown_offset() {
+            let channels = vec![("Dimmer".to_string(), 0)];
+            let mode = FixtureMode::new(channels.into_iter()).unwrap();
+
+            assert_eq!(mode.get_channel_by_offset(999), None);
+        }
+
+        #[test]
+        fn collects_multiple_duplicated_errors() {
+            let channels = vec![
+                ("Dimmer".to_string(), 0),
+                ("Dimmer".to_string(), 1), // channel duplicate
+                ("Red".to_string(), 0),    // offset duplicate
+            ];
+
+            let result = FixtureMode::new(channels.into_iter());
+
+            match result {
+                Err(FixtureModeCreateError::Duplicated { duplicates }) => {
+                    assert_eq!(duplicates.len(), 2);
+                }
+                _ => panic!("Expected Duplicated error"),
+            }
+        }
+    }
 }

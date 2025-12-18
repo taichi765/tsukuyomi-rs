@@ -61,10 +61,9 @@ pub(crate) fn make_fixture_def_with_mode(
         ChannelDef::new(merge_mode, kind),
     );
 
-    let mut channel_order: HashMap<String, Option<usize>> = HashMap::new();
-    channel_order.insert(String::from(channel_name), Some(channel_offset));
+    let channel_order = vec![(String::from(channel_name), channel_offset)];
 
-    let mode = FixtureMode::new(channel_order);
+    let mode = FixtureMode::new(channel_order.into_iter()).unwrap();
     def.insert_mode(String::from(mode_name), mode);
 
     def
@@ -85,10 +84,8 @@ pub(crate) fn make_def_with_two_channels() -> FixtureDef {
     );
 
     // Mode order specifies offsets
-    let mut order: HashMap<String, Option<usize>> = HashMap::new();
-    order.insert("Dimmer".to_string(), Some(0));
-    order.insert("Color".to_string(), Some(1));
-    let mode = FixtureMode::new(order);
+    let order = vec![("Dimmer".to_string(), 0), ("Color".to_string(), 1)];
+    let mode = FixtureMode::new(order.into_iter()).unwrap();
     def.insert_mode("ModeA", mode);
 
     def
