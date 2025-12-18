@@ -1,15 +1,16 @@
 [package]
 name = "tsukuyomi-core"
-version = "0.1.0"
+version = { workspace = true }
 edition = "2024"
 
 [dependencies]
 artnet_protocol = "0.4.3"
 bimap = "0.6.3"
 itertools = "0.14.0"
-quick-xml = {version="0.38.3", features=["serialize"]}
+quick-xml = { version = "0.38.3", features = ["serialize"] }
 rayon = "1.11.0"
-serde = {version="1.0.228", features=["derive"]}
-uuid={workspace=true}
-tracing={workspace=true}
-thiserror={workspace=true}
+serde = { version = "1.0.228", features = ["derive"] }
+
+uuid = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }

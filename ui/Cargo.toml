@@ -6,15 +6,15 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tsukuyomi-core = { path="../core" }
+tsukuyomi-core = { path = "../core" }
 
-slint = { workspace=true }
-i-slint-backend-winit = { workspace=true }
+slint = { workspace = true }
+i-slint-backend-winit = { workspace = true }
 
-uuid = { workspace=true }
-tracing = { workspace=true }
 tracing-subscriber = "0.3.0"
-wgpu = { workspace=true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+wgpu = { workspace = true }
 
 [build-dependencies]
-slint-build = { workspace=true }
+slint-build = { workspace = true }
