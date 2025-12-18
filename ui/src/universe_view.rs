@@ -6,9 +6,9 @@ use std::{
 use slint::{ComponentHandle, ToSharedString};
 use tracing::debug;
 use tsukuyomi_core::{
-    doc::{DocEvent, DocEventBus, DocObserver, DocStore},
-    fixture::FixtureId,
-    readonly::ReadOnly,
+    ReadOnly,
+    doc::{DocEvent, DocEventBus, DocObserver},
+    prelude::*,
 };
 
 use crate::{AppWindow, UniverseViewFixtureModel, UniverseViewStore, hashmap_model::HashMapModel};

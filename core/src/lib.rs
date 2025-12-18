@@ -39,7 +39,7 @@ macro_rules! declare_id_newtype {
     };
 }
 
-pub mod readonly {
+mod readonly {
     use std::sync::{Arc, RwLock, RwLockReadGuard};
     /// Read-only access to [`Arc<RwLock<T>>`].
     pub struct ReadOnly<T>(Arc<RwLock<T>>);
@@ -64,6 +64,8 @@ pub mod readonly {
     }
 }
 
+pub use readonly::ReadOnly;
+
 pub mod engine;
 pub mod fixture;
 pub mod functions;
@@ -74,3 +76,13 @@ pub mod commands;
 pub mod doc;
 pub mod fixture_def;
 pub mod universe;
+
+pub mod prelude {
+    pub use super::{
+        doc::{DocStore, OutputPluginId},
+        fixture::{Fixture, FixtureId, MergeMode},
+        fixture_def::{ChannelDef, ChannelKind, FixtureDef, FixtureDefId, FixtureMode},
+        functions::FunctionId,
+        universe::{DmxAddress, UniverseId},
+    };
+}

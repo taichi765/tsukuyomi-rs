@@ -6,14 +6,12 @@ use std::{
 
 use slint::{ComponentHandle, Model, ToSharedString, VecModel, Weak};
 use tracing::debug;
+use tsukuyomi_core::prelude::*;
 use tsukuyomi_core::{
+    ReadOnly,
     command_manager::CommandManager,
     commands::doc_commands,
-    doc::{DocEvent, DocEventBus, DocObserver, DocStore},
-    fixture::Fixture,
-    fixture_def::FixtureDefId,
-    readonly::ReadOnly,
-    universe::{DmxAddress, UniverseId},
+    doc::{DocEvent, DocEventBus, DocObserver},
 };
 use uuid::Uuid;
 

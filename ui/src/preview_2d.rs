@@ -10,14 +10,13 @@ use std::{
 use slint::{Brush, Color, ComponentHandle, Model, ModelRc, ToSharedString, VecModel, Weak};
 use tracing::debug;
 use tsukuyomi_core::{
+    ReadOnly,
     commands::{DocCommand, doc_commands},
-    doc::{DocEvent, DocEventBus, DocObserver, DocStore, OutputPluginId},
+    doc::{DocEvent, DocEventBus, DocObserver},
     engine::EngineCommand,
-    fixture::FixtureId,
     fixture_def::ChannelKind,
     plugins::{DmxFrame, Plugin},
-    readonly::ReadOnly,
-    universe::UniverseId,
+    prelude::*,
 };
 use uuid::Uuid;
 
@@ -170,7 +169,7 @@ impl PreviewController {
                 ChannelKind::Red => set_color(fixture_id, &mut fixture_color_map, 1, value),
                 ChannelKind::Blue => set_color(fixture_id, &mut fixture_color_map, 2, value),
                 ChannelKind::Green => set_color(fixture_id, &mut fixture_color_map, 3, value),
-                _ => todo!(),
+                _ => (),
             }
         }
         let ui = self.ui_handle.unwrap();

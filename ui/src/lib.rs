@@ -7,7 +7,6 @@ pub mod preview_3d;
 pub mod universe_view;
 
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::error::Error;
 use std::rc::Rc;
 use std::sync::mpsc::{Receiver, Sender};
@@ -24,17 +23,7 @@ use tsukuyomi_core::command_manager::CommandManager;
 use tsukuyomi_core::commands::doc_commands;
 use tsukuyomi_core::doc::{DocEventBus, DocHandle, DocStore};
 use tsukuyomi_core::engine::{Engine, EngineCommand, EngineMessage};
-use tsukuyomi_core::fixture::FixtureId;
-use tsukuyomi_core::fixture_def::ChannelKind;
-use tsukuyomi_core::{
-    commands,
-    commands::DocCommand,
-    doc::DocObserver,
-    fixture::{Fixture, MergeMode},
-    fixture_def::{ChannelDef, FixtureDef, FixtureMode},
-    readonly::ReadOnly,
-    universe::{DmxAddress, UniverseId},
-};
+use tsukuyomi_core::{ReadOnly, commands, commands::DocCommand, doc::DocObserver, prelude::*};
 
 use crate::doc_event_bridge::DocEventBridge;
 use crate::fader_view_bridge::setup_fader_view;
