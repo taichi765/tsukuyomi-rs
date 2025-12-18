@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use bimap::BiHashMap;
+use thiserror::Error;
+
 use crate::fixture::MergeMode;
 
 declare_id_newtype!(FixtureDefId);
@@ -63,34 +66,95 @@ impl FixtureDef {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum FixtureModeCreateError {
+    #[error("{} offset are duplicated",.duplicates.len())]
+    Duplicated { duplicates: Vec<DuplicatedError> },
+    #[error("Mode must include at least 1 channel")]
+    Empty,
+    #[error("channel order was not contiguous")]
+    NotContiguous,
+}
+
+#[derive(Debug, Error)]
+pub enum DuplicatedError {
+    #[error("offset {offset} is used by these channels: {channels:?}")]
+    OffsetDuplicated {
+        offset: usize,
+        channels: Vec<String>,
+    },
+    #[error("channel {channel} is used by these offsets: {offsets:?}")]
+    ChannelDuplicated {
+        channel: String,
+        offsets: Vec<usize>,
+    },
+}
+
 pub struct FixtureMode {
-    channel_order: HashMap<String, Option<usize>>,
+    channel_order: BiHashMap<String, usize>,
 }
 
 impl FixtureMode {
-    // TODO: 引数取らない方がいいかも
-    // TODO: Validate that channel order is contiguous
-    pub fn new(channel_order: HashMap<String, Option<usize>>) -> Self {
-        Self { channel_order }
+    /// Creates new `FixtureMode`.
+    pub fn new(
+        channel_order: impl Iterator<Item = (String, usize)>,
+    ) -> Result<Self, FixtureModeCreateError> {
+        let mut map = BiHashMap::new();
+        let mut ch_duplicates: HashMap<String, Vec<usize>> = HashMap::new();
+        let mut off_duplicates: HashMap<usize, Vec<String>> = HashMap::new();
+        for (ch, off) in channel_order {
+            if let Some(first_off) = map.get_by_left(&ch) {
+                ch_duplicates
+                    .entry(ch)
+                    .and_modify(|v| v.push(off))
+                    .or_insert(vec![*first_off, off]);
+                continue;
+            }
+
+            if let Some(first_ch) = map.get_by_right(&off).cloned() {
+                off_duplicates
+                    .entry(off)
+                    .and_modify(|v| v.push(ch.clone())) // TODO: clone
+                    .or_insert(vec![first_ch, ch]);
+                continue;
+            }
+
+            map.insert_no_overwrite(ch, off).expect("logic error");
+        }
+
+        let ch_errors = ch_duplicates
+            .into_iter()
+            .map(|(channel, offsets)| DuplicatedError::ChannelDuplicated { channel, offsets });
+        let offset_errors = off_duplicates
+            .into_iter()
+            .map(|(offset, channels)| DuplicatedError::OffsetDuplicated { offset, channels });
+        let errors: Vec<DuplicatedError> = ch_errors.chain(offset_errors).collect();
+
+        if !errors.is_empty() {
+            return Err(FixtureModeCreateError::Duplicated { duplicates: errors });
+        }
+
+        let Some(max) = map.right_values().copied().max() else {
+            return Err(FixtureModeCreateError::Empty);
+        };
+        if max != map.len() - 1 {
+            return Err(FixtureModeCreateError::NotContiguous);
+        }
+
+        Ok(Self { channel_order: map })
     }
 
-    pub fn offset(&self) -> usize {
-        self.channel_order
-            .iter()
-            .filter(|(_, offset)| offset.is_some())
-            .count()
+    /// Total length of the channels in this mode.
+    pub fn footprint(&self) -> usize {
+        self.channel_order.len()
     }
 
-    pub fn channel_order(&self) -> &HashMap<String, Option<usize>> {
-        &self.channel_order
+    pub fn get_offset_by_channel(&self, channel: &str) -> Option<usize> {
+        self.channel_order.get_by_left(channel).map(|n| *n)
     }
 
     pub fn get_channel_by_offset(&self, offset: usize) -> Option<&str> {
-        let found = self
-            .channel_order
-            .iter()
-            .find(|(_, opt)| opt.is_some_and(|n| n == offset));
-        found.map(|(ch, _)| ch.as_str())
+        self.channel_order.get_by_right(&offset).map(|s| s.as_str())
     }
 }
 

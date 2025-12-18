@@ -353,15 +353,13 @@ impl DocStore {
                     fixture_def: fixture.fixture_def(),
                     mode: fixture.fixture_mode().into(),
                 }))?;
-        let channel_offset = mode
-            .channel_order()
-            .get(channel)
-            .unwrap() // FIXME: unwrap
-            .ok_or(ResolveError::ChannelNotFound {
-                fixture_def: fixture.fixture_def(),
-                mode: fixture.fixture_mode().into(),
-                channel: channel.into(),
-            })?;
+        let channel_offset =
+            mode.get_offset_by_channel(channel)
+                .ok_or(ResolveError::ChannelNotFound {
+                    fixture_def: fixture.fixture_def(),
+                    mode: fixture.fixture_mode().into(),
+                    channel: channel.into(),
+                })?;
 
         let merge_mode = fixture_def
             .channel_templates()

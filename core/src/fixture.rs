@@ -73,7 +73,7 @@ impl Fixture {
             fixture_def: fixture_def.id(),
             mode: String::from(mode_name),
         })?;
-        Ok(mode.offset())
+        Ok(mode.footprint())
     }
 
     /// Enumerates all addresses occupied by this [Fixture].
