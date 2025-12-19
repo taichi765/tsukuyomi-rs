@@ -1,11 +1,7 @@
 pub mod colors;
+pub mod controllers;
 pub mod doc_event_bridge;
-pub mod fader_view_bridge;
-pub mod fixture_list_view;
 pub mod hashmap_model;
-pub mod preview_2d;
-pub mod preview_3d;
-pub mod universe_view;
 
 use std::cell::RefCell;
 use std::error::Error;
@@ -26,13 +22,8 @@ use tsukuyomi_core::doc::{DocEventBus, DocHandle, DocStore};
 use tsukuyomi_core::engine::{Engine, EngineCommand, EngineMessage};
 use tsukuyomi_core::{ReadOnly, commands, commands::DocCommand, doc::DocObserver, prelude::*};
 
+use crate::controllers::*;
 use crate::doc_event_bridge::DocEventBridge;
-use crate::fader_view_bridge::setup_fader_view;
-use crate::fixture_list_view::setup_fixture_list_view;
-use crate::preview_2d::setup_2d_preview;
-use crate::preview_3d::setup_3d_preview;
-use crate::universe_view::setup_universe_view;
-// TODO: tsukuyomi_core::prelude使いたい
 
 slint::include_modules!();
 
