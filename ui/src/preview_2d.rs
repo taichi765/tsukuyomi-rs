@@ -7,7 +7,7 @@ use std::{
     },
 };
 
-use slint::{Brush, Color, ComponentHandle, Model, ModelRc, ToSharedString, VecModel, Weak};
+use slint::{Color, ComponentHandle, LogicalPosition, ToSharedString, Weak};
 use tracing::debug;
 use tsukuyomi_core::{
     ReadOnly,
@@ -18,9 +18,11 @@ use tsukuyomi_core::{
     plugins::{DmxFrame, Plugin},
     prelude::*,
 };
-use uuid::Uuid;
 
-use crate::{AppWindow, EditorTabs, FixtureEntityData, Preview2DStore, TopLevelTabs};
+use crate::{
+    AppWindow, EditorTabs, FixtureEntityData, Preview2DStore, TopLevelTabs, colors::ColorInfo,
+    hashmap_model::HashMapModel,
+};
 
 /// Returns closure to update preview, which should be called in [slint::Timer]
 pub fn setup_2d_preview(
@@ -37,6 +39,9 @@ pub fn setup_2d_preview(
     )));
 
     event_bus.subscribe(Arc::downgrade(&controller) as _);
+    let model_clone = Rc::clone(&controller.read().unwrap().model);
+    ui.global::<Preview2DStore>()
+        .set_fixture_list(model_clone.into());
 
     // TODO: シリアライズからの復元
     let plugin = PreviewPlugin::new(msg_tx);
@@ -51,11 +56,8 @@ pub fn setup_2d_preview(
         p_id,
     ))];
 
-    // Reset dummy properties
-    ui.global::<Preview2DStore>()
-        .set_fixture_list(Rc::new(VecModel::from(Vec::new())).into());
     (doc_commands, move || {
-        controller.write().unwrap().handle_messages();
+        controller.write().unwrap().update();
     })
 }
 
@@ -94,6 +96,7 @@ impl Plugin for PreviewPlugin {
 struct PreviewController {
     doc: ReadOnly<DocStore>,
     ui_handle: Weak<AppWindow>,
+    model: Rc<HashMapModel<FixtureId, FixtureEntityData>>,
     msg_rx: Mutex<Receiver<PreviewMessage>>,
 }
 
@@ -106,36 +109,35 @@ impl PreviewController {
         Self {
             doc,
             ui_handle,
+            model: Rc::new(HashMapModel::new()),
             msg_rx,
         }
     }
 
-    fn update_fixture_map(&mut self, id: FixtureId) {
-        let ui = self.ui_handle.unwrap();
-        let mut fixtures: HashMap<FixtureId, FixtureEntityData> =
-            modelrc_to_map(ui.global::<Preview2DStore>().get_fixture_list());
-
-        fixtures.insert(
+    fn update_fixture_model(&mut self, id: FixtureId) {
+        let doc = self.doc.read();
+        let fixture = doc.get_fixture(&id).unwrap();
+        self.model.insert(
             id,
             FixtureEntityData {
-                color: Brush::SolidColor(Color::from_rgb_u8(0, 0, 0)),
+                color: Color::default(),
                 fixture_id: id.to_shared_string(),
-                x: 500., //TODO
-                y: 220., //TODO
+                pos: LogicalPosition {
+                    x: fixture.x(),
+                    y: fixture.y(),
+                },
             },
         );
-        let fixtures_model: Vec<FixtureEntityData> = fixtures.into_iter().map(|(_, v)| v).collect();
-        ui.global::<Preview2DStore>()
-            .set_fixture_list(Rc::new(VecModel::from(fixtures_model)).into());
     }
 
-    fn handle_messages(&mut self) {
+    /// Update preview based on the message received from [`PreviewPlugin`].
+    fn update(&mut self) {
         let ui = self.ui_handle.unwrap();
         if ui.get_current_tab() != TopLevelTabs::Editor {
             return;
         }
         if ui.get_editor_tab_current_index() != EditorTabs::Preview2D {
-            return;
+            return; // FIXME: これだけのためにui_handleを持っておくのってどうなんだろう...
         }
         // FIXME: unwrap
         while let Ok(msg) = self.msg_rx.lock().unwrap().try_recv() {
@@ -148,8 +150,9 @@ impl PreviewController {
         }
     }
 
+    /// Actually applies dmx frame to UI's model.
     fn apply_dmx_frame(&self, universe_id: UniverseId, dmx_data: DmxFrame) {
-        let mut fixture_color_map: HashMap<FixtureId, (u8, u8, u8, u8)> = HashMap::new();
+        let mut fixture_color_map: HashMap<FixtureId, ColorInfo> = HashMap::new();
 
         let doc = self.doc.read();
         for (address, value) in dmx_data.iter() {
@@ -158,39 +161,39 @@ impl PreviewController {
             else {
                 continue;
             };
-            let fixture = doc.get_fixture(&fixture_id).unwrap();
-            let def = doc.get_fixture_def(&fixture.fixture_def()).unwrap();
-            let mode = def.modes().get(fixture.fixture_mode()).unwrap();
-            let channel_name = mode.get_channel_by_offset(offset).unwrap();
-            let channel = def.channel_templates().get(channel_name).unwrap();
 
-            match channel.kind() {
-                ChannelKind::Dimmer => set_color(fixture_id, &mut fixture_color_map, 0, value),
-                ChannelKind::Red => set_color(fixture_id, &mut fixture_color_map, 1, value),
-                ChannelKind::Blue => set_color(fixture_id, &mut fixture_color_map, 2, value),
-                ChannelKind::Green => set_color(fixture_id, &mut fixture_color_map, 3, value),
-                _ => (),
-            }
-        }
-        let ui = self.ui_handle.unwrap();
+            let channel = {
+                let fixture = doc.get_fixture(&fixture_id).unwrap();
+                let def = doc.get_fixture_def(&fixture.fixture_def()).unwrap();
+                let mode = def.modes().get(fixture.fixture_mode()).unwrap();
+                let channel_name = mode.get_channel_by_offset(offset).unwrap();
+                def.channel_templates().get(channel_name).unwrap()
+            };
 
-        let mut fixture_map = modelrc_to_map(ui.global::<Preview2DStore>().get_fixture_list());
-        for (id, (dimmer, r, g, b)) in fixture_color_map {
-            let data = fixture_map.get_mut(&id).unwrap();
-            data.color = calc_color(dimmer, r, g, b);
+            set_color(fixture_id, &mut fixture_color_map, channel.kind(), value);
         }
-        let fixture_vec: Vec<FixtureEntityData> =
-            fixture_map.into_iter().map(|(_, data)| data).collect();
-        ui.global::<Preview2DStore>()
-            .set_fixture_list(Rc::new(VecModel::from(fixture_vec)).into());
+
+        fixture_color_map.into_iter().for_each(|(fxt_id, color)| {
+            let old = self.model.get(&fxt_id).unwrap();
+            self.model.insert(
+                fxt_id,
+                FixtureEntityData {
+                    color: color.to_slint_color(),
+                    fixture_id: fxt_id.to_shared_string(),
+                    ..old
+                },
+            ); // OPTIM: すべてのフィクスチャを更新してからnotifyの方が早いかも？
+        });
     }
 }
 
 impl DocObserver for PreviewController {
     fn on_doc_event(&mut self, event: &DocEvent) {
         match event {
-            DocEvent::FixtureAdded(id) => {
-                self.update_fixture_map(*id); // TODO: addとupdateで分ける
+            DocEvent::FixtureAdded(id) => self.update_fixture_model(*id),
+            DocEvent::FixtureUpdated(id) => self.update_fixture_model(*id),
+            DocEvent::FixtureRemoved(id) => {
+                self.model.remove(id);
             }
             _ => (),
         }
@@ -210,49 +213,27 @@ enum PreviewMessage {
     },
 }
 
+/// Helper function to set color based on `ChannelKind`.
 fn set_color(
     fixture_id: FixtureId,
-    map: &mut HashMap<FixtureId, (u8, u8, u8, u8)>,
-    index: usize,
+    map: &mut HashMap<FixtureId, ColorInfo>,
+    kind: &ChannelKind,
     value: u8,
 ) {
-    if let Some(color) = map.get_mut(&fixture_id) {
-        match index {
-            0 => color.0 = value,
-            1 => color.1 = value,
-            2 => color.2 = value,
-            3 => color.3 = value,
-            _ => (),
-        }
-    } else {
-        let mut new_color = (255, 255, 255, 255);
-        match index {
-            0 => new_color.0 = value,
-            1 => new_color.1 = value,
-            2 => new_color.2 = value,
-            3 => new_color.3 = value,
-            _ => (),
-        }
-        map.insert(fixture_id, new_color);
+    let mut color = map
+        .get(&fixture_id)
+        .copied()
+        .or(Some(ColorInfo::default()))
+        .unwrap();
+    match kind {
+        ChannelKind::Dimmer => color.dimmer = value,
+        ChannelKind::Red => color.red = value,
+        ChannelKind::Green => color.green = value,
+        ChannelKind::Blue => color.blue = value,
+        ChannelKind::White => color.white = value,
+        ChannelKind::Amber => color.amber = value,
+        ChannelKind::UV => color.uv = value,
+        _ => (),
     }
-}
-
-fn calc_color(dimmer: u8, r: u8, g: u8, b: u8) -> Brush {
-    let ratio = dimmer as f32 / 255.0;
-    let r = (r as f32 * ratio) as u8;
-    let g = (g as f32 * ratio) as u8;
-    let b = (b as f32 * ratio) as u8;
-    Brush::SolidColor(Color::from_rgb_u8(r, g, b))
-}
-
-fn modelrc_to_map(value: ModelRc<FixtureEntityData>) -> HashMap<FixtureId, FixtureEntityData> {
-    value
-        .iter()
-        .map(|f| {
-            (
-                FixtureId::from(Uuid::parse_str(f.fixture_id.as_str()).unwrap()), //FIXME: unwrap
-                f,
-            )
-        })
-        .collect()
+    map.insert(fixture_id, color);
 }

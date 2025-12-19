@@ -1,3 +1,4 @@
+pub mod colors;
 pub mod doc_event_bridge;
 pub mod fader_view_bridge;
 pub mod fixture_list_view;
