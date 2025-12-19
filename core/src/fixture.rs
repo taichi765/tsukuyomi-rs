@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::{
     doc::ModeNotFound,
     fixture_def::{FixtureDef, FixtureDefId},
@@ -12,7 +14,6 @@ pub enum MergeMode {
     LTP,
 }
 
-//TODO: 占有するチャンネルの計算
 // TODO: クロスユニバース
 #[derive(Debug, Clone)]
 pub struct Fixture {
@@ -22,6 +23,8 @@ pub struct Fixture {
     address: DmxAddress,
     fixture_def_id: FixtureDefId,
     fixture_mode: String,
+    x: f32,
+    y: f32,
 }
 // TODO: modeが一つ以上あることを保証
 impl Fixture {
@@ -31,6 +34,8 @@ impl Fixture {
         address: DmxAddress,
         fixture_def_id: FixtureDefId,
         fixture_mode: String,
+        x: f32,
+        y: f32,
     ) -> Self {
         Self {
             id: FixtureId::new(),
@@ -39,6 +44,8 @@ impl Fixture {
             address,
             fixture_def_id,
             fixture_mode,
+            x,
+            y,
         }
     }
 
@@ -66,6 +73,14 @@ impl Fixture {
         &self.fixture_mode
     }
 
+    pub fn x(&self) -> f32 {
+        self.x
+    }
+
+    pub fn y(&self) -> f32 {
+        self.y
+    }
+
     /// Number of channels in the current mode.
     pub fn footprint(&self, fixture_def: &FixtureDef) -> Result<usize, ModeNotFound> {
         let mode_name = self.fixture_mode();
@@ -88,5 +103,20 @@ impl Fixture {
             addresses.push(address_base.checked_add(i).expect("address overflow"));
         }
         Ok(addresses)
+    }
+}
+
+impl Default for Fixture {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            name: "fixture".to_string(),
+            universe_id: Default::default(),
+            address: Default::default(),
+            fixture_def_id: Default::default(),
+            fixture_mode: "mode".to_string(),
+            x: 0.,
+            y: 0.,
+        }
     }
 }

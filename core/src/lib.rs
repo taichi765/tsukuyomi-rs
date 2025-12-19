@@ -36,6 +36,12 @@ macro_rules! declare_id_newtype {
                 write!(f, "{}", self.as_hyphenated())
             }
         }
+
+        impl Default for $name {
+            fn default() -> Self {
+                Self(uuid::Uuid::nil())
+            }
+        }
     };
 }
 

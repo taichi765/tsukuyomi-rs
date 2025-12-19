@@ -11,6 +11,12 @@ impl UniverseId {
     }
 }
 
+impl Default for UniverseId {
+    fn default() -> Self {
+        Self(1)
+    }
+}
+
 /// DmxAddress with bound 1..=512.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct DmxAddress(usize);
@@ -48,5 +54,11 @@ impl DmxAddress {
 
     pub fn checked_sub(self, rhs: Self) -> Option<usize> {
         self.0.checked_sub(rhs.0)
+    }
+}
+
+impl Default for DmxAddress {
+    fn default() -> Self {
+        Self(1)
     }
 }
