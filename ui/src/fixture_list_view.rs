@@ -30,8 +30,8 @@ pub fn setup_fixture_list_view(
     event_bus.subscribe(Arc::downgrade(&controller) as _);
 
     let doc_clone = ReadOnly::clone(&doc);
-    ui.global::<FixtureListStore>()
-        .on_patch(move |universe, address, fixture_def_id, mode| {
+    ui.global::<FixtureListStore>().on_patch(
+        move |universe, address, fixture_def_id, mode, pos| {
             let universe_id = parse_universe_id(universe.as_str());
             let fixture_def_id =
                 FixtureDefId::from(Uuid::parse_str(fixture_def_id.as_str()).unwrap());
@@ -47,6 +47,8 @@ pub fn setup_fixture_list_view(
                 DmxAddress::new(address as usize).unwrap(),
                 fixture_def_id,
                 mode.to_string(),
+                pos.x,
+                pos.y,
             );
             if let Err(e) = command_manager
                 .borrow_mut()
@@ -56,7 +58,8 @@ pub fn setup_fixture_list_view(
             } else {
                 "".to_shared_string()
             }
-        });
+        },
+    );
 
     let ui_handle = ui.as_weak();
     ui.global::<FixtureListStore>().on_get_modes(move |def_id| {

@@ -20,7 +20,7 @@ export global FixtureListStore {
         { manufacturer:"IM-Relax", fixtures:[{ name:"IM-MH90S" }], expanded:false }
     ];
     /// Returns error message. Empty when there's no error.
-    callback patch(universe: string, address: int, fixture-id: string, mode: string) -> string;
+    callback patch(universe: string, address: int, fixture-id: string, mode: string, pos: Point) -> string;
     callback get-modes(fixture-def-id: string) -> [string];
     callback get-next-address(universe: string) -> int;
 }
@@ -38,6 +38,8 @@ export component FixtureDefPanel inherits VerticalLayout {
     changed selected-fixture-id => {
         fixture-modes-cache = FixtureListStore.get-modes(selected-fixture-id);
     }
+
+    animate width { duration: 250ms; }
 
     MiddleText {
         text: @tr("Fixture Definitions");
@@ -60,8 +62,8 @@ export component FixtureDefPanel inherits VerticalLayout {
             next-address-cache = FixtureListStore.get-next-address(self.selected-universe);
         }
 
-        patch(universe, address, fixture-id, mode) => {
-            GlobalMessage.error-message = FixtureListStore.patch(universe, address, fixture-id, mode);
+        patch(universe, address, fixture-id, mode, pos) => {
+            GlobalMessage.error-message = FixtureListStore.patch(universe, address, fixture-id, mode,pos);
             if GlobalMessage.error-message == "" {
                 next-address-cache = FixtureListStore.get-next-address(self.selected-universe);
             }

@@ -3,14 +3,13 @@ import { MiddleText } from "../parts/texts.slint";
 
 export struct FixtureEntityData {
     fixture-id:string,
-    x:length,
-    y:length,
-    color:brush}
+    pos:Point,
+    color:color}
 
 export global Preview2DStore {
     in property <[FixtureEntityData]> fixture-list:[
-        { fixture-id:"", x:1px, y:1px, color:rgb(255,0,0) },
-        { fixture-id:"", x:70px, y:60px, color:rgb(0,0,255) }
+        { fixture-id:"", pos:{ x:1px, y:50px }, color:rgb(255,0,0) },
+        { fixture-id:"", pos:{ x:60px, y:70px }, color:rgb(0,0,255) }
     ];
 }
 
@@ -23,27 +22,44 @@ export component Preview2D inherits Rectangle {
         body := Rectangle {
             for fixture in Preview2DStore.fixture-list: fixture-rect := Rectangle {
                 property <bool> selected;
-                x: fixture.x;
-                y: fixture.y;
-                selected: false;
+                x: 100px;
+                //fixture.pos.x;
+                y: 100px;
+                //fixture.pos.y;
                 width: 70px;
                 height: 70px;
                 background: fixture.color;
                 border-radius: self.width / 2;
 
                 states [
-                    active when selected: {
+                    selected when selected: {
                         fixture-rect.border-width: 2px;
-                        fixture-rect.border-color: Palette.accent-foreground;
-                    }
-                    inactive when !selected: {
-                        fixture-rect.border-width: 1px;
-                        fixture-rect.border-color: Palette.border;
+                        fixture-rect.border-color: Colors.yellow;
                     }
                 ]
                 ta := TouchArea {
+                    mouse-cursor: self.pressed ? grabbing : grab;
+
                     clicked => {
                         fixture-rect.selected = !fixture-rect.selected;
+                    }
+                    /*moved => {
+                        fixture-rect.x = self.pressed-x;
+                        fixture-rect.y = self.pressed-y;
+                    }*/
+                    pointer-event(event) => {
+                        if event.kind == PointerEventKind.move && self.pressed {
+                            debug("fixture-rect-x=",fixture-rect.x);
+                            debug("fixture-rect-y=",fixture-rect.y);
+                            debug("mouse-x=",self.mouse-x);
+                            debug("mouse-y=",self.mouse-y);
+                            fixture-rect.x += self.mouse-x;
+                            fixture-rect.y += self.mouse-y;
+                        }
+                        /*if event.kind == PointerEventKind.up {
+                            fixture.pos.x = self.mouse-x;
+                            fixture.pos.y = self.mouse-y;
+                        }*/
                     }
                 }
             }

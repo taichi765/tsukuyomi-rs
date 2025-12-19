@@ -19,7 +19,7 @@ impl<K: Eq + Hash + Clone, V: Clone> HashMapModel<K, V> {
         }
     }
 
-    /// Same as [`HashMap::get()`].
+    /// Same as [`HashMap::insert()`].
     pub fn insert(&self, key: K, value: V) {
         if let Some(pos) = self.keys.borrow().iter().position(|k| k == &key) {
             // replace existing
@@ -33,7 +33,7 @@ impl<K: Eq + Hash + Clone, V: Clone> HashMapModel<K, V> {
         }
     }
 
-    /// Same as [`HashMap::get()`].
+    /// Same as [`HashMap::remove()`].
     pub fn remove(&self, key: &K) -> Option<V> {
         if let Some(pos) = self.keys.borrow().iter().position(|k| k == key) {
             self.keys.borrow_mut().remove(pos); // O(n) shift

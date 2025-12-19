@@ -197,6 +197,8 @@ fn create_some_presets() -> (Vec<Box<dyn DocCommand>>, FixtureId) {
         DmxAddress::new(1).unwrap(),
         fixture_def_id,
         "Mode 1".into(),
+        200.,
+        200.,
     );
 
     let fixture_id = fixture.id();

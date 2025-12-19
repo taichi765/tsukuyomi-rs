@@ -7,7 +7,7 @@ export component FixtureSingleView inherits VerticalLayout {
     in property <[string]> modes;
     in property <int> address-default;
     out property <string> selected-universe:universe-combo.current-value;
-    callback patch(universe: string, address: int, fixture-id: string, mode: string);
+    callback patch(universe: string, address: int, fixture-id: string, mode: string, pos: Point);
 
     spacing: 10px;
 
@@ -59,7 +59,9 @@ export component FixtureSingleView inherits VerticalLayout {
             universe-combo.current-value,
             address-spin.value,
             fixture-id,
-            mode-combo.current-value);
+            mode-combo.current-value,
+            { x:100px, y:100px });
+        // TODO: hard code
     }
 
     spacer := Rectangle {
