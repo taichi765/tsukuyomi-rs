@@ -119,6 +119,8 @@ fn address_index_is_not_populated_when_add_fixture_errors() {
         DmxAddress::new(base).unwrap(),
         dummy_def_id,
         "ModeA".into(),
+        0.,
+        0.,
     );
 
     let fxt_id = fxt.id();

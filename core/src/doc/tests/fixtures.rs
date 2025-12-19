@@ -5,7 +5,7 @@ use crate::doc::{
 };
 use crate::fixture_def::{ChannelKind, FixtureDefId};
 use crate::{
-    fixture::MergeMode,
+    fixture::{Fixture, MergeMode},
     universe::{DmxAddress, UniverseId},
 };
 
@@ -55,12 +55,14 @@ fn add_fixture_errors_when_fixture_def_missing() {
 
     // Create a fixture referencing a non-existent FixtureDef
     let missing_def = FixtureDefId::new();
-    let fxt = crate::fixture::Fixture::new(
+    let fxt = Fixture::new(
         "FxMissingDef",
         uni_id,
         DmxAddress::new(1).expect("valid address"),
         missing_def,
         String::from("ModeA"),
+        0.,
+        0.,
     );
 
     let err = doc
@@ -359,12 +361,14 @@ fn doc_handle_add_fixture_does_not_emit_event_on_error() {
 
     // Create a fixture referencing a non-existent FixtureDef
     let missing_def = FixtureDefId::new();
-    let fxt = crate::fixture::Fixture::new(
+    let fxt = Fixture::new(
         "FxMissingDef",
         uni_id,
         DmxAddress::new(1).expect("valid address"),
         missing_def,
         String::from("ModeA"),
+        0.,
+        0.,
     );
     let fxt_id = fxt.id();
 
@@ -403,12 +407,14 @@ fn doc_handle_update_fixture_does_not_emit_event_on_eroor() {
     handle.insert_fixture_def(def);
 
     // Fixture requests "ModeA" which is not present
-    let fxt = crate::fixture::Fixture::new(
+    let fxt = Fixture::new(
         "FxMissingDef",
         uni_id,
         DmxAddress::new(1).expect("valid address"),
         def_id,
         String::from("ModeA"),
+        0.,
+        0.,
     );
     let fxt_id = fxt.id();
 
